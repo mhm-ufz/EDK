@@ -1,0 +1,2 @@
+    nugget           sill          range    varTyp
+0.2000E+00     0.9014E+00     0.3990E+05         2 

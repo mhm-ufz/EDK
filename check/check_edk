@@ -1,0 +1,419 @@
+#!/bin/bash
+set -e
+#
+# -------------------------------------------------------------------------------------------
+# BRIEF
+# -------------------------------------------------------------------------------------------
+#
+# Runs Kriging with different settings specified in namelists.
+#
+#     $ ./check_edk
+#
+# This script has to be run successfully without failure statements before
+# the EDgE modelling chain can be used to produce results
+#
+# Use 
+#     $ ./check_edk -h
+# for options.
+#
+# Examples
+#     PGI compiler on Eve in debug mode without OpenMP
+#     $ ./check_edk -c pgi -j 4 -s eve -t '0' -r debug
+#
+#     Only check cases 2 and 3 for GNU compiler on Eve in debug and release mode with and without OpenMP
+#     $ ./check_edk -c gnu -j 4 -s eve case_00 case_02
+#
+#     All check cases with all compiler for release mode on Eve
+#     $ ./check_edk -j 4 -s eve -r release
+#
+# -------------------------------------------------------------------------------------------
+# DETAILS
+# -------------------------------------------------------------------------------------------
+#
+# To run all the test cases on (s)ystem "eve" with (c)ompiler "nag53" in (r)elease mode "debug"
+# type
+
+#      $ cd check/
+#      $ ./check_edk -s eve -c nag53 -r debug
+
+# on your command line. If test case was running properly, i.e. is
+# consistent with the pre-defined output, command line output will be
+
+#      $     ###########################
+#      $     #     case_[id]  o.k.     #
+#      $     ###########################
+#      $     using
+#      $        System:   eve
+#      $        Compiler: nag53
+#      $        Release:  debug
+
+# otherwise, if the test scenario failed either during runtime or
+# because of inconsistent output
+
+#      $     ###########################
+#      $     #     case_[id]  failed   #
+#      $     ###########################
+#      $     using
+#      $        System:   eve
+#      $        Compiler: nag53
+#      $        Release:  debug
+
+# will be written on standard output. Additionally, you will find a file
+# standard.output in each specific test case folder case_[id]/ containing the
+# Kriging print-outs. Inspecting this file might help you to find the reason
+# of failure. Only if all test cases pass the make test, you can use the EDgE
+# modelling chain:
+
+# All tests will be performed first in sequential mode and repeated with
+# openmp parallelization. The test cases specified so far are described
+# in the README.
+
+# -------------------------------------------------------------------------------------------
+# Written  Feb 2014 Juliane Mai
+# Modified Feb 2014 Matthias Cuntz                 - lots of small changes
+#          Mar 2014 Stephan Thober, Matthias Cuntz - added OpenMP test
+#          May 2014 Matthias Cuntz                 - specify compiler during clean
+#          Jul 2014 Juliane Mai                    - checking daily_discharge files added
+#          Mar 2015 Matthias Zink                  - added soil moisture calibration test
+#          Oct 2015 Matthias Cuntz                 - added multi-job make
+#          Jan 2016 Matthias Cuntz                 - run only specific test cases
+#          Nov 2016 Matthias Zink                  - adopted from mHM to edk
+
+# -------------------------------------------------------------------------------------------
+#
+# Copyright 2014-2015 Juliane Mai, Matthias Cuntz, Stephan Thober, Matthias Zink
+#
+# License
+# This file is part of the UFZ CHS mesoscale hydrologic model mHM.
+#
+# The UFZ CHS mesoscale hydrologic model mHM is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# The UFZ CHS mesoscale hydrologic model mHM is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Lesser General Public License for more details.
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Start
+#
+
+prog=$0
+pprog=$(basename ${prog})
+dprog=$(dirname ${prog})
+isdir=${PWD}
+pid=$$
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Functions
+#
+
+function usage () {
+    printf "${pprog} [-h] [-c compiler] [-j jobs] [-r release] [-s system] [-t threads] [clean]\n"
+    printf "Check Kriging for different scenarios (case_* folders).\n"
+    printf "The settings (s)ystem, (c)ompiler and (r)elease, which are used by the Makefile, can be specified optionally.\n"
+    printf "\n"
+    printf "Input\n"
+    printf "    #number | clean | cleanup | cleanclean    Runs a specific check case or only the cleanup function.\n"
+    printf "\n"
+    printf "Options\n"
+    printf "    -h     Prints this help screen.\n"
+    printf "    -c     Compilers used to generate a Kriging executable, e.g. 'gnu'\n"
+    printf "           'all' loops over all compilers found on the system\n"
+    printf "           (Default: all)\n"
+    printf "    -j     Specifies the number of jobs (commands) to run simultaneously, for make only.\n"
+    printf "    -r     Release or debug mode, e.g. 'release'\n"
+    printf "           'all' or 'both' loop over debug and release\n"
+    printf "           (Default: all)\n"
+    printf "    -s     System on which Kriging will be compiled, e.g. 'eve'\n"
+    printf "           (Default: eve).\n"
+    printf "    -t     Number of threads for OpenMP, e.g. '6'\n"
+    printf "           Set to '0' for deactivation of parallel test\n"
+    printf "           (Default: '0 2').\n"
+    printf "    -v     Verbose. Show make, run and diff outputs.\n"
+    printf "\n"
+    printf "Example\n"
+    printf "    ${pprog} -j 12 -c gnu45 -s eve -r debug -t '0 2'\n"
+}
+
+# cleanup at end and when interupted
+function cleanup ()
+{
+  # exe
+  #echo ${isdir}
+    cd ${isdir}
+    # rm -f $(find . -name 'edk_for_check')
+
+    # everything in case_?? dirs
+    case_dirs=$(\ls -d case_*)
+    rmfiles="cdo.*.terminal standard_out.*.out timer.out edk_for_check"
+    rmdirs="output"
+
+    # using brace expansion
+
+    # old ${pid} not known when called "./check_edk clean" --> include in ${rmfiles}
+    for i in $(echo ${rmfiles}) ; do eval rm -f $(echo ${case_dirs} | tr ' ' ',')/${i}   ; done
+    for i in $(echo ${rmdirs})  ; do eval rm -f $(echo ${case_dirs} | tr ' ' ',')/${i}/* ; done
+    
+    # make cleanclean
+    cd ..
+    if [[ "${compiler}z" == "z" ]] ; then compiler=$(echo ${compilers} | cut -f 1 -d ' ') ; fi
+    eval make -f ${makefile} system=${system} compiler=${compiler} PROGNAME=${exe} cleanclean ${devnull}
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Checks and Switches
+#
+
+# name of the mhm executable
+exe='edk_for_check'
+makefile=Makefile
+makeconfig=make.config
+
+# switches
+compilers='intel' # 'all'
+ijobs=0
+release='all'
+system='eve'
+threads='0 2'
+verbose=0
+while getopts "c:hj:r:s:t:v" Option ; do
+    case ${Option} in
+        c) compilers="${OPTARG}";;
+        h) usage 1>&2; exit 0;;
+        j) ijobs="${OPTARG}";;
+        r) release="${OPTARG}";;
+        s) system="${OPTARG}";;
+        t) threads="${OPTARG}";;
+        v) verbose=1;;
+        *) printf "Error ${pprog}: unimplemented option.\n\n";  usage 1>&2; exit 1;;
+    esac
+done
+shift $((${OPTIND} - 1))
+
+# verbose
+if [[ ${verbose} -eq 1 ]] ; then devnull="" ; else devnull="> /dev/null" ; fi
+
+# check for compilers on system
+compilers=$(echo ${compilers} | tr [A-Z] [a-z])
+if [[ "${compilers}" == "all" ]] ; then
+    mcol=$(echo ${makeconfig} | tr '.' ' ' | wc -w)
+    icol=$(( 3 + ${mcol} ))
+    compilers=$(\ls ../${makeconfig}/${system}.* | grep -Ev '(alias|gnu41|gnu44|sun12|pgfortran154|pgi159)' | cut -d '.' -f ${icol})
+fi
+
+# argument
+case_dirs=""
+if [ $# -gt 0 ] ; then
+    # case directory or "clean"
+    for ii in $@ ; do
+        case ${ii} in
+    	    case_[0-9][0-9])
+            case_dirs="${case_dirs} ${ii}"
+            ;;
+          clean*)
+            cleanup
+            exit 0
+            ;;
+          *)
+            printf "Error ${pprog}: unknown argument.\n\n"
+            usage 1>&2
+            exit 1
+            ;;
+        esac
+    done
+fi
+
+# check for cdo
+set +e
+icdo=$(which cdo 2> /dev/null)
+set -e
+if [[ "${icdo}z" == "z" ]] ; then
+    if [[ ${system} == "eve" || ${system} == "eve2" ]] ; then
+        echo '   try to load module cdo ...'
+        source /etc/profile.d/000-modules.sh
+        if [[ $(hostname | cut -d . -f 1) == 'frontend1' || $(hostname | cut -d . -f 1) == 'frontend2' ]] ; then
+            module load cdo
+	else
+	    echo "Host not specified!"
+        fi
+	set +e
+        icdo=$(which cdo 2> /dev/null)
+	set -e
+    fi
+fi
+#set -ex
+if [[ "${icdo}z" == "z" ]] ; then printf "Error ${pprog}: cdo not found.\n\n" ; exit 1 ; fi
+
+# rm coloured ls
+if [[ -n ${CLICOLOR_FORCE} ]] ; then unset CLICOLOR_FORCE ; fi
+
+# releases
+release=$(echo ${release} | tr [A-Z] [a-z])
+if [[ "${release}" == "both" || "${release}" == "all" ]] ; then
+    release=$(echo debug release)
+fi
+
+# system
+system=$(echo ${system} | tr [A-Z] [a-z])
+
+# make jobs
+if [[ ${ijobs} -eq 0 ]] ; then mjobs='' ; else mjobs="-j ${ijobs}" ; fi
+    
+# ---------------------------------------------------------------------------------------------------------------------
+# Do Tests
+#
+for irelease in ${release} ; do
+    for thread in ${threads} ; do
+        for compiler in ${compilers} ; do
+            # Compile executable
+            cd ..
+            echo '   ### COMPILING ###'
+            echo '   using System:   '${system}
+            echo '         Compiler: '${compiler}
+            echo '         Release:  '${irelease}
+	    
+            if [[ ${thread} -eq 0 ]] ; then
+                echo '         OpenMP:   False'
+                eval make -f ${makefile} ${mjobs} system=${system} compiler=${compiler} release=${irelease} PROGNAME=${exe} openmp= cleanclean ${devnull}
+                eval make -f ${makefile} ${mjobs} system=${system} compiler=${compiler} release=${irelease} PROGNAME=${exe} openmp= ${devnull}
+            else
+                echo '         OpenMP:   True'
+                echo '         Threads:  '${thread}
+                eval make -f ${makefile} ${mjobs} system=${system} compiler=${compiler} release=${irelease} PROGNAME=${exe} openmp=true cleanclean ${devnull}
+                eval make -f ${makefile} ${mjobs} system=${system} compiler=${compiler} release=${irelease} PROGNAME=${exe} openmp=true ${devnull}
+                export OMP_NUM_THREADS=${thread}
+            fi
+
+            # run checks
+            cd check
+	    if [[ "${case_dirs}z" == "z" ]] ; then case_dirs=$(\ls -d case_*) ; fi
+
+            nRecordsDiffer_allCases=0
+            for case_dir in ${case_dirs} ; do
+                echo ''
+                echo '##############################################################################################'
+                echo '#                                 '${case_dir}' will be checked ...                                #'
+                echo '##############################################################################################'
+                echo ''
+                cd ${case_dir}
+
+                # remove old exe and link recently compiled
+                if [[ -f ${exe} ]] ; then rm ${exe} ; fi
+                ln -s ../../${exe} . 
+
+                # remove old files
+                if [[ -f standard_out.${pid}.out ]] ; then rm standard_out.${pid}.out ; fi
+                if [[ -f cdo.${pid}.terminal ]] ; then rm cdo.${pid}.terminal ; fi
+
+                # run executable
+                echo '   Kriging is running ...    ./'${exe}' > standard_out.'${pid}'.out'
+		            if [[ ${verbose} -eq 1 ]] ; then
+                  ./${exe} | tee standard_out.${pid}.out
+		            else
+                  ./${exe} > standard_out.${pid}.out
+		            fi
+
+                # Kriging was running till the end?
+                set +e
+                found=$(grep 'Kriging finished!' standard_out.${pid}.out)
+                set -e
+
+                if [[ ${found} == ' Kriging finished!' ]] ; then
+                    
+                    nRecordsDiffer=0
+                    cd output_save
+                    set +e
+                    nc_files=$(\ls *.nc 2> /dev/null)                        # causes failure if no such file exists
+                    set -e
+                    if [[ -z ${nc_files} ]] ; then
+                        echo '   No NetCDF     files written!'
+                    fi
+                    cd ..
+                    echo ''
+                    # compare NetCDF outputs in output/ with reference in output_save/
+                    for nc_file in ${nc_files} ; do
+                        # cdo -b 16 :: precision=double=16bit
+                        echo '   *  cdo diff output_save/'${nc_file}' output/'${nc_file}
+			                  if [[ ${verbose} -eq 1 ]] ; then
+                          ${icdo} -s diffn output_save/${nc_file} output/${nc_file} | tee cdo.${pid}.terminal
+			                  else
+			                    ${icdo} -s diffn output_save/${nc_file} output/${nc_file} > cdo.${pid}.terminal
+			                  fi
+                        iRecordsDiffer=$(grep -i 'differ' cdo.${pid}.terminal | tail -1 | cut -f 1 -d 'o')
+                        nRecordsDiffer=$((nRecordsDiffer+iRecordsDiffer))
+                        nRecordsDiffer_allCases=$((nRecordsDiffer_allCases+iRecordsDiffer))
+                        echo '      Number of records that differ more than 0.001: '${iRecordsDiffer}
+                        if [[ ${iRecordsDiffer} -gt 0 ]] ; then
+                            echo '            --------------------------------------'
+                            echo '                  Details '
+                            echo '            --------------------------------------'
+                            ${icdo} diffn output_save/${nc_file} output/${nc_file}
+                            echo '            --------------------------------------'
+                        fi
+                        echo ''
+                    done
+                    
+                    echo '   Total Number of records that differ: '${nRecordsDiffer}
+
+                    if [[ ${nRecordsDiffer} -eq 0 ]] ; then
+                        echo ''
+                        echo '   ###########################'
+                        echo '   #     '${case_dir}'     o.k.    #'
+                        echo '   ###########################'
+                        # echo '   using System:   '${system}
+                        # echo '         Compiler: '${compiler}
+                        # echo '         Release:  '${irelease}
+                        echo ''
+                    else
+                        echo ''
+                        echo '   ###########################'
+                        echo '   #     '${case_dir}'    failed   #'
+                        echo '   ###########################'
+                        # echo '   using System:   '${system}
+                        # echo '         Compiler: '${compiler}
+                        # echo '         Release:  '${irelease}
+                        echo ''
+                    fi
+                    cd ..
+                else
+                    echo '   Kriging was aborted'
+                    echo ''
+                    echo '   ###########################'
+                    echo '   #     '${case_dir}'    failed   #'
+                    echo '   ###########################'
+                    # echo '   using System:   '${system}
+                    # echo '         Compiler: '${compiler}
+                    # echo '         Release:  '${irelease}
+                    echo ''
+                    nRecordsDiffer_allCases=$((nRecordsDiffer_allCases+1))
+                fi
+
+            done # case loop
+
+            if [[ ${nRecordsDiffer_allCases} -gt 0 ]] ; then
+                echo ''
+                echo '##############################################################################################'
+                echo '#     At least one case failed in this compiler setup                                        #'
+                echo '#     check_edk is aborted without cleaning up the output in                                 #'
+                echo '#     the case directories, such that it can be used to identify the bug                     #'
+                echo '##############################################################################################'
+                exit 1
+            fi
+
+        done # compiler loop
+    done # thread loop
+done # release loop
+
+# Clean up mhm directory
+cleanup
+echo ''
+echo '##############################################################################################'
+echo '#     All cases with the specified compilers were o.k.                                       #'
+echo '#     Output is cleaned up.                                                                  #'
+echo '##############################################################################################'
+echo ''
+
+exit 0

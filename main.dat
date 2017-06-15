@@ -1,0 +1,22 @@
+!EDK-Grid***Main configuration file for Precipitation for GER***
+&mainVars ! namelist mainpaths
+flagMthTyp               = 1
+flagVarTyp               = 1
+noDataValue              = -9
+DataPathIn               = "/data/stohyd/data/processed/Germany/DWD/pre/1900-2010/"
+fNameDEM                 = "/data/stohyd/data/processed/Germany/DEM/dkg/blocks/1.asc"
+DataPathOut              = "/home/zink/data/edk_test/edk/"
+fNameSTA                 = "/data/stohyd/data/processed/Germany/DWD/pre/1900-2010/StationLuT_pre.txt"
+cellFactor               = 40
+DataConvertFactor        = 1.0e-1
+flagEDK                  = .TRUE.
+yStart                   = 1960
+yEnd                     = 1960
+maxDist                  = 1.5e5
+flagVario                = .FALSE.
+vType                    = 1
+nParam                   = 3
+fNameVario               = "/home/zink/fortran_code/edk/variogram_param_apriori.txt"                 ! path+filename 
+dh                       = 1.0e3                      ! binsize for variogram
+hMax                     = 1.5e5                         ! max distance h
+/ !END*******Main Config***********
