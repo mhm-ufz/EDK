@@ -18,7 +18,8 @@ subroutine EDK(jd,k)
   use runControl
   use varfit, only                 : beta
   use LSASF_INT
-  use mkl95_lapack, only: gesv
+  ! use mkl95_lapack, only: gesv
+  use lapack95, only: gesv
 
   implicit none
   integer(i4), intent(in)         :: jd                  ! julian day
