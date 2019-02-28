@@ -17,7 +17,7 @@ subroutine EDK(jd,k)
   use kriging
   use runControl
   use varfit, only                 : beta
-  use LSASF_INT
+  ! use LSASF_INT
   ! use mkl95_lapack, only: gesv
   use lapack95, only: gesv
 
@@ -96,9 +96,9 @@ subroutine EDK(jd,k)
     B(nNmax+2) = cell(k)%h
 
     !NOTE: only the upper triangular matrix is needed!
-    call D_LSASF (A, B, X)
-    ! call gesv(A, B)
-    ! X = B
+    ! call D_LSASF (A, B, X)
+    call gesv(A, B)
+    X = B
     !
     ! The BLUE of z is then:
     cell(k)%z = 0.

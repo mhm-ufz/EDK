@@ -4,12 +4,12 @@
 ! http://www.mohid.com/wiki/index.php?title=PROJ4
 
 subroutine CoorTrans(lon, lat, x, y)
- use proj4
+ ! use proj4
  implicit none
   real(8), intent(in)                     :: lon, lat
   real(8), intent(out)                    :: x, y
   integer(4)                              :: status
-  type(prj90_projection)                  :: proj
+  ! type(prj90_projection)                  :: proj
   character(len=20), dimension(8)         :: params
   !
   ! define parameters of the aiming coordinate system
@@ -23,28 +23,32 @@ subroutine CoorTrans(lon, lat, x, y)
   params(7) = 'x_0=4500000'     ! false easting 
   params(8) = 'y_0=0'           ! false northing
   !
-  status=prj90_init(proj,params)
-  if (status.ne.PRJ90_NOERR) then
-     write(*,*) prj90_strerrno(status)
-     stop
-  end if
+  ! dummy variables
+  x = 0.
+  y = 0.
   !
-  ! lat,lon --> GK4
-  status = prj90_fwd(proj, lon, lat, x, y)
-  if (status.ne.PRJ90_NOERR) then
-     write(*,*) prj90_strerrno(status)
-     stop
-  end if
+  ! status=prj90_init(proj,params)
+  ! if (status.ne.PRJ90_NOERR) then
+  !    write(*,*) prj90_strerrno(status)
+  !    stop
+  ! end if
+  ! !
+  ! ! lat,lon --> GK4
+  ! status = prj90_fwd(proj, lon, lat, x, y)
+  ! if (status.ne.PRJ90_NOERR) then
+  !    write(*,*) prj90_strerrno(status)
+  !    stop
+  ! end if
 end subroutine CoorTrans
 
 
 subroutine CoorTransInv(x, y, lon, lat)
-  use proj4
+  ! use proj4
   implicit none
   real(8), intent(in)                     :: x, y
   real(8), intent(out)                    :: lon, lat
   integer(4)                              :: status
-  type(prj90_projection)                  :: proj
+  ! type(prj90_projection)                  :: proj
   character(len=20), dimension(8)         :: params
   !
   ! define parameters of the aiming coordinate system
@@ -58,22 +62,26 @@ subroutine CoorTransInv(x, y, lon, lat)
   params(7) = 'x_0=4500000'     ! false easting 
   params(8) = 'y_0=0'           ! false northing
   !
-  !print*, ' '
-  !print*, 'CoordTransInv: before init'
-  status=prj90_init(proj,params)
-  !print*, 'CoordTransInv: after init'
-  if (status.ne.PRJ90_NOERR) then
-     write(*,*) prj90_strerrno(status)
-     stop
-  end if
+  ! dummy variables
+  lon = 0.
+  lat = 0.
   !
-  ! GK 4  --> lat, lon
-  !print*, 'CoordTransInv: before transformation', x, y
-  status = prj90_inv(proj, x, y, lon, lat)
-  !print*, 'CoordTransInv: after transformation', lon, lat
-  !print*, ' '
-  if (status.ne.PRJ90_NOERR) then
-     write(*,*) prj90_strerrno(status)
-     stop
-  end if
+  ! !print*, ' '
+  ! !print*, 'CoordTransInv: before init'
+  ! status=prj90_init(proj,params)
+  ! !print*, 'CoordTransInv: after init'
+  ! if (status.ne.PRJ90_NOERR) then
+  !    write(*,*) prj90_strerrno(status)
+  !    stop
+  ! end if
+  ! !
+  ! ! GK 4  --> lat, lon
+  ! !print*, 'CoordTransInv: before transformation', x, y
+  ! status = prj90_inv(proj, x, y, lon, lat)
+  ! !print*, 'CoordTransInv: after transformation', lon, lat
+  ! !print*, ' '
+  ! if (status.ne.PRJ90_NOERR) then
+  !    write(*,*) prj90_strerrno(status)
+  !    stop
+  ! end if
 end subroutine CoorTransInv

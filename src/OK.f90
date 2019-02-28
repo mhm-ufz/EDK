@@ -15,7 +15,8 @@ subroutine OK(jd,k)
   use runControl
   use varfit, only                 : beta
   use mo_kind, only                : i4, dp
-  use LSASF_INT
+  ! use LSASF_INT
+  use lapack95, only: gesv
   implicit none
   integer(i4), intent(in)         :: jd                   ! day
   integer(i4), intent(in)         :: k                    ! cell id
@@ -74,7 +75,9 @@ subroutine OK(jd,k)
      !
      B(nNmax+1) = 1.0_dp
      !NOTE: only the upper triangular matrix is needed!
-     call D_LSASF (A, B, X)
+     ! call D_LSASF (A, B, X)
+     call gesv(A, B)
+     X = B
      !
      ! The BLUE of z is then:
      cell(k)%z = 0.
