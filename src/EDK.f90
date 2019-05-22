@@ -46,7 +46,7 @@ subroutine EDK(jd,k)
     j = cell(k)%listNS(i)
     if ( MetSta(j)%z(jd) /= noDataValue ) then
 
-     !***      zero field     ***********************************
+      !***      zero field     ***********************************
       if (MetSta(j)%z(jd) == 0.0_dp ) ll = ll + 1
       !**********************************************************
       l = l + 1
@@ -57,7 +57,7 @@ subroutine EDK(jd,k)
   !>>>>  no value ! avoid indetermination
   ! avoid 0 value calculations ll == nNmax
   ! avoid calculations where only 1 station is available
-  ! avoid numerical instabilities nNmax == 2 (may happen that the solver matrix becomes singular) 
+  ! avoid numerical instabilities nNmax == 2 (may happen that the solver matrix becomes singular)
   if (.not. ( ll == nNmax .or.  nNmax == 1 .or. nNmax == 2 ) ) then     
     !
     ! initialize matrices  
@@ -76,12 +76,19 @@ subroutine EDK(jd,k)
         ! available only the upper triangular matrix
         if (jj > ii) then
           A(i,j)=tVar(dS(ii)%S(jj),beta(1),beta(2),beta(3))
+          A(j,i)=A(i,j)
         else
           A(i,j)=tVar(dS(jj)%S(ii),beta(1),beta(2),beta(3))
+          A(j,i)=A(i,j)
         end if
       end do
+      A(i,i) = tVar(0._dp,beta(1),beta(2),beta(3))
+
       A(i,nNmax+1) = 1.0_dp
+      A(nNmax+1,i) = 1.0_dp
       A(i,nNmax+2) = MetSta(ii)%h
+      A(nNmax+2,i) = MetSta(ii)%h
+
       B(i)=tVar(dCS(k,ii),beta(1),beta(2),beta(3))
    end do
    
@@ -95,7 +102,7 @@ subroutine EDK(jd,k)
     B(nNmax+1) = 1.0_dp
     B(nNmax+2) = cell(k)%h
 
-    !NOTE: only the upper triangular matrix is needed!
+    ! NOTE: only the upper triangular matrix is needed!
     ! call D_LSASF (A, B, X)
     call gesv(A, B)
     X = B
@@ -135,7 +142,7 @@ subroutine EDK(jd,k)
 
   ! avoid numerical instabilities --> IWD insverse weighted squared distance
   ! matrix of DLSASF may become instable if only two or three stations are available 
-  else if (ll /= nNmax .AND. nNmax == 2) then
+   else if (ll /= nNmax .AND. nNmax == 2) then
      allocate (lamda(nNmax))
      do i=1,nNmax
         ii=Nk(i)

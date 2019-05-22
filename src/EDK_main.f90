@@ -74,12 +74,13 @@ program ED_Kriging
         ncellsloop: do iCell = 1, nCell
            ! interploation
            select case (flagMthTyp)
-           case (1) 
-              call EDK(jday,iCell)
+           case (1)
+             call EDK(jday,iCell)
+             
            case (2)
               call OK(jday,iCell)
            end select
-        end do ncellsloop
+         end do ncellsloop
 
         ! correct precipitation values
         if (flagVarTyp == 1) then
