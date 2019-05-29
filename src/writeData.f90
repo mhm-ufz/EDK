@@ -72,7 +72,7 @@ subroutine WriteDataMeteo(y,d,wFlag)
     !---------------------------
    
     ! print varfit cross-val depending on variogram estimation (true or false)
-    if ( flagVario == .TRUE. ) then    !
+    if ( flagVario ) then    !
       fileName=trim(dataPathOut)//'varFit.txt'
       inquire(201, OPENED = wasOpened)
       if (.not.wasOpened) then

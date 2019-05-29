@@ -103,7 +103,7 @@ subroutine ReadStationLut
 
   ! take only stations which are in search distance
   ! two possibilties for search distance for vario - hMax for EDK - maxDist
-  if (flagVario == .TRUE.) then
+  if (flagVario) then
      search_distance = hMax
   else
      search_distance = maxDist
