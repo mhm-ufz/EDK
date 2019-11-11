@@ -84,9 +84,9 @@ module kriging
     integer(i4)                                :: nNS                 ! No. Nearest Stations (NS) d <= maxDist
     integer(i4), dimension(:), allocatable     :: listNS              ! list of NS
     real(dp)                                   :: x                   ! x- coordinate
-   	real(dp)                                   :: y                   ! y- coordinate
-   	real(dp)                                   :: h                   ! (estimated) elevation [m] (from the nearest cells DEM)
-   	real(sp)                                   :: z                   ! z values to be interpolated (OUTPUT)
+    real(dp)                                   :: y                   ! y- coordinate
+    real(dp)                                   :: h                   ! (estimated) elevation [m] (from the nearest cells DEM)
+    real(sp)                                   :: z                   ! z values to be interpolated (OUTPUT)
   end type CellCoarser
   type(CellCoarser),  dimension(:), allocatable  :: cell             ! EDK output
 

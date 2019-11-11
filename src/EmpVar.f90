@@ -46,7 +46,7 @@ subroutine EmpVar(jd, flagMax)
     if ( MetSta(i)%z(jd) ==  noDataValue ) cycle
     nobs  = nobs + 1
     delta = MetSta(i)%z(jd) - m0
-    m0    = m0 + delta / dfloat(nobs)
+    m0    = m0 + delta / real(nobs, dp)
     v0    = v0 + delta * (MetSta(i)%z(jd) - m0)
     !write (999,'(4i6, 3f15.4)') y,d,i, nobs, MetSta(i)%z(jd), m0, v0
   end do
@@ -125,12 +125,12 @@ subroutine EmpVar(jd, flagMax)
       if (Nh(k) > 0) then
         ni=ni+1
         ! Classsical
-         gamma(k,2)=gamma(k,2)/2.0_dp/dfloat(Nh(k))
+         gamma(k,2)=gamma(k,2)/2.0_dp/real(Nh(k), dp)
         !
         ! Cressi-Hawkins: adjust bias
         !gamma(k,2)=0.5_dp/(0.457_dp+0.494_dp/dfloat(Nh(k)))*(gamma(k,2)/dfloat(Nh(k)))**4
         ! 
-        gamma(k,1)=dfloat(k)*dh-dfloat(ni)*dh/2.0_dp
+        gamma(k,1)=real(k, dp)*dh-real(ni, dp)*dh/2.0_dp
         ni=0
       else
         ni=ni+1

@@ -19,7 +19,7 @@ subroutine EDK(jd,k)
   use varfit, only                 : beta
   ! use LSASF_INT
   ! use mkl95_lapack, only: gesv
-  use lapack95, only: gesv
+  ! use lapack95, only: gesv
 
   implicit none
   integer(i4), intent(in)         :: jd                  ! julian day
@@ -104,7 +104,8 @@ subroutine EDK(jd,k)
 
     ! NOTE: only the upper triangular matrix is needed!
     ! call D_LSASF (A, B, X)
-    call gesv(A, B)
+    ! call gesv(A, B) ! EVE CentOS 7
+    call dgesv(A, B) ! MacOS Sierra: Accelerate Framework
     X = B
     !
     ! The BLUE of z is then:

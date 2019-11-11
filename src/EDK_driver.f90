@@ -58,7 +58,7 @@ program ED_Kriging
   ! estimate variogram
   call setVario
   ! write variogram  
-  if (flagVario == .TRUE.) call WriteDataMeteo(0,0,2)
+  if (flagVario) call WriteDataMeteo(0,0,2)
   ! 
   if (flagEDK) then
      ! open netcdf if necessary

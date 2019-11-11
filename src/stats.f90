@@ -29,12 +29,12 @@ subroutine stats
   end do
   !
   error = zObs-zCal
-	if ( ne > 1 ) then
-    zObsMean  = sum(zObs)/dfloat(ne)
-    zCalMean  = sum(zCal)/dfloat(ne)
+  if ( ne > 1 ) then
+    zObsMean  = sum(zObs)/real(ne, dp)
+    zCalMean  = sum(zCal)/real(ne, dp)
     sumP      = dot_product(zObs,zCal)
-    zObsVar   = dot_product(zObs,zObs) - dfloat(ne) * zObsMean * zObsMean
-    zCalVar   = dot_product(zCal,zCal) - dfloat(ne) * zCalMean * zCalMean
+    zObsVar   = dot_product(zObs,zObs) - real(ne, dp) * zObsMean * zObsMean
+    zCalVar   = dot_product(zCal,zCal) - real(ne, dp) * zCalMean * zCalMean
     SSE       = dot_product(error,error)
     denom     = zObs - zObsMean
     NSE_denom = dot_product(denom,denom)
@@ -53,7 +53,7 @@ subroutine stats
     E(1) = zCalMean - zObsMean
     !  
     ! MSE
-    E(2) = SSE/dfloat(ne)
+    E(2) = SSE/real(ne, dp)
     !
     ! RMSE
     if ( E(2) > 0.0_dp ) then
@@ -71,16 +71,16 @@ subroutine stats
     !
     ! MAE
     E(5)= sum(abs(error))
-    E(5)= E(5)/DFLOAT(ne)
+    E(5)= E(5)/real(ne, dp)
     !
     ! RMAE
     E(6)=E(5)/zObsMean
     !
     ! r
-    E(7)= (sumP-dfloat(ne) * zCalMean * zObsMean) / dsqrt(zCalVar * zObsVar)
-	  !
-	  ! NSE
-	  E(8)= 1.0_dp - (SSE/NSE_denom) 
+    E(7)= (sumP-real(ne, dp) * zCalMean * zObsMean) / dsqrt(zCalVar * zObsVar)
+    !
+    ! NSE
+    E(8)= 1.0_dp - (SSE/NSE_denom) 
   else
     E = small
   end if

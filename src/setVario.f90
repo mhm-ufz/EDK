@@ -35,10 +35,14 @@ subroutine setVario
      end do
      !
      ! variance
-     v0 = v0 / dfloat(nobs)
+     v0 = v0 / real(nobs, dp)
      ! optimize parameters
      open(UNIT = 6,FILE = 'Report_OPT.sol', STATUS='REPLACE')
-     call opti
+
+     print *, "ST: replace old GRG2 opti with something better"
+     ! call opti
+
+     ! fit a theoretical variogram
 
   end if
 end subroutine setVario

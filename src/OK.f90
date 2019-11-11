@@ -16,7 +16,7 @@ subroutine OK(jd,k)
   use varfit, only                 : beta
   use mo_kind, only                : i4, dp
   ! use LSASF_INT
-  use lapack95, only: gesv
+  ! use lapack95, only: gesv
   implicit none
   integer(i4), intent(in)         :: jd                   ! day
   integer(i4), intent(in)         :: k                    ! cell id
