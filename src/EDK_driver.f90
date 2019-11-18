@@ -40,6 +40,7 @@ program ED_Kriging
   integer(i4)                           :: year, month, day  ! current date
   integer(i4)                           :: netcdfid          ! id of netcdf files
   real(dp), dimension(:,:), allocatable :: tmp_array         ! temporal array for output
+  real(dp)                              :: param(3)          ! variogram parameters
 
   call Timer
   call ReadDataMain
@@ -56,7 +57,8 @@ program ED_Kriging
   call ReadDataMeteo
   print*, 'finished reading of meteorological data'
   ! estimate variogram
-  call setVario
+  call setVario(param)
+  stop 'TESTING OPTIMIZATION'
   ! write variogram  
   if (flagVario) call WriteDataMeteo(0,0,2)
   ! 

@@ -50,12 +50,14 @@ subroutine ReadDataMain
   
   ios = 0
   allocate (beta(nParam))
- 
-  filename = trim(fNameVARIO)
-  open (unit=20, file=filename, STATUS='OLD', ACTION='READ')
+
+  if ( .not. flagVario ) then
+    filename = trim(fNameVARIO)
+    open (unit=20, file=filename, STATUS='OLD', ACTION='READ')
     read (20,1) dummy
     read (20, *,iostat=ios) (beta(i), i=1,nParam), i
-  close (20)
+    close (20)
+  end if
 
   ! if vario is read from file take read in vario type
   if ( .not. flagVario ) then
@@ -288,6 +290,7 @@ subroutine ReadDataMeteo
     ! read yearly data file
     write (dummy, 2) MetSta(i)%Id
     fileName = trim(dataPathIn)//trim(dummy)
+    print *, 'read file: '//trim(fileName)
     open (60, file=fileName, status='old', action='read', iostat=ios)
     read (60, *) dummy
     !

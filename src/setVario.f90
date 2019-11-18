@@ -10,13 +10,14 @@
 !          Created      Sa  19.02.2004     main structure
 !          Last update      12.04.2006   
 !**********************************************************************************
-subroutine setVario
+subroutine setVario(param)
   use runControl
   use VarFit
   use mainVar
   use mo_kind, only: i4, dp
   implicit none
-  integer(i4)               :: jd, y, y0
+  real(dp), intent(out) :: param(3)
+  integer(i4) :: jd, y, y0
   !
   ! Estimation
   if (flagVario) then
@@ -37,12 +38,10 @@ subroutine setVario
      ! variance
      v0 = v0 / real(nobs, dp)
      ! optimize parameters
-     open(UNIT = 6,FILE = 'Report_OPT.sol', STATUS='REPLACE')
+     ! open(UNIT = 6,FILE = 'Report_OPT.sol', STATUS='REPLACE')
 
      print *, "ST: replace old GRG2 opti with something better"
-     ! call opti
-
-     ! fit a theoretical variogram
+     call opti(param)
 
   end if
 end subroutine setVario

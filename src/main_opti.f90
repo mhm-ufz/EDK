@@ -11,7 +11,7 @@
 !         SCREEN OUTPUT:     *
 !         OUTPUT FILE:       6
 !******************************************************************************
-subroutine OPTI
+subroutine OPTI(pmin)
   use VarFit  
   use mo_kind, only: i4, dp
   use mo_obj_func, only: obj_func
@@ -19,7 +19,7 @@ subroutine OPTI
 
   ! parameters for Nelder-Mead algorithm
   real(dp) :: pstart(3) ! Starting point for the iteration.
-  real(dp) :: pmin(3) ! optimized parameter set
+  real(dp), intent(out) :: pmin(3) ! optimized parameter set
   real(dp) :: prange(3, 2) ! Range of parameters (upper and lower bound).
   real(dp) :: varmin ! the terminating limit for the variance of the function values. varmin>0 is required
   real(dp) :: step(3) ! determines the size and shape of the initial simplex. The relative magnitudes of its elements should reflect the units of the variables. size(step)=size(start)
@@ -47,12 +47,12 @@ subroutine OPTI
   ! DATA      BIG/1.D31/
 
   ! Initialization of Nelder-Mead
-  pstart = (/0.05, 100., 2./) ! Starting point for the iteration.
+  pstart = (/0.05, 10., 0.5/) ! Starting point for the iteration.
   prange(:, 1) = (/0., 0., 0./) ! Range of parameters (lower bound).
-  prange(:, 2) = (/2., 300., 5./) ! Range of parameters (upper bound).
-  varmin = 0.01 ! the terminating limit for the variance of the function values. varmin>0 is required
-  step = (/0.001, 0.05, 0.01/) ! determines the size and shape of the initial simplex. The relative magnitudes of its elements should reflect the units of the variables. size(step)=size(start)
-  konvge = 10 ! the convergence check is carried out every konvge iterations
+  prange(:, 2) = (/2., 10., 2./) ! Range of parameters (upper bound).
+  varmin = 0.001 ! the terminating limit for the variance of the function values. varmin>0 is required
+  step = (/0.001, 1., 0.01/) ! determines the size and shape of the initial simplex. The relative magnitudes of its elements should reflect the units of the variables. size(step)=size(start)
+  konvge = 100 ! the convergence check is carried out every konvge iterations
   maxeval = 2000 ! the maximum number of function evaluations. default: 1000
 
   ! Call Nelder-Mead optimizer to reduce GCOMP
@@ -65,29 +65,24 @@ subroutine OPTI
   where (gamma(:,1) > 0._dp) gamma(:,1) = gamma(:,1) * gmax(1)
 
   ! scale back parameters (only for range a)
-  pmin(2)=pmin(2)*gmax(1)
+  pmin(3)=pmin(3)*gmax(1)
+  beta = pmin
 
-
+  print *, '=============================='
+  print *, ' Results of Nelder-Mead optimization '
   print *, neval, ' of ', maxeval
   print *, "funcmin: ", funcmin
   print *, "p_obj:   ", pmin
   print *, 'error: ', ierror
   print *, 'varmin: ', varmin
   print *, 'history: ', history(1), history(size(history))
+  print *, 'gmax: ', gmax(1)
   
-  ! stop 'Testing Nelder Mead algorithm'
 
-  ! ! estimate statistics
-  ! call stats
-  ! !
-  ! ! scale up distance h
-  ! where (gamma(:,1) > 0._dp) gamma(:,1) = gamma(:,1) * gmax(1)
-
-  ! ! scale back parameters (only for range a)
-  ! beta(3)=beta(3)*gmax(1)
-
-  ! !print*, 'opt co =', beta(1)
-  ! !print*, 'opt c  =', beta(2)
-  ! !print*, 'opt a  =', beta(3)
+  ! estimate statistics
+  call stats
+  !
+  ! scale up distance h
+  where (gamma(:,1) > 0._dp) gamma(:,1) = gamma(:,1) * gmax(1)
 
 end subroutine OPTI

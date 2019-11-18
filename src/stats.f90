@@ -51,9 +51,11 @@ subroutine stats
     !
     ! BIAS
     E(1) = zCalMean - zObsMean
+    print *, 'BIAS: ', E(1)
     !  
     ! MSE
     E(2) = SSE/real(ne, dp)
+    print *, 'MSE:  ', E(2)
     !
     ! RMSE
     if ( E(2) > 0.0_dp ) then
@@ -61,6 +63,7 @@ subroutine stats
     else
       E(3) = small
     end if
+    print *, 'RMSE: ', E(3)
     !
     ! RRMSE
     if ( E(3) > 0.0_dp ) then
@@ -68,19 +71,24 @@ subroutine stats
     else
       E(4)= small
     end if
+    print *, 'PRMSE:', E(4)
     !
     ! MAE
     E(5)= sum(abs(error))
     E(5)= E(5)/real(ne, dp)
+    print *, 'MAE:  ', E(5)
     !
     ! RMAE
     E(6)=E(5)/zObsMean
+    print *, 'RMAE: ', E(6)
     !
     ! r
     E(7)= (sumP-real(ne, dp) * zCalMean * zObsMean) / dsqrt(zCalVar * zObsVar)
+    print *, 'r:    ', E(7)
     !
     ! NSE
-    E(8)= 1.0_dp - (SSE/NSE_denom) 
+    E(8)= 1.0_dp - (SSE/NSE_denom)
+    print *, 'NSE:  ', E(8)
   else
     E = small
   end if
