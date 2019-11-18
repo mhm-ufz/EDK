@@ -76,7 +76,7 @@ subroutine OK(jd,k)
      B(nNmax+1) = 1.0_dp
      !NOTE: only the upper triangular matrix is needed!
      ! call D_LSASF (A, B, X)
-     call gesv(A, B)
+     call dgesv(A, B)
      X = B
      !
      ! The BLUE of z is then:
