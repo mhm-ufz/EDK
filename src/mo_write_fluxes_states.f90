@@ -29,6 +29,19 @@ MODULE mo_write_fluxes_states
 
 CONTAINS
 
+  subroutine initOutFile(ncid)
+
+    ! use mo_netcdf, only:
+
+    implicit none
+
+    integer(i4), intent(out) :: ncid
+
+
+    stop 'testing initOutFile'
+
+  end subroutine initOutFile
+  
   ! ------------------------------------------------------------------
 
   !      NAME

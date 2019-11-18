@@ -30,8 +30,9 @@ program ED_Kriging
   use mainVar                , only: yStart, yEnd, jStart, jEnd, & ! interpolation time periods
                                      grid, gridMeteo,            & ! grid properties of input and output grid
                                      nCell                         ! number of cells
+  use mo_setVario            , only: setVario
   use kriging
- 
+  
   implicit none
 
   integer(i4)                           :: icell             ! loop varaible for cells
@@ -58,7 +59,6 @@ program ED_Kriging
   print*, 'finished reading of meteorological data'
   ! estimate variogram
   call setVario(param)
-  stop 'TESTING OPTIMIZATION'
   ! write variogram  
   if (flagVario) call WriteDataMeteo(0,0,2)
   ! 
@@ -92,21 +92,10 @@ program ED_Kriging
         end if
 
         ! write output
-        select case (trim(adjustl(outputformat)))
-
-        case('bin')
-           call WriteDataMeteo(year,doy,1)
-
-        case('nc')
-           allocate(tmp_array(gridMeteo%nrows, gridMeteo%ncols)); tmp_array=real(grid%nodata_value, dp)
-           tmp_array = real(reshape(cell(:)%z,(/gridMeteo%nrows, gridMeteo%ncols/)), dp)
-           call WriteFluxState((jday-jStart+1), netcdfid, transpose(tmp_array))
-           deallocate(tmp_array)
-
-        case DEFAULT
-           print*, '***ERROR: Output format not known: ', trim(adjustl(outputformat))
-           stop
-        end select
+        allocate(tmp_array(gridMeteo%nrows, gridMeteo%ncols)); tmp_array=real(grid%nodata_value, dp)
+        tmp_array = real(reshape(cell(:)%z,(/gridMeteo%nrows, gridMeteo%ncols/)), dp)
+        call WriteFluxState((jday-jStart+1), netcdfid, transpose(tmp_array))
+        deallocate(tmp_array)
 
       end do timeloop
 
@@ -114,7 +103,7 @@ program ED_Kriging
       if (outputformat=='nc') call CloseFluxState_file(netcdfid)
 
   end if
-  ! deallocate memory !
+  ! deallocate memory
   call clean
   ! Timer
   call Timer

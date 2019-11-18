@@ -15,7 +15,7 @@ subroutine OPTI(pmin)
   use VarFit  
   use mo_kind, only: i4, dp
   use mo_obj_func, only: obj_func
-  use mo_nelmin, only: nelmin
+  use mo_nelmin, only: nelmin, nelminrange
 
   ! parameters for Nelder-Mead algorithm
   real(dp) :: pstart(3) ! Starting point for the iteration.
@@ -47,19 +47,19 @@ subroutine OPTI(pmin)
   ! DATA      BIG/1.D31/
 
   ! Initialization of Nelder-Mead
-  pstart = (/0.05, 10., 0.5/) ! Starting point for the iteration.
+  pstart = (/0.0, 1., 0.5/) ! Starting point for the iteration.
   prange(:, 1) = (/0., 0., 0./) ! Range of parameters (lower bound).
-  prange(:, 2) = (/2., 10., 2./) ! Range of parameters (upper bound).
+  prange(:, 2) = (/0.3, 5., 2./) ! Range of parameters (upper bound).
   varmin = 0.001 ! the terminating limit for the variance of the function values. varmin>0 is required
-  step = (/0.001, 1., 0.01/) ! determines the size and shape of the initial simplex. The relative magnitudes of its elements should reflect the units of the variables. size(step)=size(start)
+  step = (/0.15, 2.5, 1./) ! determines the size and shape of the initial simplex. The relative magnitudes of its elements should reflect the units of the variables. size(step)=size(start)
   konvge = 100 ! the convergence check is carried out every konvge iterations
   maxeval = 2000 ! the maximum number of function evaluations. default: 1000
 
   ! Call Nelder-Mead optimizer to reduce GCOMP
-  pmin = nelmin(obj_func, pstart, varmin, step, konvge, maxeval, &
-                funcmin, neval, numrestart, ierror, history)
-  ! pmin = nelminrange(obj_func, pstart, prange, varmin, step, konvge, maxeval, &
-  !                    funcmin, neval, numrestart, ierror)
+  ! pmin = nelmin(obj_func, pstart, varmin, step, konvge, maxeval, &
+  !               funcmin, neval, numrestart, ierror, history)
+  pmin = nelminrange(obj_func, pstart, prange, varmin, step, konvge, maxeval, &
+                     funcmin, neval, numrestart, ierror)
 
   ! scale up distance h
   where (gamma(:,1) > 0._dp) gamma(:,1) = gamma(:,1) * gmax(1)
@@ -75,7 +75,7 @@ subroutine OPTI(pmin)
   print *, "p_obj:   ", pmin
   print *, 'error: ', ierror
   print *, 'varmin: ', varmin
-  print *, 'history: ', history(1), history(size(history))
+  if (allocated(history)) print *, 'history: ', history(1), history(size(history))
   print *, 'gmax: ', gmax(1)
   
 

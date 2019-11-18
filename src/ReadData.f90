@@ -44,8 +44,8 @@ subroutine ReadDataMain
   !	*************************************
 
   if (flagVario .AND. flagEDK) then
-     print*, 'Both flags flagVario and flagEDK should not be activated at the same time!'
-     stop
+     print*, '***Warning: Both flags flagVario and flagEDK should not be activated at the same time!'
+     ! stop
   end if
   
   ios = 0

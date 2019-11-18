@@ -12,6 +12,15 @@
 !         Last update  19.02.2004
 !
 !**************************************************************************
+module mo_EmpVar
+
+  implicit none
+
+  private
+
+  public :: EmpVar
+
+contains
 subroutine EmpVar(jd, flagMax)
   use mainVar
   use mo_kind   , only       : i4, dp
@@ -75,7 +84,7 @@ subroutine EmpVar(jd, flagMax)
           end if
         end if
         !
-        k=ceiling(dS(i)%S(j)/dh) 
+        k=max(1, ceiling(dS(i)%S(j)/dh))
         Nh(k)=Nh(k)+1
         gamma(k,2)=gamma(k,2) + dz2S(i)%S(j)
       end if
@@ -153,3 +162,4 @@ subroutine EmpVar(jd, flagMax)
 
 end subroutine EmpVar
 
+end module mo_EmpVar
