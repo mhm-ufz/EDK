@@ -31,6 +31,7 @@ program ED_Kriging
                                      grid, gridMeteo,            & ! grid properties of input and output grid
                                      nCell                         ! number of cells
   use mo_setVario            , only: setVario
+  use mo_netcdf              , only: NcDataset, NcVariable
   use kriging
   
   implicit none
@@ -42,6 +43,8 @@ program ED_Kriging
   integer(i4)                           :: netcdfid          ! id of netcdf files
   real(dp), dimension(:,:), allocatable :: tmp_array         ! temporal array for output
   real(dp)                              :: param(3)          ! variogram parameters
+  type(NcDataset)                       :: nc_out
+  type(NcVariable)                      :: nc_data, nc_time
 
   call Timer
   call ReadDataMain
@@ -64,7 +67,7 @@ program ED_Kriging
   ! 
   if (flagEDK) then
      ! open netcdf if necessary
-     if (outputformat=='nc') call WriteFluxStateInit(netcdfid)
+     call open_netcdf(fname, ncols, nrows, nc_out, nc_data, nc_time) 
 
      timeloop: do jday = jStart, jEnd
 
@@ -94,13 +97,16 @@ program ED_Kriging
         ! write output
         allocate(tmp_array(gridMeteo%nrows, gridMeteo%ncols)); tmp_array=real(grid%nodata_value, dp)
         tmp_array = real(reshape(cell(:)%z,(/gridMeteo%nrows, gridMeteo%ncols/)), dp)
-        call WriteFluxState((jday-jStart+1), netcdfid, transpose(tmp_array))
+        ! call WriteFluxState((jday-jStart+1), netcdfid, transpose(tmp_array))
+          call nc_time%setData(jday,      start=(/jday/))
+          call nc_data%setData(tmp_array, start=(/1, 1, jday/))
+
         deallocate(tmp_array)
 
       end do timeloop
 
       ! close netcdf if necessary
-      if (outputformat=='nc') call CloseFluxState_file(netcdfid)
+      call nc_out%close()
 
   end if
   ! deallocate memory
