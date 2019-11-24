@@ -8,16 +8,20 @@ module mo_write
 
 CONTAINS
 
-  subroutine open_netcdf(fname, ncols, nrows, nc_id, var_id, var_time)
+  subroutine open_netcdf(fname, author_name, vname_data, ncols, nrows, year_start, nc, var_data, var_time)
 
     use mo_kind, only: i4, sp, dp
     use mo_netcdf, only: NcDataset, NcDimension, NcVariable
+    use mo_string_utils, only: num2str
 
     implicit none
 
     character(256),   intent(in)  :: fname
+    character(256),   intent(in)  :: author_name
+    character(256),   intent(in)  :: vname_data
     integer(i4),      intent(in)  :: ncols
     integer(i4),      intent(in)  :: nrows
+    integer(i4),      intent(in)  :: year_start
     type(NcDataset),  intent(out) :: nc
     type(NcVariable), intent(out) :: var_time, var_data
     
@@ -33,13 +37,13 @@ CONTAINS
     dim_time = nc%setDimension("time", -1)
 
     ! create variables
-    var_time = nc%setVariable(vname_time, "i32", (/dim_time/))
+    var_time = nc%setVariable('time', "i32", (/dim_time/))
     ! var_lat  = nc%setVariable(vname_lat,  "f32", (/dim_x, dim_y/))
     ! var_lon  = nc%setVariable(vname_lon , "f32", (/dim_x, dim_y/))
     var_data = nc%setVariable(vname_data, "f64", (/dim_x, dim_y, dim_time/))
 
     ! add some variable attributes
-    call var_time%setAttribute("units", "days since " // trim(num2str(yearstart - 1, form='(I4)')) // "-12-31 12:00:00")
+    call var_time%setAttribute("units", "days since " // trim(num2str(year_start - 1, form='(I4)')) // "-12-31 12:00:00")
 
     ! ! write data of static variables
     ! call var_lat%setData(wlat)

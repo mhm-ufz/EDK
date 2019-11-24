@@ -7,7 +7,7 @@
 !               Created        Sa   21.03.2006
 !               Last Update    Sa   11.06.2010
 !**************************************************************************
-subroutine ReadDataMain
+subroutine ReadDataMain(FileOut, author_name, variable_name)
   use mainVar
   use mo_kind,    only: i4, dp
   use mo_julian , only: NDAYS
@@ -15,22 +15,25 @@ subroutine ReadDataMain
   use kriging
   use VarFit
   use runControl
-  use NetCDFVar,  only: variable_name, variable_unit, variable_long_name
+  use NetCDFVar,  only: variable_unit, variable_long_name
 
   implicit none
   !
-  integer(i4)           :: i, ios
-  character(256)        :: dummy, fileName
+  character(256),   intent(out) :: FileOut
+  character(256),   intent(out) :: author_name
+  character(256),   intent(out) :: variable_name
+  integer(i4)                   :: i, ios
+  character(256)                :: dummy, fileName
   !
   !===============================================================
   !  namelist definition
   !===============================================================
   !
   namelist/mainVars/flagMthTyp, flagVarTyp, noDataValue, DataPathIn, fNameDEM,                    & 
-                    DataPathOut, fNameSTA, cellFactor, outputformat, DataConvertFactor, flagEDK,  &
-                    variable_name, variable_unit, variable_long_name,                             & 
+                    DataPathOut, FileOut, fNameSTA, cellFactor, outputformat, DataConvertFactor, flagEDK,  &
+                    author_name, variable_name, variable_unit, variable_long_name,                             & 
                     yStart, mStart, dStart, yEnd, mEnd, dEnd, maxDist, flagVario, vType, nParam,  &  
-                    fNameVario, dh, hMax
+                    fNameVario, dh, hMax, author_name, variable_name
   !
   ! -----------------------------------------------------------------------
   !	                               MAIN.DAT
@@ -38,6 +41,7 @@ subroutine ReadDataMain
   open(unit=10, file='main.dat', STATUS='OLD', ACTION='read')
   read(10, nml=mainVars)
   close(10)
+  FileOut = trim(DataPathOut) // trim(FileOut)
   !
   !	*************************************
   ! Read initial control parameters

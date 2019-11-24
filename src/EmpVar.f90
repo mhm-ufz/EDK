@@ -134,7 +134,7 @@ subroutine EmpVar(jd, flagMax)
       if (Nh(k) > 0) then
         ni=ni+1
         ! Classsical
-         gamma(k,2)=gamma(k,2)/2.0_dp/real(Nh(k), dp)
+        gamma(k,2)=gamma(k,2)/2.0_dp/real(Nh(k), dp)
         !
         ! Cressi-Hawkins: adjust bias
         !gamma(k,2)=0.5_dp/(0.457_dp+0.494_dp/dfloat(Nh(k)))*(gamma(k,2)/dfloat(Nh(k)))**4
@@ -149,7 +149,7 @@ subroutine EmpVar(jd, flagMax)
     !
     ! scaling 
     if (flagMax) gmax=maxval(gamma, dim=1)
- 
+    
     do k=1,nbins
       if (gamma(k,1) > 0.0_dp) then
         gamma(k,1) = gamma(k,1)/gmax(1)

@@ -21,8 +21,6 @@ program ED_Kriging
 
   use mo_kind                , only: i4, dp
   use mo_julian              , only: NDAYS, NDYIN
-  use mo_write_fluxes_states , only: WriteFluxStateInit, WriteFluxState, CloseFluxState_file
-
   use runControl             , only: outputformat,               & ! outputformat either 'nc' or 'bin'
                                      flagEDK, flagMthTyp,        & ! flag for activate kriging, flag for 'OK' or 'EDK'
                                      flagVarTyp,                 & ! pre or temp
@@ -32,22 +30,25 @@ program ED_Kriging
                                      nCell                         ! number of cells
   use mo_setVario            , only: setVario
   use mo_netcdf              , only: NcDataset, NcVariable
+  use mo_write               , only: open_netcdf
   use kriging
   
   implicit none
 
+  character(256)                        :: fname
+  character(256)                        :: author_name
+  character(256)                        :: vname_data
   integer(i4)                           :: icell             ! loop varaible for cells
   integer(i4)                           :: jDay              ! loop variable - current julian day
   integer(i4)                           :: doy               ! day of year
   integer(i4)                           :: year, month, day  ! current date
-  integer(i4)                           :: netcdfid          ! id of netcdf files
   real(dp), dimension(:,:), allocatable :: tmp_array         ! temporal array for output
   real(dp)                              :: param(3)          ! variogram parameters
   type(NcDataset)                       :: nc_out
   type(NcVariable)                      :: nc_data, nc_time
 
   call Timer
-  call ReadDataMain
+  call ReadDataMain(fname, author_name, vname_data)
   
   ! read DEM
   call ReadDEM
@@ -66,47 +67,48 @@ program ED_Kriging
   if (flagVario) call WriteDataMeteo(0,0,2)
   ! 
   if (flagEDK) then
-     ! open netcdf if necessary
-     call open_netcdf(fname, ncols, nrows, nc_out, nc_data, nc_time) 
+    ! open netcdf if necessary
+    call open_netcdf(fname, author_name, vname_data, grid%ncols, grid%nrows, yStart, nc_out, nc_data, nc_time)
 
-     timeloop: do jday = jStart, jEnd
+    timeloop: do jday = jStart, jEnd
 
-        call NDYIN(jday, day, month, year)
-        doy = jday - NDAYS(1,1,year) + 1
+      call NDYIN(jday, day, month, year)
+      doy = jday - NDAYS(1,1,year) + 1
 
-        print *, 'YEAR: ',year, 'DOY: ', doy
+      print *, 'YEAR: ',year, 'DOY: ', doy
 
-        ncellsloop: do iCell = 1, nCell
-           ! interploation
-           select case (flagMthTyp)
-           case (1)
-             call EDK(jday,iCell)
-             
-           case (2)
-              call OK(jday,iCell)
-           end select
-         end do ncellsloop
+      ncellsloop: do iCell = 1, nCell
+        ! interploation
+        select case (flagMthTyp)
+        case (1)
+          print *, 'ha...'
+          call EDK(jday,iCell)
 
-        ! correct precipitation values
-        if (flagVarTyp == 1) then
-           where ((cell(:)%z .LT. 0.0_sp) .AND. (cell(:)%z .GT. real(grid%nodata_value, sp)) )
-              cell(:)%z = 0.0_sp
-           end where
-        end if
+        case (2)
+          call OK(jday,iCell)
+        end select
+      end do ncellsloop
+      print *, 'ha...'
 
-        ! write output
-        allocate(tmp_array(gridMeteo%nrows, gridMeteo%ncols)); tmp_array=real(grid%nodata_value, dp)
-        tmp_array = real(reshape(cell(:)%z,(/gridMeteo%nrows, gridMeteo%ncols/)), dp)
-        ! call WriteFluxState((jday-jStart+1), netcdfid, transpose(tmp_array))
-          call nc_time%setData(jday,      start=(/jday/))
-          call nc_data%setData(tmp_array, start=(/1, 1, jday/))
+      ! correct precipitation values
+      if (flagVarTyp == 1) then
+        where ((cell(:)%z .LT. 0.0_sp) .AND. (cell(:)%z .GT. real(grid%nodata_value, sp)) )
+          cell(:)%z = 0.0_sp
+        end where
+      end if
 
-        deallocate(tmp_array)
+      ! write output
+      allocate(tmp_array(gridMeteo%nrows, gridMeteo%ncols)); tmp_array=real(grid%nodata_value, dp)
+      tmp_array = real(reshape(cell(:)%z,(/gridMeteo%nrows, gridMeteo%ncols/)), dp)
+      call nc_time%setData(jday,      start=(/jday/))
+      call nc_data%setData(tmp_array, start=(/1, 1, jday/))
 
-      end do timeloop
+      deallocate(tmp_array)
 
-      ! close netcdf if necessary
-      call nc_out%close()
+    end do timeloop
+
+    ! close netcdf if necessary
+    call nc_out%close()
 
   end if
   ! deallocate memory

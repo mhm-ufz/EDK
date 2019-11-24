@@ -33,6 +33,7 @@ subroutine EDK(jd,k)
   real(dp)                        :: sumLamda
   !
   ! check DEM
+  print *, 'ha...'
   if (nint(cell(k)%h) == grid%nodata_value ) then
      cell(k)%z = gridMeteo%nodata_value
      return
@@ -102,11 +103,13 @@ subroutine EDK(jd,k)
     B(nNmax+1) = 1.0_dp
     B(nNmax+2) = cell(k)%h
 
+    print *, 'hu...'
     ! NOTE: only the upper triangular matrix is needed!
     ! call D_LSASF (A, B, X)
     ! call gesv(A, B) ! EVE CentOS 7
     call dgesv(A, B) ! MacOS Sierra: Accelerate Framework
     X = B
+    print *, 'hu...'
     !
     ! The BLUE of z is then:
     cell(k)%z = 0.
