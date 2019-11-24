@@ -24,9 +24,10 @@ subroutine EDK(jd,k)
   implicit none
   integer(i4), intent(in)         :: jd                  ! julian day
   integer(i4), intent(in)         :: k                   ! cell id
-  integer(i4)                     :: i, j, l, ll
+  integer(i4)                     :: i, j, l, ll, info
   integer(i4)                     :: ii, jj
-  integer(i4)                     :: Nk(nSta), nNmax 
+  integer(i4)                     :: Nk(nSta), nNmax
+  integer(i4), allocatable        :: ipvt(:)
   real(dp), allocatable           :: A (:,:), B(:), X(:)
   real(dp)                        :: tVar
   real(dp), allocatable           :: lamda(:)
@@ -62,7 +63,7 @@ subroutine EDK(jd,k)
   if (.not. ( ll == nNmax .or.  nNmax == 1 .or. nNmax == 2 ) ) then     
     !
     ! initialize matrices  
-    allocate (A(nNmax+2,nNmax+2), B(nNmax+2), X(nNmax+2))
+    allocate (A(nNmax+2,nNmax+2), B(nNmax+2), X(nNmax+2), ipvt(nNmax + 2))
     !
     ! assembling the system of equations: OK
     A=0.0_dp
@@ -107,9 +108,12 @@ subroutine EDK(jd,k)
     ! NOTE: only the upper triangular matrix is needed!
     ! call D_LSASF (A, B, X)
     ! call gesv(A, B) ! EVE CentOS 7
-    call dgesv(A, B) ! MacOS Sierra: Accelerate Framework
+    ! call dgesv(A, B) ! MacOS Sierra: Accelerate Framework
+    call dgesv(size(A, 1), 1, A, size(A, 1), ipvt, B, size(A, 1), info)
     X = B
     print *, 'hu...'
+    print *, 'info: ', info
+    stop 'testing'
     !
     ! The BLUE of z is then:
     cell(k)%z = 0.
