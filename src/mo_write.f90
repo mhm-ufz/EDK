@@ -40,7 +40,7 @@ CONTAINS
     var_time = nc%setVariable('time', "i32", (/dim_time/))
     ! var_lat  = nc%setVariable(vname_lat,  "f32", (/dim_x, dim_y/))
     ! var_lon  = nc%setVariable(vname_lon , "f32", (/dim_x, dim_y/))
-    var_data = nc%setVariable(vname_data, "f64", (/dim_x, dim_y, dim_time/))
+    var_data = nc%setVariable(vname_data, "f64", (/dim_y, dim_x, dim_time/))
 
     ! add some variable attributes
     call var_time%setAttribute("units", "days since " // trim(num2str(year_start - 1, form='(I4)')) // "-12-31 12:00:00")
@@ -58,6 +58,7 @@ CONTAINS
     ! add some more variable attributes
     call var_data%setAttribute("units",   "mm/d")
     call var_data%setAttribute("scaling", 0.1_dp)
+    call var_data%setAttribute("missing_value", -9999._dp)
 
     ! add global attributes
     call nc%setAttribute("Author", trim(author_name))

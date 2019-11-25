@@ -11,7 +11,7 @@
 !            Last Update       Zi                   05.05.2011   IWD if No stations < 2
 !            Last Update       Zi                   07.02.2012   correct prec data < 0 --> = 0
 !****************************************************************************
-subroutine EDK(jd,k)
+subroutine EDK(jd, k)
   use mo_kind, only                : i4, dp
   use mainVar
   use kriging
@@ -28,13 +28,12 @@ subroutine EDK(jd,k)
   integer(i4)                     :: ii, jj
   integer(i4)                     :: Nk(nSta), nNmax
   integer(i4), allocatable        :: ipvt(:)
-  real(dp), allocatable           :: A (:,:), B(:), X(:)
+  real(dp), allocatable           :: A (:,:), C(:,:), B(:), X(:)
   real(dp)                        :: tVar
   real(dp), allocatable           :: lamda(:)
   real(dp)                        :: sumLamda
   !
   ! check DEM
-  print *, 'ha...'
   if (nint(cell(k)%h) == grid%nodata_value ) then
      cell(k)%z = gridMeteo%nodata_value
      return
@@ -69,7 +68,7 @@ subroutine EDK(jd,k)
     A=0.0_dp
 
     ! loop over available stations nNmax
-    do i = 1, nNmax-1
+    do i = 1, nNmax
       ii = Nk(i)
        
       do j = i + 1, nNmax
@@ -94,26 +93,36 @@ subroutine EDK(jd,k)
       B(i)=tVar(dCS(k,ii),beta(1),beta(2),beta(3))
    end do
    
-    A(nNmax,nNmax+1) = 1.0_dp
-    ii=Nk(nNmax)
-    A(nNmax,nNmax+2) = MetSta(ii)%h
-
-
-    B(nNmax)=tVar(dCS(k,ii),beta(1),beta(2),beta(3))
     !
     B(nNmax+1) = 1.0_dp
     B(nNmax+2) = cell(k)%h
 
-    print *, 'hu...'
     ! NOTE: only the upper triangular matrix is needed!
     ! call D_LSASF (A, B, X)
-    ! call gesv(A, B) ! EVE CentOS 7
-    ! call dgesv(A, B) ! MacOS Sierra: Accelerate Framework
+    ! print *, '<<<<<<<<<<<<<<'
+    ! print *, 'rhs = ', B
+    ! C = A
+    ! print *, 'A = ', C(:, 1)
+    ! print *, '<<<<<<<<<<<<<<'
     call dgesv(size(A, 1), 1, A, size(A, 1), ipvt, B, size(A, 1), info)
+    ! print *, '<<<<<<<<<<<<<<'
+    ! print *, 'B = ', B
+    ! print *, 'A = ', A(:, 1)
+    ! print *, '<<<<<<<<<<<<<<'
+    ! print *, 'result: ', sum(C(:, 1) * B)
     X = B
-    print *, 'hu...'
-    print *, 'info: ', info
-    stop 'testing'
+    if (info .ne. 0_i4) then
+      print *, '***WARNING: calculation of weights failed'
+    end if
+    if (abs(sum(X(:nNmax)) - 1._dp) .gt. 1.e-4) then
+      print *, '***WARNING: sum of weights is not 1, calculation of weights failed'
+      print *, 'sum of weights: ', sum(X(:nNmax))
+    end if
+    ! print *, 'number of neighbors: ', nNmax
+    ! print *, 
+    ! print *, 'ipvt: ', ipvt
+    ! print *, 'info: ', info
+    ! stop 'testing'
     !
     ! The BLUE of z is then:
     cell(k)%z = 0.
@@ -129,7 +138,7 @@ subroutine EDK(jd,k)
     end if
     deallocate (A,B,X)
     !
-  ! only one precipiation station available /= 0
+    ! only one precipiation station available /= 0
   else if (ll /= nNmax .AND. nNmax == 1 .AND. flagVarTyp == 1) then
      ii = Nk(1)
     ! problably convective rain at the only station

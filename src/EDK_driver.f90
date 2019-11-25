@@ -68,7 +68,7 @@ program ED_Kriging
   ! 
   if (flagEDK) then
     ! open netcdf if necessary
-    call open_netcdf(fname, author_name, vname_data, grid%ncols, grid%nrows, yStart, nc_out, nc_data, nc_time)
+    call open_netcdf(fname, author_name, vname_data, gridMeteo%ncols, gridMeteo%nrows, yStart, nc_out, nc_data, nc_time)
 
     timeloop: do jday = jStart, jEnd
 
@@ -81,14 +81,12 @@ program ED_Kriging
         ! interploation
         select case (flagMthTyp)
         case (1)
-          print *, 'ha...'
-          call EDK(jday,iCell)
+          call EDK(jday, iCell)
 
         case (2)
-          call OK(jday,iCell)
+          call OK(jday, iCell)
         end select
       end do ncellsloop
-      print *, 'ha...'
 
       ! correct precipitation values
       if (flagVarTyp == 1) then
@@ -100,8 +98,8 @@ program ED_Kriging
       ! write output
       allocate(tmp_array(gridMeteo%nrows, gridMeteo%ncols)); tmp_array=real(grid%nodata_value, dp)
       tmp_array = real(reshape(cell(:)%z,(/gridMeteo%nrows, gridMeteo%ncols/)), dp)
-      call nc_time%setData(jday,      start=(/jday/))
-      call nc_data%setData(tmp_array, start=(/1, 1, jday/))
+      call nc_time%setData(jday-jStart + 1,      start=(/jday - jStart + 1/))
+      call nc_data%setData(tmp_array, start=(/1, 1, jday - jStart + 1/))
 
       deallocate(tmp_array)
 
