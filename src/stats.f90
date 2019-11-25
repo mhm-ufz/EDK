@@ -4,9 +4,9 @@
 !
 !	**************************************************************************
 subroutine stats
-  use varFit, only                     : E, beta, gamma, nbins
+  use varFit, only                     : E, beta, gamma
   use mo_kind, only                    : i4, dp
-  use mo_EDK, only                     : tVar
+  use mo_setVario, only                : tVar
   implicit none
   integer(i4), parameter               :: incx = 1
   integer(i4)                          :: k

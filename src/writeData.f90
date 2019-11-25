@@ -18,12 +18,12 @@
 !               Last Update    Sa   
 !**************************************************************************
 subroutine WriteDataMeteo(y,d,wFlag) 
-  use mo_kind, only         : i4, sp, dp      
+  use mo_kind, only         : i4, dp      
   use mainVar
   use runControl
   use kriging
   use VarFit
-  use mo_EDK, only : tvar
+  use mo_setVario, only : tvar
   !
   implicit none
   integer(i4), intent (in)  :: y, d, wFlag

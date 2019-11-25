@@ -29,11 +29,13 @@ program ED_Kriging
                                      grid, gridMeteo,            & ! grid properties of input and output grid
                                      nCell, MetSta
   use kriging                , only: dCS, dS
-  use mo_setVario            , only: setVario
+  use mo_setVario            , only: setVario, dMatrix
   use mo_netcdf              , only: NcDataset, NcVariable
   use mo_write               , only: open_netcdf
   use kriging
-  use mo_EDK                 , only: EDK, dMatrix
+  use mo_EDK                 , only: EDK
+  !$ use mo_string_utils, ONLY : num2str
+  !$ use omp_lib, ONLY : OMP_GET_NUM_THREADS           ! OpenMP routines
   
   implicit none
 
@@ -44,11 +46,18 @@ program ED_Kriging
   integer(i4)                           :: jDay              ! loop variable - current julian day
   integer(i4)                           :: doy               ! day of year
   integer(i4)                           :: year, month, day  ! current date
+  !$ integer(i4)                        :: n_threads        ! OpenMP number of parallel threads
   real(dp), dimension(:,:), allocatable :: tmp_array         ! temporal array for output
   real(dp)                              :: param(3)          ! variogram parameters
   type(NcDataset)                       :: nc_out
   type(NcVariable)                      :: nc_data, nc_time
 
+  !$OMP PARALLEL
+  !$ n_threads = OMP_GET_NUM_THREADS()
+  !$OMP END PARALLEL
+  !$ print *, 'Run with OpenMP with ', trim(num2str(n_threads)), ' threads.'
+
+  
   call Timer
   call ReadDataMain(fname, author_name, vname_data)
   
@@ -79,8 +88,11 @@ program ED_Kriging
 
       print *, 'YEAR: ',year, 'DOY: ', doy
 
+      
+      !$OMP parallel default(shared) &
+      !$OMP private(iCell)
+      !$OMP do SCHEDULE(STATIC)
       ncellsloop: do iCell = 1, nCell
-
         ! check DEM
         if (nint(cell(iCell)%h) == grid%nodata_value ) then
           cell(iCell)%z = gridMeteo%nodata_value
@@ -95,6 +107,8 @@ program ED_Kriging
           call OK(jday, iCell)
         end select
       end do ncellsloop
+      !$OMP end do
+      !$OMP end parallel
 
       ! correct precipitation values
       if (flagVarTyp == 1) then

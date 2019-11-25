@@ -7,13 +7,12 @@ module mo_obj_func
   PUBLIC :: obj_func
 contains
   function obj_func(p)
-    use mo_kind, only  : i4, dp
-    use varfit, only   : vtype, nbins, gamma, nh
-    use mo_EDK, only   : tVar
+    use mo_kind, only     : i4, dp
+    use varfit, only      : nbins, gamma, nh
+    use mo_setVario, only : tVar
     implicit none
     real(dp), dimension(:), intent(in) :: p
     real(dp) :: obj_func
-    real(dp) :: xu(100)
     real(dp) :: gcal
     integer(i4) :: k 
     !

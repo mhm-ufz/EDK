@@ -96,7 +96,7 @@ SHELL = /bin/bash
 # . is current directory, .. is parent directory
 SRCPATH    := ./src ./lib # where are the source files; use test_??? to run a test directory
 PROGPATH   := .                  # where shall be the executable
-CONFIGPATH := /home/thober/lib/makefile_chs/make.config        # where are the $(system).$(compiler) files
+CONFIGPATH := /home/thober/lib/mhm/develop/make.config        # where are the $(system).$(compiler) files
 MAKEDPATH  := $(CONFIGPATH)      # where is the make.d.sh script
 CHECKPATH  := .               # path for $(CHECKPATH)/test* and $(CHECKPATH)/check* directories if target is check
 DOXCONFIG  := ./doxygen.config   # the doxygen config file
@@ -106,24 +106,24 @@ LIBNAME  := #libminpack.a # Name of library
 #
 # Options
 # Systems: eve and personal computers such as mcimac for Matthias Cuntz' iMac; look in $(MAKEDPATH) or type 'make info'
-system   := eve
+system   := stmac
 # Compiler: intelX, gnuX, nagX, sunX, where X stands for version number, e.g. intel13;
 #   look at $(MAKEDPATH)/$(system).alias for shortcuts or type 'make info'
-compiler := intel
+compiler := gnu71
 # Releases: debug, release
-release  := release
+release  := debug
 # Netcdf versions (Network Common Data Form): netcdf3, netcdf4, [anything else]
 netcdf   := netcdf4
 # LAPACK (Linear Algebra Pack): true, [anything else]
-lapack   := 
+lapack   := true
 # MKL (Intel's Math Kernel Library): mkl, mkl95, [anything else]
-mkl      := mkl95
+mkl      := 
 # Proj4 (Cartographic Projections Library): true, [anything else]
 proj     := 
 # IMSL (IMSL Numerical Libraries): vendor, imsl, [anything else]
 imsl     := 
 # OpenMP parallelization: true, [anything else]
-openmp   := 
+openmp   := true
 # MPI parallelization - experimental: true, [anything else]
 mpi      :=
 # Linking: static, shared, dynamic (last two are equal)
@@ -565,7 +565,7 @@ endif
 ifeq ($(lapack),true)
     # Mac OS X uses frameworks
     ifneq (,$(findstring $(iOS),Darwin))
-        iLIBS += -framework veclib
+        iLIBS += -framework Accelerate
     else
         ifeq ("$(wildcard $(LAPACKDIR)*)","")
             $(error Error: LAPACK path '$(LAPACKDIR)' not found.)

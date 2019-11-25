@@ -13,9 +13,9 @@ subroutine OK(jd,k)
   use mainVar
   use kriging
   use runControl
-  use varfit, only                 : beta
-  use mo_kind, only                : i4, dp
-  use mo_EDK, only : tVar
+  use varfit, only      : beta
+  use mo_kind, only     : i4, dp
+  use mo_setVario, only : tVar
   ! use LSASF_INT
   ! use lapack95, only: gesv
   implicit none
