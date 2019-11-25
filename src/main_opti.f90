@@ -15,7 +15,7 @@ subroutine OPTI(pmin)
   use VarFit  
   use mo_kind, only: i4, dp
   use mo_obj_func, only: obj_func
-  use mo_nelmin, only: nelmin, nelminrange
+  use mo_nelmin, only: nelminrange
 
   ! parameters for Nelder-Mead algorithm
   real(dp) :: pstart(3) ! Starting point for the iteration.

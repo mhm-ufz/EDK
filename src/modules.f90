@@ -90,7 +90,7 @@ module kriging
   end type CellCoarser
   type(CellCoarser),  dimension(:), allocatable  :: cell             ! EDK output
 
-  real(dp), dimension(:,:), allocatable        :: dCS                 ! Euclidean distance between cells -> stations  
+  real(dp), dimension(:,:), allocatable        :: dCS                 ! Euclidean distance between cells -> stations
   type dtoS
     real(dp), dimension(:), allocatable        :: S                   ! distance to Station j
   end type dtoS
