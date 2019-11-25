@@ -1,3 +1,14 @@
+module mo_EDK
+
+  implicit none
+
+  private
+
+  public :: EDK
+  public :: dMatrix
+  public :: tVar
+
+contains
 !****************************************************************************
 !
 !  SUBROUTINE: External Drift Kriging
@@ -11,39 +22,37 @@
 !            Last Update       Zi                   05.05.2011   IWD if No stations < 2
 !            Last Update       Zi                   07.02.2012   correct prec data < 0 --> = 0
 !****************************************************************************
-subroutine EDK(jd, k)
+subroutine EDK(jd, k, dCS, MetSta, dS, cell)
   use mo_kind, only                : i4, dp
-  use mainVar
-  use kriging
-  use runControl
+  use mainVar, only                : MeteoStation, noDataValue, nSta, thresholdDist
+  use kriging, only                : CellCoarser, dtoS
+  use runControl, only             : flagVarTyp
   use varfit, only                 : beta
-  ! use LSASF_INT
-  ! use mkl95_lapack, only: gesv
-  ! use lapack95, only: gesv
 
   implicit none
-  integer(i4), intent(in)         :: jd                  ! julian day
-  integer(i4), intent(in)         :: k                   ! cell id
+
+  ! input / output variables
+  integer(i4), intent(in)          :: jd        ! julian day
+  integer(i4), intent(in)          :: k         ! cell id
+  real(dp), dimension(:, :), intent(in)             :: dCS ! distances matrix
+  type(MeteoStation), intent(in)   :: MetSta(:) ! MeteoStation input
+  type(dtoS), intent(in)           :: dS(:)     ! distance among stations
+  type(CellCoarser), intent(inout) :: cell(:)   ! cell specification
+
+  ! local variables
   integer(i4)                     :: i, j, l, ll, info
   integer(i4)                     :: ii, jj
   integer(i4)                     :: Nk(nSta), nNmax
   integer(i4), allocatable        :: ipvt(:)
   real(dp), allocatable           :: A (:,:), C(:,:), B(:), X(:)
-  real(dp)                        :: tVar
   real(dp), allocatable           :: lamda(:)
   real(dp)                        :: sumLamda
-  !
-  ! check DEM
-  if (nint(cell(k)%h) == grid%nodata_value ) then
-     cell(k)%z = gridMeteo%nodata_value
-     return
-  end if 
   !
   ! Check which stations have valid data ( =/ -9, 999 etc. ) store them in Nk(:)
   l  = 0
   ll = 0
 
-  do i= 1, cell(k)%nNS
+  do i = 1, cell(k)%nNS
     j = cell(k)%listNS(i)
     if ( MetSta(j)%z(jd) /= noDataValue ) then
 
@@ -55,6 +64,7 @@ subroutine EDK(jd, k)
     end if
   end do
   nNmax = l
+
   !>>>>  no value ! avoid indetermination
   ! avoid 0 value calculations ll == nNmax
   ! avoid calculations where only 1 station is available
@@ -136,7 +146,7 @@ subroutine EDK(jd, k)
     if (cell(k)%z < 0.0_dp .and. flagVarTyp == 1) then
       cell(k)%z = 0.0_dp
     end if
-    deallocate (A,B,X)
+    deallocate (A,B,X,ipvt)
     !
     ! only one precipiation station available /= 0
   else if (ll /= nNmax .AND. nNmax == 1 .AND. flagVarTyp == 1) then
@@ -158,7 +168,7 @@ subroutine EDK(jd, k)
      cell(k)%z = 0.0_dp
 
   ! avoid numerical instabilities --> IWD insverse weighted squared distance
-  ! matrix of DLSASF may become instable if only two or three stations are available 
+  ! matrix of solver may become instable if only two or three stations are available 
    else if (ll /= nNmax .AND. nNmax == 2) then
      allocate (lamda(nNmax))
      do i=1,nNmax
@@ -344,3 +354,4 @@ subroutine dMatrix
 
 end subroutine dMatrix
 
+end module mo_EDK

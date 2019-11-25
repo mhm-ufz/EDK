@@ -27,11 +27,13 @@ program ED_Kriging
                                      flagVario                     ! flag for activate variogram estimation
   use mainVar                , only: yStart, yEnd, jStart, jEnd, & ! interpolation time periods
                                      grid, gridMeteo,            & ! grid properties of input and output grid
-                                     nCell                         ! number of cells
+                                     nCell, MetSta
+  use kriging                , only: dCS, dS
   use mo_setVario            , only: setVario
   use mo_netcdf              , only: NcDataset, NcVariable
   use mo_write               , only: open_netcdf
   use kriging
+  use mo_EDK                 , only: EDK, dMatrix
   
   implicit none
 
@@ -78,10 +80,16 @@ program ED_Kriging
       print *, 'YEAR: ',year, 'DOY: ', doy
 
       ncellsloop: do iCell = 1, nCell
+
+        ! check DEM
+        if (nint(cell(iCell)%h) == grid%nodata_value ) then
+          cell(iCell)%z = gridMeteo%nodata_value
+          cycle
+        end if
         ! interploation
         select case (flagMthTyp)
         case (1)
-          call EDK(jday, iCell)
+          call EDK(jday, iCell, dCS, MetSta, dS, cell)
 
         case (2)
           call OK(jday, iCell)

@@ -6,6 +6,7 @@
 subroutine stats
   use varFit, only                     : E, beta, gamma, nbins
   use mo_kind, only                    : i4, dp
+  use mo_EDK, only                     : tVar
   implicit none
   integer(i4), parameter               :: incx = 1
   integer(i4)                          :: k
@@ -16,7 +17,6 @@ subroutine stats
   real(dp), dimension(:), allocatable  :: error, denom
   real(dp), dimension(:), allocatable  :: zCal, zObs
   real(dp), parameter                  :: small = -9.999d3
-  real(dp)                             :: tVar
 
   !
   !Initialize

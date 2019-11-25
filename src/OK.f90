@@ -15,6 +15,7 @@ subroutine OK(jd,k)
   use runControl
   use varfit, only                 : beta
   use mo_kind, only                : i4, dp
+  use mo_EDK, only : tVar
   ! use LSASF_INT
   ! use lapack95, only: gesv
   implicit none
@@ -24,7 +25,6 @@ subroutine OK(jd,k)
   integer(i4)                     :: ii, jj
   integer(i4)                     :: Nk(nSta), nNmax 
   real(dp), allocatable           :: A (:,:), B(:), X(:)
-  real(dp)                        :: tVar
   real(dp), allocatable           :: lamda(:)
   real(dp)                        :: sumLamda
   !
