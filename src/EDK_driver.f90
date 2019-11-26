@@ -32,8 +32,11 @@ program ED_Kriging
   use mo_setVario            , only: setVario, dMatrix
   use mo_netcdf              , only: NcDataset, NcVariable
   use mo_write               , only: open_netcdf
+  use mo_message             , only: message
   use kriging
   use mo_EDK                 , only: EDK
+  USE mo_timer, ONLY : &
+          timers_init, timer_start, timer_stop, timer_get              ! Timing of processes
   !$ use mo_string_utils, ONLY : num2str
   !$ use omp_lib, ONLY : OMP_GET_NUM_THREADS           ! OpenMP routines
   
@@ -44,6 +47,7 @@ program ED_Kriging
   character(256)                        :: vname_data
   integer(i4)                           :: icell             ! loop varaible for cells
   integer(i4)                           :: jDay              ! loop variable - current julian day
+  integer(i4)                           :: itimer
   integer(i4)                           :: doy               ! day of year
   integer(i4)                           :: year, month, day  ! current date
   !$ integer(i4)                        :: n_threads        ! OpenMP number of parallel threads
@@ -57,8 +61,16 @@ program ED_Kriging
   !$OMP END PARALLEL
   !$ print *, 'Run with OpenMP with ', trim(num2str(n_threads)), ' threads.'
 
-  
-  call Timer
+  ! initialize timers
+  call timers_init
+
+  ! start timer for reading
+  itimer = 1
+  call timer_start(itimer)
+
+  call message('')  
+  call message(' >>> Reading data')
+  call message('')
   call ReadDataMain(fname, author_name, vname_data)
   
   ! read DEM
@@ -67,17 +79,45 @@ program ED_Kriging
   ! read look up table for meteorological stations
   call ReadStationLut
   
-  call dMatrix
-  print*, 'calculated distance matrix'
   ! read whole METEO data
   call ReadDataMeteo
-  print*, 'finished reading of meteorological data'
+  call timer_stop(itimer)
+  call message('')
+  call message('    in ', trim(num2str(timer_get(itimer), '(F9.3)')), ' seconds.')
+  call message('')
+
+  itimer = 2
+  call timer_start(itimer)
+  call message(' >>> Calculating distance matrix')
+  call message('')
+  ! call distance matrix
+  call dMatrix
+  call timer_stop(itimer)
+  call message('')
+  call message('    in ', trim(num2str(timer_get(itimer), '(F9.3)')), ' seconds.')
+  call message('')
+
+
+  itimer = 3
+  call timer_start(itimer)
+  call message(' >>> Estimate variogram')
+  call message('')
   ! estimate variogram
   call setVario(param)
   ! write variogram  
   if (flagVario) call WriteDataMeteo(0,0,2)
-  ! 
+  call timer_stop(itimer)
+  call message('')
+  call message('    in ', trim(num2str(timer_get(itimer), '(F9.3)')), ' seconds.')
+  call message('')
+
+
+  
   if (flagEDK) then
+    itimer = 4
+    call timer_start(itimer)
+    call message(' >>> Perform interpolation')
+    call message('')
     ! open netcdf if necessary
     call open_netcdf(fname, author_name, vname_data, gridMeteo%ncols, gridMeteo%nrows, yStart, nc_out, nc_data, nc_time)
 
@@ -130,11 +170,13 @@ program ED_Kriging
     ! close netcdf if necessary
     call nc_out%close()
 
+    call timer_stop(itimer)
+    call message('')
+    call message('    in ', trim(num2str(timer_get(itimer), '(F9.3)')), ' seconds.')
+    call message('')
   end if
   ! deallocate memory
   call clean
-  ! Timer
-  call Timer
   
   ! very important for check cases 
   write(*,*) 'Kriging finished!'
