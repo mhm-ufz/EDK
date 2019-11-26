@@ -24,7 +24,7 @@ subroutine EDK(jd, k, dCS, MetSta, dS, cell)
   use mo_kind, only                : i4, dp
   use mainVar, only                : MeteoStation, noDataValue, nSta, thresholdDist
   use kriging, only                : CellCoarser, dtoS
-  use runControl, only             : flagVarTyp
+  use runControl, only             : correctNeg, distZero
   use varfit, only                 : beta
   use mo_setVario, only            : tVar
   implicit none
@@ -141,27 +141,22 @@ subroutine EDK(jd, k, dCS, MetSta, dS, cell)
     ! correct in case of negative values
     ! sick system of equations caused by lack of 
     ! precipitation values in nearby stations
-    if (cell(k)%z < 0.0_dp .and. flagVarTyp == 1) then
+    if (correctNeg) then
       cell(k)%z = 0.0_dp
     end if
     deallocate (A,B,X,ipvt)
     !
-    ! only one precipiation station available /= 0
-  else if (ll /= nNmax .AND. nNmax == 1 .AND. flagVarTyp == 1) then
-     ii = Nk(1)
-    ! problably convective rain at the only station
-     if (dCS(k,ii) <=  thresholdDist) then
-        cell(k)%z = MetSta(ii)%z(jd)
-     else
-        cell(k)%z = 0.0_dp
-     end if
-
-  ! only one station available, which has values /= 0
-  else if (ll /= nNmax .AND. nNmax == 1 .AND. flagVarTyp /= 1) then
-     ii = Nk(1)
-     cell(k)%z = MetSta(ii)%z(jd)
-
- ! if all stations have the value 0
+    ! only one station available /= 0
+  else if (ll /= nNmax .AND. nNmax == 1) then
+    ii = Nk(1)
+    cell(k)%z = MetSta(ii)%z(jd)
+    ! 
+    ! for precipitation, distant values are set to zero
+    if (distZero .and. dCS(k,ii) .gt. thresholdDist) then
+      cell(k)%z = 0.0_dp
+    end if
+    !  
+    ! if all stations have the value 0
   else if (ll == nNmax ) then 
      cell(k)%z = 0.0_dp
 

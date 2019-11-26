@@ -21,9 +21,8 @@ program ED_Kriging
 
   use mo_kind                , only: i4, dp
   use mo_julian              , only: NDAYS, NDYIN
-  use runControl             , only: outputformat,               & ! outputformat either 'nc' or 'bin'
-                                     flagEDK, flagMthTyp,        & ! flag for activate kriging, flag for 'OK' or 'EDK'
-                                     flagVarTyp,                 & ! pre or temp
+  use runControl             , only: flagEDK, interMth,        & ! flag for activate kriging, flag for 'OK' or 'EDK'
+                                     correctNeg,                 & ! pre or temp
                                      flagVario                     ! flag for activate variogram estimation
   use mainVar                , only: yStart, yEnd, jStart, jEnd, & ! interpolation time periods
                                      grid, gridMeteo,            & ! grid properties of input and output grid
@@ -71,7 +70,7 @@ program ED_Kriging
   call message('')  
   call message(' >>> Reading data')
   call message('')
-  call ReadDataMain(fname, author_name, vname_data)
+  call ReadDataMain
   
   ! read DEM
   call ReadDEM
@@ -113,13 +112,13 @@ program ED_Kriging
 
 
   
-  if (flagEDK) then
+  if (interMth .gt. 0) then
     itimer = 4
     call timer_start(itimer)
     call message(' >>> Perform interpolation')
     call message('')
     ! open netcdf if necessary
-    call open_netcdf(fname, author_name, vname_data, gridMeteo%ncols, gridMeteo%nrows, yStart, nc_out, nc_data, nc_time)
+    call open_netcdf(nc_out, nc_data, nc_time)
 
     timeloop: do jday = jStart, jEnd
 
@@ -139,19 +138,18 @@ program ED_Kriging
           cycle
         end if
         ! interploation
-        select case (flagMthTyp)
+        select case (interMth)
         case (1)
-          call EDK(jday, iCell, dCS, MetSta, dS, cell)
-
-        case (2)
           call OK(jday, iCell)
+        case (2)
+          call EDK(jday, iCell, dCS, MetSta, dS, cell)
         end select
       end do ncellsloop
       !$OMP end do
       !$OMP end parallel
 
-      ! correct precipitation values
-      if (flagVarTyp == 1) then
+      ! correct negative values
+      if (correctNeg) then
         where ((cell(:)%z .LT. 0.0_sp) .AND. (cell(:)%z .GT. real(grid%nodata_value, sp)) )
           cell(:)%z = 0.0_sp
         end where

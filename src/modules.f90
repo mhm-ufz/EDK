@@ -58,10 +58,8 @@ end module mainVar
   ! RUN Control
   !********************************************
 module runControl
-  use mo_kind, only: i4, sp,dp
+  use mo_kind, only: i4, sp
   ! timer
-  real(sp)                                     :: RunTime = -9.0      ! Initialization
-  real(sp)                                     :: TA(2)               ! Running times
   character(256)                               :: DataPathIn          !
   character(256)                               :: DataPathOut
   character(256)                               :: DataPathDEM
@@ -69,12 +67,12 @@ module runControl
   character(256)                               :: fNameSTA            ! Station id and coordinates
   character(256)                               :: fNameVARIO          ! file name of variogram parameters
   character(256)                               :: prefix              ! prefix data file
-  character(3)                                 :: outputformat        ! nc or bin as output format
   integer(i4)                                  :: nBlocks             ! number of interpolation blocks
   logical                                      :: flagEDK             ! estimate EDK (T/F)
   logical                                      :: flagVario           ! estimate variogran (T/F)
-  integer(i4)                                  :: flagVarTyp          ! type of variable 1 - peric, 2 - temp
-  integer(i4)                                  :: flagMthTyp          ! type of interp. method
+  logical                                      :: correctNeg          ! correct negative interpolated values
+  logical                                      :: distZero            ! values further away than dist threshold are set to zero
+  integer(i4)                                  :: interMth            ! interp. method
 end module runControl
 
 module kriging
@@ -127,7 +125,7 @@ module NetCDFVar
   use mo_kind, only : dp
   implicit none
   ! Variables for NetCDF writing
-  character(256)                                   :: fName_netCDF_Out    ! File Name out
+  character(256)                                   :: fileOut    ! File Name out
   real(dp), dimension(:),   allocatable, target    :: yCoor               ! GK4 (DHDN3-zone 4) easting
   real(dp), dimension(:),   allocatable, target    :: xCoor               ! GK4 (DHDN3-zone 4) northing
   real(dp), dimension(:,:), allocatable, target    :: lons                ! WGS84 lons 
@@ -136,4 +134,5 @@ module NetCDFVar
   character(256)                                   :: variable_name ! name of netcdf variable
   character(256)                                   :: variable_unit ! unit of netcdf variable
   character(256)                                   :: variable_long_name ! long name  of netcdf variable
+  character(256)                                   :: author_name ! author name of netcdf file
 end module NetCDFVar

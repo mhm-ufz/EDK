@@ -26,7 +26,6 @@ subroutine EmpVar(jd, flagMax)
   use mo_kind   , only       : i4, dp
   use kriging
   use VarFit
-  use runControl, only       : flagVarTyp
   implicit none
   integer(i4), intent(in)   :: jd
   logical, intent(in)       :: flagMax
@@ -71,18 +70,19 @@ subroutine EmpVar(jd, flagMax)
     gamma = 0.0_dp
   end if
   !
+  print *, '***WARNING: Removal of outliers in the estimation of the variogram is deactivated'
   do i=1,nSta-1
     do j=i+1,nSta
       if (dz2S(i)%S(j) /=  noDataValue ) then
         ! take values up to max distance
         if (dS(i)%S(j) > hMax ) cycle
-        ! remove outliers for the estimation of the variogram
-        if (flagVarTyp == 2 ) then 
-          if (  dabs( MetSta(i)%h - MetSta(j)%h ) / dS(i)%S(j)  > gradE ) then
-             ! write(999,*), 'pair removed', MetSta(i)%id, MetSta(j)%id
-              cycle
-          end if
-        end if
+        ! ! remove outliers for the estimation of the variogram
+        ! if (flagVarTyp == 2 ) then 
+        !   if (  dabs( MetSta(i)%h - MetSta(j)%h ) / dS(i)%S(j)  > gradE ) then
+        !      ! write(999,*), 'pair removed', MetSta(i)%id, MetSta(j)%id
+        !       cycle
+        !   end if
+        ! end if
         !
         k=max(1, ceiling(dS(i)%S(j)/dh))
         Nh(k)=Nh(k)+1

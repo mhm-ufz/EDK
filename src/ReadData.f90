@@ -7,21 +7,21 @@
 !               Created        Sa   21.03.2006
 !               Last Update    Sa   11.06.2010
 !**************************************************************************
-subroutine ReadDataMain(FileOut, author_name, variable_name)
-  use mainVar
+subroutine ReadDataMain()
+  use mainVar,    only: noDataValue, cellFactor, DataConvertFactor, &
+      yStart, mStart, dStart, yEnd, mEnd, dEnd
   use mo_kind,    only: i4, dp
   use mo_julian , only: NDAYS
 
-  use kriging
-  use VarFit
-  use runControl
-  use NetCDFVar,  only: variable_unit, variable_long_name
+  use kriging,    only: maxDist
+  use VarFit,     only: vType, nParam, dh, hMax, beta
+  use runControl, only: interMth, fnameDEM, DataPathOut, DataPathIn, fNameSta, correctNeg, &
+      distZero, flagVario, fNameVario, flagEDK
+  use NetCDFVar,  only: FileOut, author_name, variable_name, variable_unit, variable_long_name
+  use mo_message, only: message
 
   implicit none
   !
-  character(256),   intent(out) :: FileOut
-  character(256),   intent(out) :: author_name
-  character(256),   intent(out) :: variable_name
   integer(i4)                   :: i, ios
   character(256)                :: dummy, fileName
   !
@@ -29,18 +29,33 @@ subroutine ReadDataMain(FileOut, author_name, variable_name)
   !  namelist definition
   !===============================================================
   !
-  namelist/mainVars/flagMthTyp, flagVarTyp, noDataValue, DataPathIn, fNameDEM,                    & 
-                    DataPathOut, FileOut, fNameSTA, cellFactor, outputformat, DataConvertFactor, flagEDK,  &
-                    author_name, variable_name, variable_unit, variable_long_name,                             & 
+  namelist/mainVars/noDataValue, DataPathIn, fNameDEM,                    & 
+                    DataPathOut, FileOut, fNameSTA, cellFactor, DataConvertFactor, InterMth, correctNeg,  &
+                    distZero, author_name, variable_name, variable_unit, variable_long_name,                             & 
                     yStart, mStart, dStart, yEnd, mEnd, dEnd, maxDist, flagVario, vType, nParam,  &  
-                    fNameVario, dh, hMax, author_name, variable_name
+                    fNameVario, dh, hMax
   !
   ! -----------------------------------------------------------------------
   !	                               MAIN.DAT
   ! -----------------------------------------------------------------------
-  open(unit=10, file='main.dat', STATUS='OLD', ACTION='read')
+  open(unit=10, file='edk.nml', STATUS='OLD', ACTION='read')
   read(10, nml=mainVars)
   close(10)
+
+  ! -----------------------------------------------------------------------
+  !                         consistency checks
+  ! -----------------------------------------------------------------------
+  if ((interMth .gt. 2) .or. (interMth .lt. 0)) then
+    call message(' >>> Interpolated Method Value not valid')
+    call message('     Please choose one of the following:')
+    call message('     0 - no interpolation')
+    call message('     1 - ordinary kriging')
+    call message('     2 - external drift kriging')
+    call message('')
+    stop 1
+  end if
+
+  
   FileOut = trim(DataPathOut) // trim(FileOut)
   !
   !	*************************************

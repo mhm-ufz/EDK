@@ -85,21 +85,18 @@ subroutine OK(jd,k)
         ii=Nk(i)
         cell(k)%z = cell(k)%z + real(X(i) * MetSta(ii)%z(jd))
      end do
-
-       ! only one precipiation station available /= 0
-  else if (ll /= nNmax .AND. nNmax == 1 .AND. flagVarTyp == 1) then
-     ii = Nk(1)
-    ! problably convective rain at the only station
-     if (dCS(k,ii) <=  thresholdDist) then
-        cell(k)%z = MetSta(ii)%z(jd)
-     else
-        cell(k)%z = 0.0_dp
-     end if
-
-  ! only one station available, which has values /= 0
-  else if (ll /= nNmax .AND. nNmax == 1 .AND. flagVarTyp /= 1) then
-     ii = Nk(1)
-     cell(k)%z = MetSta(ii)%z(jd)
+    !
+    ! only one station available /= 0
+  else if (ll /= nNmax .AND. nNmax == 1) then
+    ii = Nk(1)
+    cell(k)%z = MetSta(ii)%z(jd)
+    ! 
+    ! for precipitation, distant values are set to zero
+    if (distZero .and. dCS(k,ii) .gt. thresholdDist) then
+      cell(k)%z = 0.0_dp
+    end if
+    !  
+    ! if all stations have the value 0
 
  ! if all stations have the value 0
   else if (ll == nNmax ) then 
