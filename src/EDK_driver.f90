@@ -19,7 +19,7 @@
 !****************************************************************************
 program ED_Kriging
 
-  use mo_kind                , only: i4, dp
+  use mo_kind                , only: i4, dp, sp
   use mo_julian              , only: NDAYS, NDYIN
   use runControl             , only: outputformat,               & ! outputformat either 'nc' or 'bin'
                                      flagEDK, flagMthTyp,        & ! flag for activate kriging, flag for 'OK' or 'EDK'
@@ -28,12 +28,11 @@ program ED_Kriging
   use mainVar                , only: yStart, yEnd, jStart, jEnd, & ! interpolation time periods
                                      grid, gridMeteo,            & ! grid properties of input and output grid
                                      nCell, MetSta
-  use kriging                , only: dCS, dS
+  use kriging                , only: dCS, dS, cell
   use mo_setVario            , only: setVario, dMatrix
   use mo_netcdf              , only: NcDataset, NcVariable
   use mo_write               , only: open_netcdf
   use mo_message             , only: message
-  use kriging
   use mo_EDK                 , only: EDK
   USE mo_timer, ONLY : &
           timers_init, timer_start, timer_stop, timer_get              ! Timing of processes
@@ -133,6 +132,7 @@ program ED_Kriging
       !$OMP private(iCell)
       !$OMP do SCHEDULE(STATIC)
       ncellsloop: do iCell = 1, nCell
+        if (mod(iCell, 100) .eq. 0) print *, iCell
         ! check DEM
         if (nint(cell(iCell)%h) == grid%nodata_value ) then
           cell(iCell)%z = gridMeteo%nodata_value

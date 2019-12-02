@@ -82,7 +82,7 @@
 #    along with the UFZ makefile project (cf. gpl.txt and lgpl.txt).
 #    If not, see <http://www.gnu.org/licenses/>.
 #
-#    Copyright 2011-2014 Matthias Cuntz
+#    Copyright 2011-2015 Matthias Cuntz
 #
 # Written Matthias Cuntz, Nov. 2011 - mc (at) macu.de
 # Modified Matthias Cuntz, Juliane Mai, Stephan Thober, UFZ Leipzig, Germany
@@ -94,11 +94,11 @@ SHELL = /bin/bash
 #
 
 # . is current directory, .. is parent directory
-SRCPATH    := ./src ./lib # where are the source files; use test_??? to run a test directory
+SRCPATH    := ./src ./lib # where are the source files; use test_??? to
 PROGPATH   := .                  # where shall be the executable
 CONFIGPATH := /home/thober/lib/mhm/develop/make.config        # where are the $(system).$(compiler) files
 MAKEDPATH  := $(CONFIGPATH)      # where is the make.d.sh script
-CHECKPATH  := .               # path for $(CHECKPATH)/test* and $(CHECKPATH)/check* directories if target is check
+CHECKPATH  :=               # path for $(CHECKPATH)/test* and $(CHECKPATH)/check* directories if target is check
 DOXCONFIG  := ./doxygen.config   # the doxygen config file
 #
 PROGNAME := edk # Name of executable
@@ -106,20 +106,20 @@ LIBNAME  := #libminpack.a # Name of library
 #
 # Options
 # Systems: eve and personal computers such as mcimac for Matthias Cuntz' iMac; look in $(MAKEDPATH) or type 'make info'
-system   := stmac
+system   := eve
 # Compiler: intelX, gnuX, nagX, sunX, where X stands for version number, e.g. intel13;
 #   look at $(MAKEDPATH)/$(system).alias for shortcuts or type 'make info'
-compiler := gnu71
+compiler := intel
 # Releases: debug, release
-release  := debug
+release  := release
 # Netcdf versions (Network Common Data Form): netcdf3, netcdf4, [anything else]
 netcdf   := netcdf4
 # LAPACK (Linear Algebra Pack): true, [anything else]
 lapack   := true
 # MKL (Intel's Math Kernel Library): mkl, mkl95, [anything else]
-mkl      := 
+mkl      :=
 # Proj4 (Cartographic Projections Library): true, [anything else]
-proj     := 
+proj     :=
 # IMSL (IMSL Numerical Libraries): vendor, imsl, [anything else]
 imsl     := 
 # OpenMP parallelization: true, [anything else]
@@ -193,7 +193,7 @@ EXTRA_CFLAGS   :=
 # Intel F2003 -assume realloc-lhs
 INTEL_EXCLUDE  :=
 
-# Exclude certin files from compilation
+# Exclude certain files from compilation
 EXCLUDE_FILES  :=
 
 #     Fortran 90 file endings: .f90 .F90 .f95 .F95 .f03 .F03 .f08 .F08
@@ -239,15 +239,15 @@ DOXCONFIG  := $(abspath $(DOXCONFIG:~%=${HOME}%))
 
 # Program names
 # Only Prog or Lib
-ifeq (,$(strip $(PROGNAME)))
-    ifeq (,$(strip $(LIBNAME)))
+ifeq ($(strip $(PROGNAME)),)
+    ifeq ($(strip $(LIBNAME)),)
         $(error Error: PROGNAME or LIBNAME must be given.)
     else
         islib   := True
         LIBNAME := $(PROGPATH)/$(strip $(LIBNAME))
     endif
 else
-    ifeq (,$(strip $(LIBNAME)))
+    ifeq ($(strip $(LIBNAME)),)
         islib    := False
         PROGNAME := $(PROGPATH)/$(strip $(PROGNAME))
     else
@@ -257,6 +257,19 @@ endif
 
 MAKEDSCRIPT  := make.d.sh
 MAKEDEPSPROG := $(MAKEDPATH)/$(MAKEDSCRIPT)
+
+# some targets should not compiler the code first, e.g. producing documentation
+# but some targets should not recompile but be aware of the source files, e.g. clean
+iphony    := False
+iphonyall := False
+ifneq ($(strip $(MAKECMDGOALS)),)
+    ifneq ($(findstring /$(strip $(MAKECMDGOALS))/,/check/ /test/ /html/ /latex/ /pdf/ /doxygen/),)
+        iphony := True
+    endif
+    ifneq (,$(findstring $(strip $(MAKECMDGOALS))/,/check/ /test/ /html/ /latex/ /pdf/ /doxygen/ /cleancheck/ /cleantest/ /checkclean/ /testclean/ /info/ /clean/ /cleanclean/))
+        iphonyall := True
+    endif
+endif
 
 #
 # --- CHECK 1 ---------------------------------------------------
@@ -274,13 +287,14 @@ endif
 # Include compiler alias on specific systems, e.g. nag for nag53
 icompiler := $(compiler)
 ALIASINC  := $(CONFIGPATH)/$(system).alias
-ifneq ("$(wildcard $(ALIASINC))","")
+ifneq ($(strip $(ALIASINC)),)
     include $(ALIASINC)
 endif
 
 #
 # --- CHECK 2 ---------------------------------------------------
 #
+
 compilers := $(shell ls -1 $(CONFIGPATH) | sed -e "/$(MAKEDSCRIPT)/d" -e '/f2html/d' -e '/alias/d' -e '/~$$/d' | grep $(system) | cut -d '.' -f 2 | sort | uniq)
 gnucompilers := $(filter gnu%, $(compilers))
 nagcompilers := $(filter nag%, $(compilers))
@@ -290,422 +304,8 @@ ifeq (,$(findstring $(icompiler),$(compilers)))
 endif
 
 #
-# --- DEFAULTS ---------------------------------------------------
+# --- SOURCE FILES ---------------------------------------------------
 #
-
-# These variables will be used to compile
-FC       :=
-FCFLAGS  := $(EXTRA_FCFLAGS)
-F90      :=
-F90FLAGS := $(EXTRA_F90FLAGS)
-CC       :=
-CFLAGS   := $(EXTRA_CFLAGS)
-CPP      :=
-DEFINES  := $(EXTRA_DEFINES)
-INCLUDES := $(EXTRA_INCLUDES)
-# and link, and therefore set below
-LD       :=
-LDFLAGS  := $(EXTRA_LDFLAGS)
-LIBS     := $(EXTRA_LIBS) $(addprefix -L,$(SRCPATH))
-AR       := ar
-ARFLAGS  := -ru
-RANLIB   := ranlib
-
-#
-# --- COMPILER / MACHINE SPECIFIC --------------------------------
-#
-
-# Set path where all the .mod, .o, etc. files will be written, set before include $(MAKEINC)
-OBJPATH := $(addsuffix /.$(strip $(icompiler)).$(strip $(release)), $(SRCPATH))
-
-# Include the individual configuration files
-MAKEINC := $(addsuffix /$(system).$(icompiler), $(abspath $(CONFIGPATH:~%=${HOME}%)))
-#$(info "MAKEINC: "$(MAKEINC))
-ifeq ("$(wildcard $(MAKEINC))","")
-    $(error Error: '$(MAKEINC)' not found.)
-endif
-include $(MAKEINC)
-
-# Always use -DCFORTRAN for mixed C and Fortran compilations
-DEFINES  += -DCFORTRAN
-
-# Mac OS X is special, there is (almost) no static linking.
-# MAC OS X does not work with -rpath. Set DYLD_LIBRARY_PATH if needed.
-iOS := $(shell uname -s)
-istatic := $(static)
-ifneq (,$(findstring $(iOS),Darwin))
-    istatic := dynamic
-endif
-
-# Start group for cyclic search in static linking
-iLIBS :=
-ifeq ($(istatic),static)
-    iLIBS += -Bstatic -Wl,--start-group
-else
-    ifneq (,$(findstring $(iOS),Darwin))
-        iLIBS += -Wl,-dynamic
-    else
-        iLIBS += -Bdynamic
-    endif
-endif
-
-# --- COMPILER ---------------------------------------------------
-ifneq (,$(findstring $(icompiler),$(gnucompilers)))
-    ifeq ("$(wildcard $(GFORTRANDIR)*)","")
-        $(error Error: GFORTRAN path '$(GFORTRANDIR)' not found.)
-    endif
-    GFORTRANLIB ?= $(GFORTRANDIR)/lib
-    iLIBS       += -L$(GFORTRANLIB) -lgfortran
-    RPATH       += -Wl,-rpath,$(GFORTRANLIB)
-endif
-
-# --- IMSL ---------------------------------------------------
-ifneq (,$(findstring $(imsl),vendor imsl))
-    ifeq ("$(wildcard $(IMSLDIR)*)","")
-        $(error Error: IMSL path '$(IMSLDIR)' not found.)
-    endif
-    IMSLINC ?= $(IMSLDIR)/include
-    IMSLLIB ?= $(IMSLDIR)/lib
-
-    INCLUDES += -I$(IMSLINC)
-    ifneq ($(ABSOFT),)
-        INCLUDES += -p $(IMSLINC)
-    endif
-    DEFINES  += -DIMSL
-
-    ifeq (,$(findstring $(iOS),Darwin))
-        iLIBS     += -z muldefs
-        ifneq ($(istatic),static)
-            iLIBS += -i_dynamic
-        endif
-    endif
-
-    ifneq (,$(findstring $(iOS),Darwin))
-        iLIBS += -L$(IMSLLIB) -limsl -limslscalar -limsllapack -limslblas -limsls_err -limslmpistub -limslsuperlu
-    else
-        ifeq ($(imsl),imsl)
-            iLIBS += -L$(IMSLLIB) -limsl -limslscalar -limsllapack_imsl -limslblas_imsl -limsls_err -limslmpistub -limslsuperlu
-        else
-            iLIBS += -L$(IMSLLIB) -limsl -limslscalar -limsllapack_vendor -limslblas_vendor -limsls_err -limslmpistub -limslsuperlu -limslhpc_l
-        endif
-    endif
-    RPATH += -Wl,-rpath,$(IMSLLIB)
-endif
-
-# --- OPENMP ---------------------------------------------------
-iopenmp=
-ifeq ($(openmp),true)
-    ifneq (,$(findstring $(icompiler),$(gnucompilers)))
-        iopenmp := -fopenmp
-    else
-        iopenmp := -openmp
-    endif
-    DEFINES += -DOPENMP
-endif
-F90FLAGS += $(iopenmp)
-FCFLAGS  += $(iopenmp)
-CFLAGS   += $(iopenmp)
-LDFLAGS  += $(iopenmp)
-# IMSL needs openmp during linking in any case
-ifneq ($(openmp),true)
-    ifneq (,$(findstring $(imsl),vendor imsl))
-        ifneq (,$(findstring $(icompiler),$(gnucompilers)))
-            LDFLAGS += -fopenmp
-        else
-            LDFLAGS += -openmp
-        endif
-    endif
-endif
-
-# --- MKL ---------------------------------------------------
-ifneq (,$(findstring $(mkl),mkl mkl95))
-    ifeq ($(mkl),mkl95) # First mkl95 then mkl for .mod files other then intel
-        ifeq ("$(wildcard $(MKL95DIR)*)","")
-            $(error Error: MKL95 path '$(MKL95DIR)' not found.)
-        endif
-        MKL95INC ?= $(MKL95DIR)/include
-        MKL95LIB ?= $(MKL95DIR)/lib
-
-        INCLUDES += -I$(MKL95INC)
-        ifneq ($(ABSOFT),)
-            INCLUDES += -p $(MKL95INC)
-        endif
-        DEFINES  += -DMKL95
-
-        iLIBS += -L$(MKL95LIB) -lmkl_blas95_lp64 -lmkl_lapack95_lp64
-        RPATH += -Wl,-rpath,$(MKL95LIB)
-        ifneq ($(ABSOFT),)
-            F90FLAGS += -p $(MKL95INC)
-        endif
-    endif
-
-    ifeq ("$(wildcard $(MKLDIR)*)","")
-        $(error Error: MKL path '$(MKLDIR)' not found.)
-    endif
-    MKLINC ?= $(MKLDIR)/include
-    MKLLIB ?= $(MKLDIR)/lib
-
-    INCLUDES += -I$(MKLINC)
-    ifneq ($(ABSOFT),)
-        INCLUDES += -p $(MKLINC)
-    endif
-    DEFINES  += -DMKL
-
-    iLIBS += -L$(MKLLIB) -lmkl_intel_lp64 -lmkl_core #-lpthread
-    ifneq (,$(findstring $(imsl),vendor imsl))
-       iLIBS += -lmkl_intel_thread #-lpthread
-    else
-        ifeq ($(openmp),true)
-            iLIBS += -lmkl_intel_thread #-lpthread
-        else
-            iLIBS += -lmkl_sequential #-lpthread
-        endif
-    endif
-    RPATH += -Wl,-rpath,$(MKLLIB)
-
-    ifeq ($(openmp),true)
-	ifeq (,$(findstring $(icompiler),$(intelcompilers)))
-            iLIBS += -L$(INTELLIB) -liomp5
-            RPATH += -Wl,-rpath,$(INTELLIB)
-        endif
-    endif
-
-endif
-
-# --- NETCDF ---------------------------------------------------
-ifneq (,$(findstring $(netcdf),netcdf3 netcdf4))
-    ifeq ("$(wildcard $(NCDIR)*)","")
-        $(error Error: NETCDF path '$(NCDIR)' not found.)
-    endif
-    NCINC ?= $(strip $(NCDIR))/include
-    NCLIB ?= $(strip $(NCDIR))/lib
-
-    INCLUDES += -I$(NCINC)
-    ifneq ($(ABSOFT),)
-        INCLUDES += -p $(NCINC)
-    endif
-    DEFINES += -DNETCDF
-
-    iLIBS += -L$(NCLIB)
-    RPATH += -Wl,-rpath,$(NCLIB)
-    ifeq (libnetcdff, $(shell ls $(NCLIB)/libnetcdff.* 2> /dev/null | sed -n '1p' | sed -e 's/.*\(libnetcdff\)/\1/' -e 's/\(libnetcdff\).*/\1/'))
-        iLIBS += -lnetcdff
-    endif
-    iLIBS += -lnetcdf
-
-    ifneq ("$(wildcard $(NCFDIR)*)","")
-        NCFINC ?= $(strip $(NCFDIR))/include
-        NCFLIB ?= $(strip $(NCFDIR))/lib
-
-        INCLUDES += -I$(NCFINC)
-        ifneq ($(ABSOFT),)
-            INCLUDES += -p $(NCFINC)
-        endif
-
-        iLIBS += -L$(NCFLIB)
-        RPATH += -Wl,-rpath,$(NCFLIB)
-        ifeq (libnetcdff, $(shell ls $(NCFLIB)/libnetcdff.* 2> /dev/null | sed -n '1p' | sed -e 's/.*\(libnetcdff\)/\1/' -e 's/\(libnetcdff\).*/\1/'))
-            iLIBS += -lnetcdff
-        endif
-    endif
-
-    # other libraries for netcdf4, ignored for netcdf3
-    ifeq ($(system),cygwin)
-        ifeq ($(netcdf),netcdf4)
-            iLIBS += -L$(HDF5LIB) -lhdf5_hl -lhdf5
-            RPATH += -Wl,-rpath,$(HDF5LIB)
-            ifneq ($(CURLLIB),)
-                iLIBS += -L$(CURLLIB) -lcurl
-                RPATH += -Wl,-rpath,$(CURLLIB)
-            endif
-        endif
-    else
-        ifeq ($(netcdf),netcdf4)
-            iLIBS += -L$(HDF5LIB) -lhdf5_hl -lhdf5 -L$(SZLIB) -lsz
-            ifneq ($(ZLIB),)
-                iLIBS += -L$(ZLIB) -lz
-                RPATH += -Wl,-rpath,$(ZLIB)
-            else
-                iLIBS += -lz
-            endif
-            RPATH += -Wl,-rpath,$(HDF5LIB) -Wl,-rpath,$(SZLIB)
-            ifneq ($(CURLLIB),)
-                iLIBS += -L$(CURLLIB) -lcurl
-                RPATH += -Wl,-rpath,$(CURLLIB)
-            endif
-        endif
-    endif
-endif
-
-# --- PROJ --------------------------------------------------
-ifeq ($(proj),true)
-    ifeq ("$(wildcard $(PROJ4DIR)*)","")
-        $(error Error: PROJ4 path '$(PROJ4DIR)' not found.)
-    endif
-    PROJ4LIB ?= $(PROJ4DIR)/lib
-    iLIBS    += -L$(PROJ4LIB) -lproj
-    RPATH    += -Wl,-rpath=$(PROJ4LIB)
-
-    ifeq ("$(wildcard $(FPROJDIR)*)","")
-        $(error Error: FPROJ path '$(FPROJDIR)' not found.)
-    endif
-    FPROJINC ?= $(FPROJDIR)/include
-    FPROJLIB ?= $(FPROJDIR)/lib
-
-    INCLUDES += -I$(FPROJINC)
-    ifneq ($(ABSOFT),)
-        INCLUDES += -p $(FPROJINC)
-    endif
-    DEFINES  += -DFPROJ
-    iLIBS    += -L$(FPROJLIB) -lfproj4 $(FPROJLIB)/proj4.o
-    RPATH    += -Wl,-rpath,$(FPROJLIB)
-endif
-
-# --- LAPACK ---------------------------------------------------
-ifeq ($(lapack),true)
-    # Mac OS X uses frameworks
-    ifneq (,$(findstring $(iOS),Darwin))
-        iLIBS += -framework Accelerate
-    else
-        ifeq ("$(wildcard $(LAPACKDIR)*)","")
-            $(error Error: LAPACK path '$(LAPACKDIR)' not found.)
-        endif
-        LAPACKLIB ?= $(LAPACKDIR)/lib
-        iLIBS     += -L$(LAPACKLIB) -lblas -llapack
-        RPATH     += -Wl,-rpath,$(LAPACKLIB)
-    endif
-    DEFINES += -DLAPACK
-endif
-
-# --- MPI ---------------------------------------------------
-ifeq ($(mpi),true)
-    ifeq ("$(wildcard $(MPIDIR)*)","")
-        $(error Error: MPI path '$(MPIDIR)' not found.)
-    endif
-    MPIINC   ?= $(MPIDIR)/include
-    MPILIB   ?= $(MPIDIR)/lib
-    iLIBS    += -L$(MPILIB) # -lproj
-    RPATH    += -Wl,-rpath=$(MPILIB)
-    INCLUDES += -I$(MPIINC) -I$(MPILIB) # mpi.h in lib and not include <- strange
-    DEFINES  += -DMPI
-endif
-
-# --- DOXYGEN ---------------------------------------------------
-ifneq (,$(filter doxygen html latex pdf, $(MAKECMDGOALS)))
-    ifneq ("$(wildcard $(DOXCONFIG))","")
-        ISDOX := True
-        ifneq ($(DOXYGENDIR),)
-            ifeq ("$(wildcard $(DOXYGENDIR)*)","")
-                $(error Error: doxygen not found in $(strip $(DOXYGENDIR)).)
-            else
-                DOXYGEN := $(strip $(DOXYGENDIR))/"doxygen"
-            endif
-        else
-            ifneq (, $(shell which doxygen))
-                DOXYGEN := doxygen
-            else
-                $(error Error: doxygen not found in $PATH.)
-            endif
-        endif
-        ifneq ($(DOTDIR),)
-            ifeq ("$(wildcard $(DOTDIR)*)","")
-                $(error Error: dot not found in $(strip $(DOTDIR)).)
-            else
-                DOTPATH := $(strip $(DOTDIR))
-            endif
-        else
-            ifneq (, $(shell which dot))
-                DOTPATH := $(dir $(shell which dot))
-            else
-                DOTPATH :=
-            endif
-        endif
-        ifneq ($(TEXDIR),)
-            ifeq ("$(wildcard $(strip $(TEXDIR))/latex)","")
-                $(error Error: latex not found in $(strip $(TEXDIR)).)
-            else
-                TEXPATH := $(strip $(TEXDIR))
-            endif
-        else
-            ifneq (, $(shell which latex))
-                TEXPATH := $(dir $(shell which latex))
-            else
-                $(error Error: latex not found in $PATH.)
-            endif
-        endif
-        ifneq ($(PERLDIR),)
-            ifeq ("$(wildcard $(strip $(PERLDIR))/perl)","")
-                $(error Error: perl not found in $(strip $(PERLDIR)).)
-            else
-                PERLPATH := $(strip $(PERLDIR))
-            endif
-        else
-            ifneq (, $(shell which perl))
-                PERLPATH := $(dir $(shell which perl))
-            else
-                $(error Error: perl not found in $PATH.)
-            endif
-        endif
-    else
-        ISDOX := False
-        ifneq (,$(filter doxygen latex pdf, $(MAKECMDGOALS)))
-            $(error Error: no doxygen config file $(DOXCONFIG) found in.)
-        endif
-    endif
-else
-    ISDOX := False
-endif
-
-# --- INTEL ERROR ---------------------------------------------------
-ifneq (,$(findstring $(icompiler),$(intelcompilers)))
-    F90FLAGS1 = $(subst -assume realloc-lhs,,"$(F90FLAGS)")
-else
-    F90FLAGS1 = $(F90FLAGS)
-endif
-
-
-#
-# --- FINISH SETUP ---------------------------------------------------
-#
-
-ifeq ($(release),debug)
-    DEFINES += -DDEBUG
-endif
-
-# Mac OS X is special, there is (almost) no static linking; otherwise close static group
-ifeq ($(istatic),static)
-    iLIBS += -Wl,--end-group
-endif
-
-# The NAG compiler links via gcc so that one has to give -Wl twice and double commas for the option
-# i.e. instead of  -Wl,rpath,/path   you need   -Wl,-Wl,,rpath,,/path
-ifneq (,$(findstring $(icompiler),$(nagcompilers)))
-    comma  := ,
-    iiLIBS := $(subst -Wl,-Wl$(comma)-Wl,$(subst $(comma),$(comma)$(comma),$(iLIBS)))
-    iRPATH := $(subst -Wl,-Wl$(comma)-Wl,$(subst $(comma),$(comma)$(comma),$(RPATH)))
-else
-    iiLIBS := $(iLIBS)
-    iRPATH := $(RPATH)
-endif
-LIBS += $(iiLIBS)
-# Only Linux and Solaris can use -rpath in executable
-ifeq (,$(findstring $(iOS),Darwin))
-    LIBS += $(iRPATH)
-endif
-
-# some targets should not compiler the code first, e.g. producing documentation
-# but some targets should not recompile but be aware of the source files, e.g. clean
-iphony    := False
-iphonyall := False
-ifneq (,$(strip $(MAKECMDGOALS)))
-    ifneq (,$(findstring /$(strip $(MAKECMDGOALS))/,/check/ /test/ /html/ /latex/ /pdf/ /doxygen/))
-        iphony := True
-    endif
-    ifneq (,$(findstring $(strip $(MAKECMDGOALS))/,/check/ /test/ /html/ /latex/ /pdf/ /doxygen/ /cleancheck/ /cleantest/ /checkclean/ /testclean/ /info/ /clean/ /cleanclean/))
-        iphonyall := True
-    endif
-endif
-
 
 # ASRCS contain Fortran 90 source dir informations
 ifeq (False,$(iphony))
@@ -760,21 +360,462 @@ LSRCS  := $(foreach f,$(LSRCS1),$(if $(findstring $(f),$(abspath $(EXCLUDE_FILES
 LOSRCS := $(foreach suff, $(LIBSUFFIXES), $(patsubst %$(suff), %.o, $(filter %$(suff), $(LSRCS))))
 LOBJS  := $(addprefix -L,$(dir $(SRCPATH))) $(addprefix -l, $(patsubst lib%, %, $(notdir $(LOSRCS))))
 
-# The Absoft compiler needs that ABSOFT is set to the Absoft base path
-ifneq ($(ABSOFT),)
-    export ABSOFT
-endif
-ifneq ($(LDPATH),)
-    empty:=
-    space:= $(empty) $(empty)
-    export LD_LIBRARY_PATH=$(subst $(space),$(empty),$(LDPATH))
+#
+# --- DEFAULTS ---------------------------------------------------
+#
+
+# These variables will be used to compile
+FC       :=
+FCFLAGS  := $(EXTRA_FCFLAGS)
+F90      :=
+F90FLAGS := $(EXTRA_F90FLAGS)
+CC       :=
+CFLAGS   := $(EXTRA_CFLAGS)
+CPP      :=
+DEFINES  := $(EXTRA_DEFINES)
+INCLUDES := $(EXTRA_INCLUDES) $(addprefix -I,$(SRCPATH))
+# and link, and therefore set below
+LD       :=
+LDFLAGS  := $(EXTRA_LDFLAGS)
+LIBS     := $(EXTRA_LIBS) $(addprefix -L,$(SRCPATH))
+AR       := ar
+ARFLAGS  := -ru
+RANLIB   := ranlib
+
+#
+# --- COMPILER / MACHINE SPECIFIC --------------------------------
+#
+
+# Set path where all the .mod, .o, etc. files will be written, set before include $(MAKEINC)
+OBJPATH := $(addsuffix /.$(strip $(icompiler)).$(strip $(release)), $(SRCPATH))
+
+# Mac OS X is special, there is (almost) no static linking.
+# Mac OS X does not work with -rpath. Set DYLD_LIBRARY_PATH if needed.
+iOS := $(shell uname -s)
+istatic := $(static)
+ifneq (,$(findstring $(iOS),Darwin))
+    istatic := dynamic
 endif
 
+# Include the individual configuration files
+MAKEINC := $(addsuffix /$(system).$(icompiler), $(abspath $(CONFIGPATH:~%=${HOME}%)))
+#$(info "MAKEINC: "$(MAKEINC))
+ifeq ($(strip $(MAKEINC)),)
+    $(error Error: '$(MAKEINC)' not found.)
+endif
+include $(MAKEINC)
+
+# Always use -DCFORTRAN for mixed C and Fortran compilations
+DEFINES  += -DCFORTRAN
+
+# Start group for cyclic search in static linking
+iLIBS :=
+ifeq ($(istatic),static)
+    iLIBS += -Bstatic -Wl,--start-group
+else
+    ifneq (,$(findstring $(iOS),Darwin))
+        iLIBS += -Wl,-dynamic
+    else
+        iLIBS += -Bdynamic
+    endif
+endif
+
+# --- COMPILER ---------------------------------------------------
+ifneq (,$(findstring $(icompiler),$(gnucompilers)))
+    ifneq ($(strip $(GFORTRANLIB)),)
+        GFLIB := $(GFORTRANLIB)
+    else
+        ifneq ($(strip $(GFORTRANDIR)),)
+            GFLIB := $(GFORTRANDIR)/lib
+        else
+            ifneq ($(strip $(GNULIB)),)
+                GFLIB := $(GNULIB)
+            else
+                $(error Error: GFORTRAN path not found.)
+            endif
+        endif
+    endif
+    iLIBS       += -L$(GFLIB) -lgfortran
+    RPATH       += -Wl,-rpath,$(GFLIB)
+endif
+
+# --- LINKER ---------------------------------------------------
 # Link with the fortran compiler if fortran code
 ifneq ($(SRCS)$(FSRCS),)
     LD := $(F90)
 else
     LD := $(CC)
+endif
+
+# --- IMSL ---------------------------------------------------
+ifneq (,$(findstring $(imsl),vendor imsl))
+    ifeq ($(strip $(IMSLDIR)),)
+        $(error Error: IMSL path '$(IMSLDIR)' not found.)
+    endif
+    IMSLINC ?= $(IMSLDIR)/include
+    IMSLLIB ?= $(IMSLDIR)/lib
+
+    INCLUDES += -I$(IMSLINC)
+    ifneq ($(ABSOFT),)
+        INCLUDES += -p $(IMSLINC)
+    endif
+    DEFINES  += -DIMSL
+
+    ifeq (,$(findstring $(iOS),Darwin))
+        iLIBS     += -z muldefs
+        ifneq ($(istatic),static)
+            iLIBS += -shared-intel
+        endif
+    endif
+
+    ifneq (,$(findstring $(iOS),Darwin))
+        iLIBS += -L$(IMSLLIB) -limsl -limslscalar -limsllapack -limslblas -limsls_err -limslmpistub -limslsuperlu
+    else
+        ifeq ($(imsl),imsl)
+            iLIBS += -L$(IMSLLIB) -limsl -limslscalar -limsllapack_imsl -limslblas_imsl -limsls_err -limslmpistub -limslsuperlu
+        else
+            iLIBS += -L$(IMSLLIB) -limsl -limslscalar -limsllapack_vendor -limslblas_vendor -limsls_err -limslmpistub -limslsuperlu -limslhpc_l
+        endif
+    endif
+    RPATH += -Wl,-rpath,$(IMSLLIB)
+endif
+
+# --- OPENMP ---------------------------------------------------
+iopenmp :=
+ifeq ($(openmp),true)
+    ifneq (,$(findstring $(icompiler),$(gnucompilers)))
+        iopenmp += -fopenmp
+    else
+        ifneq (,$(findstring $(icompiler),$(intelcompilers)))
+            iopenmp += -qopenmp
+        else
+            iopenmp += -openmp
+        endif
+    endif
+    DEFINES += -DOPENMP
+endif
+F90FLAGS += $(iopenmp)
+FCFLAGS  += $(iopenmp)
+CFLAGS   += $(iopenmp)
+LDFLAGS  += $(iopenmp)
+# IMSL needs openmp during linking in any case
+ifneq ($(openmp),true)
+    ifneq (,$(findstring $(imsl),vendor imsl))
+        ifneq (,$(findstring $(icompiler),$(gnucompilers)))
+            LDFLAGS += -fopenmp
+        else
+            LDFLAGS += -qopenmp
+        endif
+    endif
+endif
+
+# --- MKL ---------------------------------------------------
+ifneq (,$(findstring $(mkl),mkl mkl95))
+    ifeq ($(mkl),mkl95) # First mkl95 then mkl for .mod files other then intel
+        ifeq ($(strip $(MKL95DIR)),)
+            $(error Error: MKL95 path '$(MKL95DIR)' not found.)
+        endif
+        MKL95INC ?= $(MKL95DIR)/include
+        MKL95LIB ?= $(MKL95DIR)/lib
+
+        INCLUDES += -I$(MKL95INC)
+        ifneq ($(ABSOFT),)
+            INCLUDES += -p $(MKL95INC)
+        endif
+        DEFINES  += -DMKL95
+
+        iLIBS += -L$(MKL95LIB) -lmkl_blas95_lp64 -lmkl_lapack95_lp64
+        RPATH += -Wl,-rpath,$(MKL95LIB)
+        ifneq ($(ABSOFT),)
+            F90FLAGS += -p $(MKL95INC)
+        endif
+    endif
+
+    ifeq ($(strip $(MKLDIR)),)
+        $(error Error: MKL path '$(MKLDIR)' not found.)
+    endif
+    MKLINC ?= $(MKLDIR)/include
+    MKLLIB ?= $(MKLDIR)/lib
+
+    INCLUDES += -I$(MKLINC)
+    ifneq ($(ABSOFT),)
+        INCLUDES += -p $(MKLINC)
+    endif
+    DEFINES  += -DMKL
+
+    iLIBS += -L$(MKLLIB) -lmkl_intel_lp64 -lmkl_core #-lpthread
+    ifneq (,$(findstring $(imsl),vendor imsl))
+       iLIBS += -lmkl_intel_thread #-lpthread
+    else
+        ifeq ($(openmp),true)
+            iLIBS += -lmkl_intel_thread #-lpthread
+        else
+            iLIBS += -lmkl_sequential #-lpthread
+        endif
+    endif
+    RPATH += -Wl,-rpath,$(MKLLIB)
+
+    ifeq ($(openmp),true)
+	ifeq (,$(findstring $(icompiler),$(intelcompilers)))
+            iLIBS += -L$(INTELLIB) -liomp5
+            RPATH += -Wl,-rpath,$(INTELLIB)
+        endif
+    endif
+
+endif
+
+# --- NETCDF ---------------------------------------------------
+ifneq (,$(findstring $(netcdf),netcdf3 netcdf4))
+    ifeq ($(strip $(NCDIR)),)
+        $(error Error: NETCDF path '$(NCDIR)' not found.)
+    endif
+    NCINC ?= $(strip $(NCDIR))/include
+    NCLIB ?= $(strip $(NCDIR))/lib
+
+    INCLUDES += -I$(NCINC)
+    ifneq ($(ABSOFT),)
+        INCLUDES += -p $(NCINC)
+    endif
+    DEFINES += -DNETCDF
+
+    iLIBS += -L$(NCLIB)
+    RPATH += -Wl,-rpath,$(NCLIB)
+    ifeq (libnetcdff, $(shell ls $(NCLIB)/libnetcdff.* 2> /dev/null | sed -n '1p' | sed -e 's/.*\(libnetcdff\)/\1/' -e 's/\(libnetcdff\).*/\1/'))
+        iLIBS += -lnetcdff
+    endif
+    iLIBS += -lnetcdf
+
+    ifneq ($(strip $(NCFDIR)),)
+        NCFINC ?= $(strip $(NCFDIR))/include
+        NCFLIB ?= $(strip $(NCFDIR))/lib
+
+        INCLUDES += -I$(NCFINC)
+        ifneq ($(ABSOFT),)
+            INCLUDES += -p $(NCFINC)
+        endif
+
+        iLIBS += -L$(NCFLIB)
+        RPATH += -Wl,-rpath,$(NCFLIB)
+        ifeq (libnetcdff, $(shell ls $(NCFLIB)/libnetcdff.* 2> /dev/null | sed -n '1p' | sed -e 's/.*\(libnetcdff\)/\1/' -e 's/\(libnetcdff\).*/\1/'))
+            iLIBS += -lnetcdff
+        endif
+    endif
+
+    # other libraries for netcdf4, ignored for netcdf3
+    ifeq ($(system),cygwin)
+        ifeq ($(netcdf),netcdf4)
+            iLIBS += -L$(HDF5LIB) -lhdf5_hl -lhdf5
+            RPATH += -Wl,-rpath,$(HDF5LIB)
+            ifneq ($(CURLLIB),)
+                iLIBS += -L$(CURLLIB) -lcurl
+                RPATH += -Wl,-rpath,$(CURLLIB)
+            endif
+        endif
+    else
+        ifeq ($(netcdf),netcdf4)
+            iLIBS += -L$(HDF5LIB) -lhdf5_hl -lhdf5 -L$(SZLIB) -lsz
+            ifneq ($(ZLIB),)
+                iLIBS += -L$(ZLIB) -lz
+                RPATH += -Wl,-rpath,$(ZLIB)
+            else
+                iLIBS += -lz
+            endif
+            RPATH += -Wl,-rpath,$(HDF5LIB) -Wl,-rpath,$(SZLIB)
+            ifneq ($(CURLLIB),)
+                iLIBS += -L$(CURLLIB) -lcurl
+                RPATH += -Wl,-rpath,$(CURLLIB)
+            endif
+        endif
+    endif
+endif
+
+# --- PROJ --------------------------------------------------
+ifeq ($(proj),true)
+    ifeq ($(strip $(PROJ4DIR)),)
+        $(error Error: PROJ4 path '$(PROJ4DIR)' not found.)
+    endif
+    PROJ4LIB ?= $(PROJ4DIR)/lib
+    iLIBS    += -L$(PROJ4LIB) -lproj
+    RPATH    += -Wl,-rpath=$(PROJ4LIB)
+
+    ifeq ($(strip $(FPROJDIR)),)
+        $(error Error: FPROJ path '$(FPROJDIR)' not found.)
+    endif
+    FPROJINC ?= $(FPROJDIR)/include
+    FPROJLIB ?= $(FPROJDIR)/lib
+
+    INCLUDES += -I$(FPROJINC)
+    ifneq ($(ABSOFT),)
+        INCLUDES += -p $(FPROJINC)
+    endif
+    DEFINES  += -DFPROJ
+    iLIBS    += -L$(FPROJLIB) -lfproj4 $(FPROJLIB)/proj4.o
+    RPATH    += -Wl,-rpath,$(FPROJLIB)
+endif
+
+# --- LAPACK ---------------------------------------------------
+ifeq ($(lapack),true)
+    # Mac OS X uses frameworks
+    ifneq (,$(findstring $(iOS),Darwin))
+        iLIBS += -framework Accelerate
+    else
+        ifeq ($(strip $(LAPACKDIR)),)
+            $(error Error: LAPACK path '$(LAPACKDIR)' not found.)
+        endif
+        LAPACKLIB ?= $(LAPACKDIR)/lib
+        iLIBS     += -L$(LAPACKLIB) -lblas -llapack
+        RPATH     += -Wl,-rpath,$(LAPACKLIB)
+    endif
+    DEFINES += -DLAPACK
+endif
+
+# --- MPI ---------------------------------------------------
+MPI_F90FLAGS :=
+MPI_FCFLAGS  :=
+MPI_CFLAGS   :=
+MPI_LDFLAGS  :=
+ifeq ($(mpi),true)
+    ifeq ($(strip $(MPIDIR)),)
+        $(error Error: MPI path '$(MPIDIR)' not found.)
+    endif
+    MPIINC   ?= $(MPIDIR)/include
+    MPILIB   ?= $(MPIDIR)/lib
+    MPIBIN   ?= $(MPIDIR)/bin
+    # ifeq (,$(findstring $(icompiler),$(intelcompilers)))
+        MPI_F90FLAGS += $(shell $(MPIBIN)/mpifort --showme:compile)
+        MPI_FCFLAGS  += $(shell $(MPIBIN)/mpif77 --showme:compile)
+        MPI_CFLAGS   += $(shell $(MPIBIN)/mpicc --showme:compile)
+        ifeq ($(LD),$(F90))
+            MPI_LDFLAGS += $(shell $(MPIBIN)/mpifort --showme:link)
+        else
+            MPI_LDFLAGS += $(shell $(MPIBIN)/mpicc --showme:link)
+        endif
+    # else
+    #     ILDPATH = "/usr/local/intel/13.1.0/mkl/lib/intel64:/usr/local/intel/13.1.0:/opt/intel/mic/coi/host-linux-release/lib:/opt/intel/mic/myo/lib:/opt/intel/composer_xe_2013.2.146/compiler/lib/intel64:/opt/intel/composer_xe_2013.2.146/tbb/lib/intel64:/opt/intel/composer_xe_2013.2.146/compiler/lib/intel64:/opt/intel/composer_xe_2013.2.146/mkl/lib/intel64:/opt/intel/composer_xe_2013.2.146/ipp/lib/intel64"
+    #     MPI_F90FLAGS += $(shell LD_LIBRARY_PATH=$(ILDPATH) $(MPIBIN)/mpifort --showme:compile)
+    #     MPI_FCFLAGS  += $(shell LD_LIBRARY_PATH=$(ILDPATH) $(MPIBIN)/mpif77 --showme:compile)
+    #     MPI_CFLAGS   += $(shell LD_LIBRARY_PATH=$(ILDPATH) $(MPIBIN)/mpicc --showme:compile)
+    #     ifeq ($(LD),$(F90))
+    #         MPI_LDFLAGS += $(shell LD_LIBRARY_PATH=$(ILDPATH) $(MPIBIN)/mpifort --showme:link)
+    #     else
+    #         MPI_LDFLAGS += $(shell LD_LIBRARY_PATH=$(ILDPATH) $(MPIBIN)/mpicc --showme:link)
+    #     endif
+    # endif
+
+    # iLIBS    += -L$(MPILIB) # -lproj
+    RPATH    += -Wl,-rpath=$(MPILIB)
+    INCLUDES += -I$(MPIINC) -I$(MPILIB) # mpi.h in lib and not include <- strange
+    DEFINES  += -DMPI
+endif
+
+# --- DOXYGEN ---------------------------------------------------
+ifneq (,$(filter doxygen html latex pdf, $(MAKECMDGOALS)))
+    ifneq ($(strip $(DOXCONFIG)),)
+        ISDOX := True
+        ifneq ($(DOXYGENDIR),)
+            ifeq ($(strip $(DOXYGENDIR)),)
+                $(error Error: doxygen not found in $(strip $(DOXYGENDIR)).)
+            else
+                DOXYGEN := $(strip $(DOXYGENDIR))/"doxygen"
+            endif
+        else
+            ifneq (, $(shell which doxygen))
+                DOXYGEN := doxygen
+            else
+                $(error Error: doxygen not found in $PATH.)
+            endif
+        endif
+        ifneq ($(DOTDIR),)
+            ifeq ($(strip $(DOTDIR)),)
+                $(error Error: dot not found in $(strip $(DOTDIR)).)
+            else
+                DOTPATH := $(strip $(DOTDIR))
+            endif
+        else
+            ifneq (, $(shell which dot))
+                DOTPATH := $(dir $(shell which dot))
+            else
+                DOTPATH :=
+            endif
+        endif
+        ifneq ($(TEXDIR),)
+            ifeq ("$(wildcard $(strip $(TEXDIR))/latex)","")
+                $(error Error: latex not found in $(strip $(TEXDIR)).)
+            else
+                TEXPATH := $(strip $(TEXDIR))
+            endif
+        else
+            ifneq (, $(shell which latex))
+                TEXPATH := $(dir $(shell which latex))
+            else
+                $(error Error: latex not found in $PATH.)
+            endif
+        endif
+        ifneq ($(PERLDIR),)
+            ifeq ("$(wildcard $(strip $(PERLDIR))/perl)","")
+                $(error Error: perl not found in $(strip $(PERLDIR)).)
+            else
+                PERLPATH := $(strip $(PERLDIR))
+            endif
+        else
+            ifneq (, $(shell which perl))
+                PERLPATH := $(dir $(shell which perl))
+            else
+                $(error Error: perl not found in $PATH.)
+            endif
+        endif
+    else
+        ISDOX := False
+        ifneq (,$(filter doxygen latex pdf, $(MAKECMDGOALS)))
+            $(error Error: no doxygen config file $(DOXCONFIG) found in.)
+        endif
+    endif
+else
+    ISDOX := False
+endif
+
+# --- INTEL F2003 REALLOC-LHS ---------------------------------------
+ifneq (,$(findstring $(icompiler),$(intelcompilers)))
+    F90FLAGS1 = $(subst -assume realloc-lhs,,"$(F90FLAGS)")
+else
+    F90FLAGS1 = $(F90FLAGS)
+endif
+
+
+#
+# --- FINISH SETUP ---------------------------------------------------
+#
+
+ifeq ($(release),debug)
+    DEFINES += -DDEBUG
+endif
+
+# Mac OS X is special, there is (almost) no static linking; otherwise close static group
+ifeq ($(istatic),static)
+    iLIBS += -Wl,--end-group
+endif
+
+# The NAG compiler links via gcc so that one has to give -Wl twice and double commas for the option
+# i.e. instead of  -Wl,rpath,/path   you need   -Wl,-Wl,,rpath,,/path
+ifneq (,$(findstring $(icompiler),$(nagcompilers)))
+    comma  := ,
+    iiLIBS := $(subst -Wl,-Wl$(comma)-Wl,$(subst $(comma),$(comma)$(comma),$(iLIBS)))
+    iRPATH := $(subst -Wl,-Wl$(comma)-Wl,$(subst $(comma),$(comma)$(comma),$(RPATH)))
+else
+    iiLIBS := $(iLIBS)
+    iRPATH := $(RPATH)
+endif
+LIBS += $(iiLIBS)
+# Only Linux and Solaris can use -rpath in executable
+ifeq (,$(findstring $(iOS),Darwin))
+    LIBS += $(iRPATH)
+endif
+
+# export LD_LIBRARY_PATH of make.config files
+ifneq ($(LDPATH),)
+    empty:=
+    space:= $(empty) $(empty)
+    export LD_LIBRARY_PATH=$(subst $(space),$(empty),$(LDPATH))
 endif
 
 INCLUDES += $(addprefix -I,$(OBJPATH))
@@ -793,7 +834,7 @@ all: $(PROGNAME) $(LIBNAME)
 # Link program
 $(PROGNAME): $(OBJS) $(FOBJS) $(COBJS)
 	@echo "Linking program"
-	$(LD) $(LDFLAGS) -o $(PROGNAME) $(OBJS) $(FOBJS) $(COBJS) $(LIBS) $(LOBJS)
+	$(LD) $(MPI_LDFLAGS) $(LDFLAGS) -o $(PROGNAME) $(OBJS) $(FOBJS) $(COBJS) $(LIBS) $(LOBJS)
 
 # Link library
 $(LIBNAME): $(DOBJS) $(FDOBJS) $(CDOBJS) $(OBJS) $(FOBJS) $(COBJS)
@@ -833,20 +874,20 @@ ifneq (,$(findstring $(icompiler),gnu41 gnu42))
 	ssrc=$$(basename $$(echo $(SRCS) | tr ' ' '\n' | sed -n $${nobj}p)) ; \
 	tmp=$@.$$(echo $${src} | sed 's/.*\.//') ; \
 	doex=$$(echo $(INTEL_EXCLUDE) | grep -i "$${ssrc}" -) ; \
-	f90flag=$$(if [[ "$${doex}" == "" ]] ; then echo "$(F90FLAGS)"; else echo "$(F90FLAGS1)" ; fi) ; \
+	f90flag=$$(if [[ "$${doex}" != "" ]] ; then echo "$(F90FLAGS1)" ; else echo "$(F90FLAGS)" ; fi) ; \
 	echo "$(F90) -E $(DEFINES) $(INCLUDES) $${f90flag} $${src} | sed 's/^#[[:blank:]]\{1,\}[[:digit:]]\{1,\}.*$$//' > $${tmp}" ; \
 	$(F90) -E $(DEFINES) $(INCLUDES) $${f90flag} $${src} | sed 's/^#[[:blank:]]\{1,\}[[:digit:]]\{1,\}.*$$//' > $${tmp} ; \
-	echo "$(F90) $(DEFINES) $(INCLUDES) $(F90FLAGS) $(MODFLAG)$(dir $@) -c $${tmp} -o $@" ; \
-	$(F90) $(DEFINES) $(INCLUDES) $(F90FLAGS) $(MODFLAG)$(dir $@) -c $${tmp} -o $@ ; \
+	echo "$(F90) $(DEFINES) $(INCLUDES) $(MPI_F90FLAGS) $(F90FLAGS) $(MODFLAG)$(dir $@) -c $${tmp} -o $@" ; \
+	$(F90) $(DEFINES) $(INCLUDES) $(MPI_F90FLAGS) $(F90FLAGS) $(MODFLAG)$(dir $@) -c $${tmp} -o $@ ; \
 	rm $${tmp}
 else
 	@nobj=$$(echo $(OBJS) | tr ' ' '\n' | grep -n -w -F $@ | sed 's/:.*//') ; \
 	src=$$(echo $(SRCS) | tr ' ' '\n' | sed -n $${nobj}p) ; \
 	ssrc=$$(basename $$(echo $(SRCS) | tr ' ' '\n' | sed -n $${nobj}p)) ; \
 	doex=$$(echo $(INTEL_EXCLUDE) | grep -i "$${ssrc}" -) ; \
-	f90flag=$$(if [[ "$${doex}" == "" ]] ; then echo "$(F90FLAGS)"; else echo "$(F90FLAGS1)" ; fi) ; \
-	echo $(F90) $(DEFINES) $(INCLUDES) $${f90flag} $(MODFLAG)$(dir $@) -c $${src} -o $@ ; \
-	$(F90) $(DEFINES) $(INCLUDES) $${f90flag} $(MODFLAG)$(dir $@) -c $${src} -o $@
+	f90flag=$$(if [[ "$${doex}" != "" ]] ; then echo "$(F90FLAGS1)" ; else echo "$(F90FLAGS)" ; fi) ; \
+	echo $(F90) $(DEFINES) $(INCLUDES) $(MPI_F90FLAGS) $${f90flag} $(MODFLAG)$(dir $@) -c $${src} -o $@ ; \
+	$(F90) $(DEFINES) $(INCLUDES) $(MPI_F90FLAGS) $${f90flag} $(MODFLAG)$(dir $@) -c $${src} -o $@
 endif
 
 $(FOBJS):
@@ -856,25 +897,25 @@ ifneq (,$(findstring $(icompiler),gnu41 gnu42))
 	tmp=$@.$$(echo $${src} | sed 's/.*\.//') ; \
 	echo "$(FC) -E $(DEFINES) $(INCLUDES) $(FCFLAGS) $${src} | sed 's/^#[[:blank:]]\{1,\}[[:digit:]]\{1,\}.*$$//' > $${tmp}" ; \
 	$(FC) -E $(DEFINES) $(INCLUDES) $(FCFLAGS) $${src} | sed 's/^#[[:blank:]]\{1,\}[[:digit:]]\{1,\}.*$$//' > $${tmp} ; \
-	echo "$(FC) $(DEFINES) $(INCLUDES) $(FCFLAGS) -c $${tmp} -o $@" ; \
-	$(FC) $(DEFINES) $(INCLUDES) $(FCFLAGS) -c $${tmp} -o $@ ; \
+	echo "$(FC) $(DEFINES) $(INCLUDES) $(MPI_FCFLAGS) $(FCFLAGS) -c $${tmp} -o $@" ; \
+	$(FC) $(DEFINES) $(INCLUDES) $(MPI_FCFLAGS) $(FCFLAGS) -c $${tmp} -o $@ ; \
 	rm $${tmp}
 else
 	@nobj=$$(echo $(FOBJS) | tr ' ' '\n' | grep -n -w -F $@ | sed 's/:.*//') ; \
 	src=$$(echo $(FSRCS) | tr ' ' '\n' | sed -n $${nobj}p) ; \
-	echo $(FC) $(DEFINES) $(INCLUDES) $(FCFLAGS) -c $$src -o $@ ; \
-	$(FC) $(DEFINES) $(INCLUDES) $(FCFLAGS) -c $$src -o $@
+	echo $(FC) $(DEFINES) $(INCLUDES) $(MPI_FCFLAGS) $(FCFLAGS) -c $$src -o $@ ; \
+	$(FC) $(DEFINES) $(INCLUDES) $(MPI_FCFLAGS) $(FCFLAGS) -c $$src -o $@
 endif
 
 $(COBJS):
 	@nobj=$$(echo $(COBJS) | tr ' ' '\n' | grep -n -w -F $@ | sed 's/:.*//') ; \
 	src=$$(echo $(CSRCS) | tr ' ' '\n' | sed -n $${nobj}p) ; \
-	echo $(CC) $(DEFINES) $(INCLUDES) $(CFLAGS) -c $${src} -o $@ ; \
-	$(CC) $(DEFINES) $(INCLUDES) $(CFLAGS) -c $${src} -o $@
+	echo $(CC) $(DEFINES) $(INCLUDES) $(MPI_CFLAGS) $(CFLAGS) -c $${src} -o $@ ; \
+	$(CC) $(DEFINES) $(INCLUDES) $(MPI_CFLAGS) $(CFLAGS) -c $${src} -o $@
 
 # Helper Targets
 clean:
-	rm -f $(DOBJS) $(FDOBJS) $(CDOBJS) $(OBJS) $(FOBJS) $(COBJS) $(addsuffix /*.mod, $(OBJPATH))
+	rm -f $(DOBJS) $(FDOBJS) $(CDOBJS) $(OBJS) $(FOBJS) $(COBJS) $(addsuffix /*.mod, $(OBJPATH)) $(addsuffix /*.pre, $(SRCPATH))
 ifeq (False,$(islib))
 	rm -f "$(PROGNAME)"
 endif
@@ -1018,7 +1059,7 @@ info:
 	@echo "RANLIB    = $(RANLIB)"
 	@echo ""
 	@echo "Configured compilers on $(system): $(compilers)"
-ifneq ("$(wildcard $(ALIASINC))","")
+ifneq ($(strip $(ALIASINC)),)
 	@echo ""
 	@echo "Compiler aliases for $(system)"
 	@sed -n '/ifneq (,$$(findstring $$(compiler)/,/endif/p' $(ALIASINC) | \
