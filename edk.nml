@@ -1,29 +1,63 @@
 !EDK-Grid***Main configuration file for Precipitation for GER***
 &mainVars ! namelist mainpaths
-flagMthTyp               = 1
-flagVarTyp               = 1
+!
+! Correct interpolated negative values to zero
+correctNeg               = .False.
+!
+! Set values further away than the distance threshold to zero
+distZero                 = .True.
 noDataValue              = -9
+!
+! DataPathIn contains the path to the meteorological input files
+! it can be a netcdf file, then a 3-dim field is expected and
+! further coordinate and variable names are expected
 DataPathIn               = "check/pre_data/"
+! DataPathIn               = "output/input.nc"
+!
+! Specifications of variable and coordinate names in case DataPathIn
+! is a netcdf file
+ncIn_variable_name       = "pre"
+!
+! name of coordinates, these must be in [m]
+ncIn_yCoord_name         = "northing"
+ncIn_xCoord_name         = "easting"
+!
+!
 fNameDEM                 = "check/dem.asc"
 DataPathOut              = "output/"
-FileOut                  = "test.nc"
+FileOut                  = "edk.nc"
 fNameSTA                 = "check/pre_data/Stations_in_study_domain.txt"
 cellFactor               = 40
 DataConvertFactor        = 1.0e-1
-flagEDK                  = .TRUE.
+!
+! SET INTERPOLATION
+!
+! InterMth = 2 -> EDK
+! InterMth = 1 -> OK
+! InterMth = 0 -> No interpolation
+InterMth                 = 2
+!
+! PROCESSING PERIOD 
 yStart                   = 1990
 mStart                   = 1
 dStart                   = 1
 yEnd                     = 1990
 mEnd                     = 12
 dEnd                     = 31
+!
+! maximum search distance for interpolation [m]
 maxDist                  = 1.5e5
+!
+! estimate variogram
 flagVario                = .False.
-vType                    = 1
+!
+! number of variogram parameters
 nParam                   = 3
+!
+! file name where to store the variogram parameters
 fNameVario               = "output/varFit.txt"
 dh                       = 1.0e3 ! binsize for variogram [m]
-hMax                     = 1.5e5 ! max distance h [m]
+hMax                     = 1.5e5 ! max distance h for variogram estimation [m]
 ! nc output specification
 author_name              = 'Stephan Thober'
 variable_name            = 'pre'

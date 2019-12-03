@@ -25,7 +25,11 @@ module mainVar
   integer(i4)                                  :: cellFactor          ! > 1 , size grid metereological data
   real(dp)                                     :: DataConvertFactor   ! precipitation & temperature(in 1/10 mm) **** only in NECKAR BASIN *****
   real(dp)                                     :: noDataValue 
-  real(dp)                                     :: thresholdDist        ! treshold cellsize  distance          
+  real(dp)                                     :: thresholdDist        ! treshold cellsize  distance
+  ! constants
+  real(dp),  parameter                         :: DayHours = 24.0_dp   ! hours per day
+  real(dp),  parameter                         :: YearDays = 365.0_dp  ! days in a year
+  real(dp),  parameter                         :: DaySecs = 86400.0_dp ! sec in a day
   ! data input
   type CellFiner
      real(dp)                                  :: h                   ! elevation (sinks removed) [m]  
@@ -51,6 +55,48 @@ module mainVar
   end type gridGeoRef
   type (gridGeoRef)                            :: grid
   type (gridGeoRef)                            :: gridMeteo           ! reference of the metereological variables
+
+  ! -------------------------------------------------------------------
+  ! PERIOD description
+  ! -------------------------------------------------------------------
+  type period
+    integer(i4) :: dStart      ! first day
+    integer(i4) :: mStart      ! first month
+    integer(i4) :: yStart      ! first year
+    integer(i4) :: dEnd        ! last  day
+    integer(i4) :: mEnd        ! last  month
+    integer(i4) :: yEnd        ! last  year
+    integer(i4) :: julStart    ! first julian day
+    integer(i4) :: julEnd      ! last  julian day
+    integer(i4) :: nObs        ! total number of observations
+  CONTAINS
+    procedure :: init
+  end type period
+
+contains
+
+  subroutine init(self, dStart, mStart, yStart, dEnd, mEnd, yEnd)
+
+    use mo_julian, only: julday
+
+    implicit none
+    
+    class(period), intent(inout) :: self
+    integer(i4), intent(in) :: dStart, mStart, yStart, dEnd, mEnd, yEnd
+
+    self%dStart = dStart
+    self%mStart = mStart
+    self%yStart = yStart
+    self%dEnd = dEnd
+    self%mEnd = mEnd
+    self%yEnd = yEnd
+
+    self%julStart = julday(dd = dStart, mm = mStart, yy = yStart)
+    self%julEnd   = julday(dd = dEnd, mm = mEnd, yy = yEnd)
+    self%nObs     = self%julEnd - self%julStart + 1_i4
+    
+  end subroutine init
+
 end module mainVar
 
   !
@@ -84,7 +130,7 @@ module kriging
     real(dp)                                   :: x                   ! x- coordinate
     real(dp)                                   :: y                   ! y- coordinate
     real(dp)                                   :: h                   ! (estimated) elevation [m] (from the nearest cells DEM)
-    real(sp)                                   :: z                   ! z values to be interpolated (OUTPUT)
+    real(sp),                  allocatable     :: z(:)                ! z values to be interpolated (OUTPUT)
   end type CellCoarser
   type(CellCoarser),  dimension(:), allocatable  :: cell             ! EDK output
 
@@ -135,4 +181,12 @@ module NetCDFVar
   character(256)                                   :: variable_unit ! unit of netcdf variable
   character(256)                                   :: variable_long_name ! long name  of netcdf variable
   character(256)                                   :: author_name ! author name of netcdf file
+  !
+  ! netcdf input specifications
+  character(256)                                   :: ncIn_variable_name
+  character(256)                                   :: ncIn_yCoord_name
+  character(256)                                   :: ncIn_xCoord_name
+
 end module NetCDFVar
+
+

@@ -80,7 +80,7 @@ real(8) function tVar(h,c0,c,a)
       ! composed:   nugget + spherical + sill
       r = h/a
       if (h == 0.0_dp) then
-        tVar = 0.0_dp
+        tVar = c0 ! 0.0_dp
       elseif ( h <= a) then
         tVar = c0 + c * (1.5_dp * r - 0.5_dp * r**3)
       else

@@ -36,35 +36,37 @@ subroutine WriteDataMeteo(y,d,wFlag)
   !
   select case (wFlag)
   case (1)
-    !---------------------
-    ! write Binary files
-    !---------------------
-    write (dummy, 110) y
-    fileName = trim(dataPathOut)//trim(dummy)
+    print *, '***ERROR: writeDataMeteo: binary write not available anymore'
+    stop 1
+    ! !---------------------
+    ! ! write Binary files
+    ! !---------------------
+    ! write (dummy, 110) y
+    ! fileName = trim(dataPathOut)//trim(dummy)
 
-    ! open file
-    inquire (file=trim(fileName), opened = wasOpened)
-    if (.not. wasOpened) then
-       open (unit=100, file=fileName, form='unformatted', access='direct', status='unknown', recl=4*nCell)                     ! 4 bytes / cell (real 4)
-    end if
+    ! ! open file
+    ! inquire (file=trim(fileName), opened = wasOpened)
+    ! if (.not. wasOpened) then
+    !    open (unit=100, file=fileName, form='unformatted', access='direct', status='unknown', recl=4*nCell)                     ! 4 bytes / cell (real 4)
+    ! end if
 
-    ! write data
-    write (100,rec=d) cell(:)%z
+    ! ! write data
+    ! write (100,rec=d) cell(:)%z
         
-    ! is leapyear ?
-    if (  ( (mod(y,4) .EQ. 0) .AND. (mod(y,100) .NE. 100) )  .OR. (mod(y,400) .EQ. 0)  ) then
-       leap = 1
-    else
-       leap = 0
-    end if
+    ! ! is leapyear ?
+    ! if (  ( (mod(y,4) .EQ. 0) .AND. (mod(y,100) .NE. 100) )  .OR. (mod(y,400) .EQ. 0)  ) then
+    !    leap = 1
+    ! else
+    !    leap = 0
+    ! end if
 
-    ! close file on last day
-    !if ( (d .EQ. 365+leap) .OR. ( (y == yEnd) .AND. (d == ) ) ) close (100)
-    if ( d .EQ. 365+leap ) then
-       print*, 'saving ', trim(fileName)
-       close (100)
-    end if
-    !
+    ! ! close file on last day
+    ! !if ( (d .EQ. 365+leap) .OR. ( (y == yEnd) .AND. (d == ) ) ) close (100)
+    ! if ( d .EQ. 365+leap ) then
+    !    print*, 'saving ', trim(fileName)
+    !    close (100)
+    ! end if
+    ! !
     !
   case (2)
     !---------------------------
