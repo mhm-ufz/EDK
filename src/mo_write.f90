@@ -21,8 +21,10 @@ CONTAINS
     type(NcDataset),  intent(out) :: nc
     type(NcVariable), intent(out) :: var_time, var_data
     
-    type(NcDimension) :: dim_x, dim_y, dim_time
-    type(NcVariable)  :: var_lon, var_lat
+    type(NcDimension)     :: dim_x, dim_y, dim_time
+    type(NcVariable)      :: var_east, var_north
+    integer(i4)           :: i
+    real(dp), allocatable :: dummy(:, :)
 
     ! 1.1 create a file
     nc = NcDataset(trim(fileOut), "w")
@@ -33,18 +35,29 @@ CONTAINS
     dim_time = nc%setDimension("time", -1)
 
     ! create variables
-    var_time = nc%setVariable('time', "i32", (/dim_time/))
-    ! var_lat  = nc%setVariable(vname_lat,  "f32", (/dim_x, dim_y/))
-    ! var_lon  = nc%setVariable(vname_lon , "f32", (/dim_x, dim_y/))
-    var_data = nc%setVariable(variable_name, "f64", (/dim_y, dim_x, dim_time/))
-
+    var_time  = nc%setVariable('time', "i32", (/dim_time/))
     ! add some variable attributes
     call var_time%setAttribute("units", "days since " // trim(num2str(yStart - 1, form='(I4)')) // "-12-31 12:00:00")
 
-    ! ! write data of static variables
-    ! call var_lat%setData(wlat)
-    ! call var_lon%setData(wlon)
+    allocate(dummy(gridMeteo%ncols, gridMeteo%nrows))
+    do i = 1, gridMeteo%nrows
+      dummy(:, i) = gridMeteo%yllcorner + (real(i,dp) - 0.5_dp) * gridMeteo%cellsize
+    end do
+    var_north = nc%setVariable('northing',  "f32", (/dim_x, dim_y/))
+    call var_north%setAttribute("standard_name", "northing")
+    call var_north%setAttribute("units", "m")
+    call var_north%setData(dummy)
+
+    do i = 1, gridMeteo%ncols
+      dummy(i, :) = gridMeteo%xllcorner + (real(i,dp) - 0.5_dp) * gridMeteo%cellsize
+    end do
+    var_east  = nc%setVariable('easting', "f32", (/dim_x, dim_y/))
+    call var_east%setAttribute("standard_name", "easting")
+    call var_east%setAttribute("units", "m")
+    call var_east%setData(dummy)
+    deallocate(dummy)
     
+    var_data = nc%setVariable(variable_name, "f64", (/dim_x, dim_y, dim_time/))
     ! add some more variable attributes
     call var_data%setAttribute("units",   "mm/d")
     call var_data%setAttribute("scaling", 0.1_dp)
@@ -52,7 +65,8 @@ CONTAINS
 
     ! add global attributes
     call nc%setAttribute("Author", trim(author_name))
-
+    call nc%setAttribute("Projection", "EPSG:XXXX")
+    
   end subroutine open_netcdf
 
 end module mo_write

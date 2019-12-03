@@ -20,13 +20,14 @@
 program ED_Kriging
 
   use mo_kind                , only: i4, dp
-  use mo_julian              , only: NDAYS, NDYIN
+  use mo_julian              , only: NDAYS, NDYIN, dec2date, julday
   use runControl             , only: flagEDK, interMth,        & ! flag for activate kriging, flag for 'OK' or 'EDK'
-                                     correctNeg,                 & ! pre or temp
-                                     flagVario                     ! flag for activate variogram estimation
+      correctNeg,                 & ! pre or temp
+      flagVario                     ! flag for activate variogram estimation
   use mainVar                , only: yStart, yEnd, jStart, jEnd, & ! interpolation time periods
-                                     grid, gridMeteo,            & ! grid properties of input and output grid
-                                     nCell, MetSta
+      grid, gridMeteo,            & ! grid properties of input and output grid
+      nCell, MetSta, &
+      noDataValue
   use kriging                , only: dCS, dS
   use mo_setVario            , only: setVario, dMatrix
   use mo_netcdf              , only: NcDataset, NcVariable
@@ -34,26 +35,29 @@ program ED_Kriging
   use mo_message             , only: message
   use kriging
   use mo_EDK                 , only: EDK
+  use mo_ReadData            , only: readData
   USE mo_timer, ONLY : &
-          timers_init, timer_start, timer_stop, timer_get              ! Timing of processes
-  !$ use mo_string_utils, ONLY : num2str
+      timers_init, timer_start, timer_stop, timer_get              ! Timing of processes
+  use mo_string_utils, ONLY : num2str
   !$ use omp_lib, ONLY : OMP_GET_NUM_THREADS           ! OpenMP routines
-  
+
   implicit none
 
-  character(256)                        :: fname
-  character(256)                        :: author_name
-  character(256)                        :: vname_data
-  integer(i4)                           :: icell             ! loop varaible for cells
-  integer(i4)                           :: jDay              ! loop variable - current julian day
-  integer(i4)                           :: itimer
-  integer(i4)                           :: doy               ! day of year
-  integer(i4)                           :: year, month, day  ! current date
-  !$ integer(i4)                        :: n_threads        ! OpenMP number of parallel threads
-  real(dp), dimension(:,:), allocatable :: tmp_array         ! temporal array for output
-  real(dp)                              :: param(3)          ! variogram parameters
-  type(NcDataset)                       :: nc_out
-  type(NcVariable)                      :: nc_data, nc_time
+  character(256)        :: fname
+  character(256)        :: author_name
+  character(256)        :: vname_data
+  integer(i4)           :: i, j, k
+  integer(i4)           :: icell              ! loop varaible for cells
+  integer(i4)           :: jDay               ! loop variable - current julian day
+  integer(i4)           :: itimer
+  integer(i4)           :: doy                ! day of year
+  integer(i4)           :: year, month, day   ! current date
+  !$ integer(i4)        :: n_threads          ! OpenMP number of parallel threads
+  real(sp), allocatable :: tmp_array(:, :, :) ! temporal array for output
+  real(sp), allocatable :: tmp_time(:)        ! temporal array for time output
+  real(dp)              :: param(3)           ! variogram parameters
+  type(NcDataset)       :: nc_out
+  type(NcVariable)      :: nc_data, nc_time
 
   !$OMP PARALLEL
   !$ n_threads = OMP_GET_NUM_THREADS()
@@ -70,16 +74,7 @@ program ED_Kriging
   call message('')  
   call message(' >>> Reading data')
   call message('')
-  call ReadDataMain
-  
-  ! read DEM
-  call ReadDEM
-
-  ! read look up table for meteorological stations
-  call ReadStationLut
-  
-  ! read whole METEO data
-  call ReadDataMeteo
+  call ReadData
   call timer_stop(itimer)
   call message('')
   call message('    in ', trim(num2str(timer_get(itimer), '(F9.3)')), ' seconds.')
@@ -111,7 +106,6 @@ program ED_Kriging
   call message('')
 
 
-  
   if (interMth .gt. 0) then
     itimer = 4
     call timer_start(itimer)
@@ -120,50 +114,49 @@ program ED_Kriging
     ! open netcdf if necessary
     call open_netcdf(nc_out, nc_data, nc_time)
 
-    timeloop: do jday = jStart, jEnd
+    !$OMP parallel default(shared) &
+    !$OMP private(iCell)
+    !$OMP do SCHEDULE(STATIC)
+    ncellsloop: do iCell = 1, nCell
 
-      call NDYIN(jday, day, month, year)
-      doy = jday - NDAYS(1,1,year) + 1
+      ! initialize cell
+      allocate(cell(iCell)%z(jStart:jEnd))
+      cell(iCell)%z = noDataValue
 
-      print *, 'YEAR: ',year, 'DOY: ', doy
-
-      
-      !$OMP parallel default(shared) &
-      !$OMP private(iCell)
-      !$OMP do SCHEDULE(STATIC)
-      ncellsloop: do iCell = 1, nCell
-        ! check DEM
-        if (nint(cell(iCell)%h) == grid%nodata_value ) then
-          cell(iCell)%z = gridMeteo%nodata_value
-          cycle
-        end if
-        ! interploation
-        select case (interMth)
-        case (1)
-          call OK(jday, iCell)
-        case (2)
-          call EDK(jday, iCell, dCS, MetSta, dS, cell)
-        end select
-      end do ncellsloop
-      !$OMP end do
-      !$OMP end parallel
-
-      ! correct negative values
-      if (correctNeg) then
-        where ((cell(:)%z .LT. 0.0_sp) .AND. (cell(:)%z .GT. real(grid%nodata_value, sp)) )
-          cell(:)%z = 0.0_sp
-        end where
+      ! check DEM
+      if (nint(cell(iCell)%h) == grid%nodata_value ) then
+        cell(iCell)%z = gridMeteo%nodata_value
+        cycle
       end if
+      ! interploation
+      select case (interMth)
+      case (1)
+        call EDK(iCell, jStart, jEnd, dCS, MetSta, dS, cell, doOK=.True.)
+      case (2)
+        call EDK(iCell, jStart, jEnd, dCS, MetSta, dS, cell)
+      end select
+    end do ncellsloop
+    !$OMP end do
+    !$OMP end parallel
 
-      ! write output
-      allocate(tmp_array(gridMeteo%nrows, gridMeteo%ncols)); tmp_array=real(grid%nodata_value, dp)
-      tmp_array = real(reshape(cell(:)%z,(/gridMeteo%nrows, gridMeteo%ncols/)), dp)
-      call nc_time%setData(jday-jStart + 1,      start=(/jday - jStart + 1/))
-      call nc_data%setData(tmp_array, start=(/1, 1, jday - jStart + 1/))
+    ! write output
+    allocate(tmp_array(gridMeteo%ncols, gridMeteo%nrows, jEnd - jStart + 1))
+    allocate(tmp_time(jEnd - jStart + 1))
 
-      deallocate(tmp_array)
+    k = 0
+    do i = 1, gridMeteo%ncols
+      do j = 1, gridMeteo%nrows
+        k = k + 1
+        tmp_array(i, j, :) = cell(k)%z
+      end do
+    end do
+    do i = 1, jEnd - jStart + 1
+      tmp_time(i) = i
+    end do
 
-    end do timeloop
+    call nc_time%setData(tmp_time)
+    call nc_data%setData(tmp_array)
+    deallocate(tmp_array, tmp_time)
 
     ! close netcdf if necessary
     call nc_out%close()
@@ -175,9 +168,9 @@ program ED_Kriging
   end if
   ! deallocate memory
   call clean
-  
+
   ! very important for check cases 
   write(*,*) 'Kriging finished!'
   !
-end program
+end program ED_Kriging
 
