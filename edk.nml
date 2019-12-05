@@ -2,7 +2,7 @@
 &mainVars ! namelist mainpaths
 !
 ! Correct interpolated negative values to zero
-correctNeg               = .False.
+correctNeg               = .True.
 !
 ! Set values further away than the distance threshold to zero
 distZero                 = .True.
@@ -35,7 +35,7 @@ DataConvertFactor        = 1.0e-1
 ! InterMth = 2 -> EDK
 ! InterMth = 1 -> OK
 ! InterMth = 0 -> No interpolation
-InterMth                 = 2
+InterMth                 = 0
 !
 ! PROCESSING PERIOD 
 yStart                   = 1990
@@ -49,16 +49,18 @@ dEnd                     = 31
 maxDist                  = 1.5e5
 !
 ! estimate variogram
-flagVario                = .False.
+flagVario                = .True.
 !
 ! number of variogram parameters
 nParam                   = 3
+! type of theoritical variogramm (1=spherical, 2 = exponential)
+vType                    = 2
 !
 ! file name where to store the variogram parameters
-fNameVario               = "output/varFit.txt"
+fNameVario               = "var_param_de_pre.txt"
 dh                       = 1.0e3 ! binsize for variogram [m]
 hMax                     = 1.5e5 ! max distance h for variogram estimation [m]
 ! nc output specification
-author_name              = 'Stephan Thober'
+author_name              = 'Friedrich Boeing'
 variable_name            = 'pre'
 / !END*******Main Config***********
