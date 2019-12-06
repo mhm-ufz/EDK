@@ -19,7 +19,7 @@
 !****************************************************************************
 program ED_Kriging
 
-  use mo_kind                , only: i4, dp
+  use mo_kind                , only: i4, dp, sp
   use mo_julian              , only: NDAYS, NDYIN, dec2date, julday
   use runControl             , only: flagEDK, interMth,        & ! flag for activate kriging, flag for 'OK' or 'EDK'
       correctNeg,                 & ! pre or temp
@@ -28,19 +28,17 @@ program ED_Kriging
       grid, gridMeteo,            & ! grid properties of input and output grid
       nCell, MetSta, &
       noDataValue
-  use kriging                , only: dCS, dS
+  use kriging                , only: dCS, dS, cell
   use mo_setVario            , only: setVario, dMatrix
   use mo_netcdf              , only: NcDataset, NcVariable
   use mo_write               , only: open_netcdf
   use mo_message             , only: message
-  use kriging
   use mo_EDK                 , only: EDK
   use mo_ReadData            , only: readData
   USE mo_timer, ONLY : &
       timers_init, timer_start, timer_stop, timer_get              ! Timing of processes
   use mo_string_utils, ONLY : num2str
   !$ use omp_lib, ONLY : OMP_GET_NUM_THREADS           ! OpenMP routines
-
   implicit none
 
   character(256)        :: fname
@@ -168,7 +166,6 @@ program ED_Kriging
   end if
   ! deallocate memory
   call clean
-
   ! very important for check cases 
   write(*,*) 'Kriging finished!'
   !
