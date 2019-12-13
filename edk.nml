@@ -35,7 +35,7 @@ DataConvertFactor        = 1.0e-1
 ! InterMth = 2 -> EDK
 ! InterMth = 1 -> OK
 ! InterMth = 0 -> No interpolation
-InterMth                 = 0
+InterMth                 = 2
 !
 ! PROCESSING PERIOD 
 yStart                   = 1990
@@ -49,7 +49,7 @@ dEnd                     = 31
 maxDist                  = 1.5e5
 !
 ! estimate variogram
-flagVario                = .True.
+flagVario                = .False.
 !
 ! number of variogram parameters
 nParam                   = 3
@@ -57,10 +57,10 @@ nParam                   = 3
 vType                    = 2
 !
 ! file name where to store the variogram parameters
-fNameVario               = "var_param_de_pre.txt"
+fNameVario               = "check/var_param_de_pre.txt"
 dh                       = 1.0e3 ! binsize for variogram [m]
 hMax                     = 1.5e5 ! max distance h for variogram estimation [m]
 ! nc output specification
-author_name              = 'Friedrich Boeing'
+author_name              = 'XXX'
 variable_name            = 'pre'
 / !END*******Main Config***********

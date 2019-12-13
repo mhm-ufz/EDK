@@ -214,8 +214,8 @@ contains
     ! call D_LSASF (A, B, X)
     ! print *, '<<<<<<<<<<<<<<'
     ! print *, 'rhs = ', B(:10)
-    ! C = A
-    ! X = B
+    C = A
+    X = B
     ! print *, 'A = ', C(:10, 1)
     ! print *, '<<<<<<<<<<<<<<'
     call dgesv(size(A, 1), 1, A, size(A, 1), ipvt, B, size(A, 1), info)
@@ -223,7 +223,7 @@ contains
     ! print *, 'B = ', B(:10)
     ! print *, 'A = ', A(:10, 1)
     ! print *, '<<<<<<<<<<<<<<'
-    if (maxval(abs(matmul(C, B) - X)) .gt. 1e-14) print *, 'result: ', maxval(abs(matmul(C, B) - X))
+    if (maxval(abs(matmul(C, B) - X)) .gt. 1e-10) print *, 'maximum error: ', maxval(abs(matmul(C, B) - X))
     X = B
     if (info .ne. 0_i4) then
       print *, '***WARNING: calculation of weights failed'
@@ -239,7 +239,7 @@ contains
     ! ! print *, 'ipvt: ', ipvt
     ! print *, 'info: ', info
     ! stop 'testing'
-    deallocate (A,B,ipvt)
+    deallocate (A, B, C, ipvt)
   end subroutine get_kriging_weights
 
 end module mo_EDK
