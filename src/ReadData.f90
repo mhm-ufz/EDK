@@ -334,7 +334,7 @@ contains
       ! read yearly data file
       write (dummy, 2) MetSta(i)%Id
       fileName = trim(dataPathIn)//trim(dummy)
-      print *, 'read file: '//trim(fileName)
+      ! print *, 'read file: '//trim(fileName)
       open (60, file=fileName, status='old', action='read', iostat=ios)
       read (60, *) dummy
       !

@@ -20,6 +20,7 @@
 program ED_Kriging
 
   use mo_kind                , only: i4, dp, sp
+  use mo_print_message       , only: print_start_message, print_end_message
   use mo_julian              , only: NDAYS, NDYIN, dec2date, julday
   use runControl             , only: flagEDK, interMth,        & ! flag for activate kriging, flag for 'OK' or 'EDK'
       correctNeg,                 & ! pre or temp
@@ -57,6 +58,8 @@ program ED_Kriging
   type(NcDataset)       :: nc_out
   type(NcVariable)      :: nc_data, nc_time
 
+  call print_start_message()
+  
   !$OMP PARALLEL
   !$ n_threads = OMP_GET_NUM_THREADS()
   !$OMP END PARALLEL
@@ -169,8 +172,8 @@ program ED_Kriging
   end if
   ! deallocate memory
   call clean
-  ! very important for check cases 
-  write(*,*) 'Kriging finished!'
+  !
+  call print_end_message()
   !
 end program ED_Kriging
 
