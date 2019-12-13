@@ -112,14 +112,17 @@ program ED_Kriging
     ! open netcdf if necessary
     call open_netcdf(nc_out, nc_data, nc_time)
 
+    do iCell = 1, nCell
+      ! initialize cell
+      allocate(cell(iCell)%z(jStart:jEnd))
+      cell(iCell)%z = noDataValue
+    end do
+
+    
     !$OMP parallel default(shared) &
     !$OMP private(iCell)
     !$OMP do SCHEDULE(STATIC)
     ncellsloop: do iCell = 1, nCell
-
-      ! initialize cell
-      allocate(cell(iCell)%z(jStart:jEnd))
-      cell(iCell)%z = noDataValue
 
       ! check DEM
       if (nint(cell(iCell)%h) == grid%nodata_value ) then
@@ -145,7 +148,7 @@ program ED_Kriging
     do i = 1, gridMeteo%ncols
       do j = 1, gridMeteo%nrows
         k = k + 1
-        tmp_array(i, j, :) = cell(k)%z
+        tmp_array(i, gridMeteo%nrows - j + 1, :) = cell(k)%z
       end do
     end do
     do i = 1, jEnd - jStart + 1

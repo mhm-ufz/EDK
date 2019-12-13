@@ -13,7 +13,7 @@ CONTAINS
     use mo_kind, only: i4, sp, dp
     use mo_netcdf, only: NcDataset, NcDimension, NcVariable
     use mo_string_utils, only: num2str
-    use mainVar, only: gridMeteo, yStart
+    use mainVar, only: gridMeteo, yStart, mStart, dStart
     use NetCDFVar, only: fileOut, author_name, variable_name
 
     implicit none
@@ -37,7 +37,9 @@ CONTAINS
     ! create variables
     var_time  = nc%setVariable('time', "i32", (/dim_time/))
     ! add some variable attributes
-    call var_time%setAttribute("units", "days since " // trim(num2str(yStart - 1, form='(I4)')) // "-12-31 12:00:00")
+    call var_time%setAttribute("units", "days since " // trim(num2str(yStart, form='(I4)')) // "-"// &
+        trim(num2str(mStart, form='(I0.2)')) // "-" // &
+        trim(num2str(dStart, form='(I0.2)')) // "-" // "12:00:00")
 
     allocate(dummy(gridMeteo%ncols, gridMeteo%nrows))
     do i = 1, gridMeteo%nrows

@@ -103,12 +103,6 @@ contains
           ii=Nk(i)
           cell(k)%z(jd) = cell(k)%z(jd) + X(i) * MetSta(ii)%z(jd)
         end do
-        ! ! correct in case of negative values
-        ! ! sick system of equations caused by lack of 
-        ! ! precipitation values in nearby stations
-        ! if (correctNeg) then
-        !   cell(k)%z = 0.0_dp
-        ! end if
         !
         ! only one station available /= 0
       else if (ll /= nNmax .AND. nNmax == 1) then
@@ -123,7 +117,6 @@ contains
         ! if all stations have the value 0
       else if (ll == nNmax ) then 
         cell(k)%z(jd) = 0.0_dp
-
         ! avoid numerical instabilities --> IWD insverse weighted squared distance
         ! matrix of solver may become instable if only two or three stations are available 
       else if (ll /= nNmax .AND. nNmax == 2) then
@@ -220,16 +213,17 @@ contains
     ! NOTE: only the upper triangular matrix is needed!
     ! call D_LSASF (A, B, X)
     ! print *, '<<<<<<<<<<<<<<'
-    ! print *, 'rhs = ', B
+    ! print *, 'rhs = ', B(:10)
     ! C = A
-    ! print *, 'A = ', C(:, 1)
+    ! X = B
+    ! print *, 'A = ', C(:10, 1)
     ! print *, '<<<<<<<<<<<<<<'
     call dgesv(size(A, 1), 1, A, size(A, 1), ipvt, B, size(A, 1), info)
     ! print *, '<<<<<<<<<<<<<<'
-    ! print *, 'B = ', B
-    ! print *, 'A = ', A(:, 1)
+    ! print *, 'B = ', B(:10)
+    ! print *, 'A = ', A(:10, 1)
     ! print *, '<<<<<<<<<<<<<<'
-    ! print *, 'result: ', sum(C(:, 1) * B)
+    if (maxval(abs(matmul(C, B) - X)) .gt. 1e-14) print *, 'result: ', maxval(abs(matmul(C, B) - X))
     X = B
     if (info .ne. 0_i4) then
       print *, '***WARNING: calculation of weights failed'
@@ -238,9 +232,11 @@ contains
       print *, '***WARNING: sum of weights is not 1, calculation of weights failed'
       print *, 'sum of weights: ', sum(X(:nNmax))
     end if
+    ! print *, 'easting: ', cell%x
+    ! print *, 'northing: ', cell%y
     ! print *, 'number of neighbors: ', nNmax
     ! print *, ''
-    ! print *, 'ipvt: ', ipvt
+    ! ! print *, 'ipvt: ', ipvt
     ! print *, 'info: ', info
     ! stop 'testing'
     deallocate (A,B,ipvt)
