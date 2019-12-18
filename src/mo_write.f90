@@ -14,7 +14,7 @@ CONTAINS
     use mo_netcdf, only: NcDataset, NcDimension, NcVariable
     use mo_string_utils, only: num2str
     use mainVar, only: gridMeteo, yStart, mStart, dStart
-    use NetCDFVar, only: fileOut, author_name, variable_name
+    use NetCDFVar, only: fileOut, author_name, variable_name, variable_unit, variable_long_name
 
     implicit none
 
@@ -61,7 +61,8 @@ CONTAINS
     
     var_data = nc%setVariable(variable_name, "f64", (/dim_x, dim_y, dim_time/))
     ! add some more variable attributes
-    call var_data%setAttribute("units",   "mm/d")
+    call var_data%setAttribute("units",   trim(variable_unit))
+    call var_data%setAttribute("long_name", trim(variable_long_name))
     call var_data%setAttribute("scaling", 0.1_dp)
     call var_data%setAttribute("missing_value", -9999._dp)
 
