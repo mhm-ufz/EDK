@@ -182,6 +182,7 @@ module NetCDFVar
   character(256)                                   :: variable_unit ! unit of netcdf variable
   character(256)                                   :: variable_long_name ! long name  of netcdf variable
   character(256)                                   :: author_name ! author name of netcdf file
+  character(256)                                   :: projection_name ! name of EPSG (EPSG:XXXX)
   !
   ! netcdf input specifications
   character(256)                                   :: ncIn_variable_name

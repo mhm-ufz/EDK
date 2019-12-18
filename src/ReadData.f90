@@ -35,8 +35,8 @@ contains
     use VarFit,     only: vType, nParam, dh, hMax, beta
     use runControl, only: interMth, fnameDEM, DataPathOut, DataPathIn, fNameSta, correctNeg, &
         distZero, flagVario, fNameVario, flagEDK
-    use NetCDFVar,  only: FileOut, author_name, variable_name, variable_unit, variable_long_name, &
-        ncIn_variable_name, ncIn_yCoord_name, ncIn_xCoord_name
+    use NetCDFVar,  only: FileOut, author_name, projection_name, variable_name, variable_unit, &
+ variable_long_name, ncIn_variable_name, ncIn_yCoord_name, ncIn_xCoord_name
     use mo_message, only: message
     use mo_string_utils, only: divide_string
 
@@ -53,7 +53,7 @@ contains
     !
     namelist/mainVars/noDataValue, DataPathIn, fNameDEM,                    & 
         DataPathOut, FileOut, fNameSTA, cellFactor, DataConvertFactor, InterMth, correctNeg,  &
-        distZero, author_name, variable_name, variable_unit, variable_long_name,                             & 
+        distZero, author_name, projection_name, variable_name, variable_unit, variable_long_name, &
         yStart, mStart, dStart, yEnd, mEnd, dEnd, maxDist, flagVario, vType, nParam,  &  
         fNameVario, dh, hMax, ncIn_variable_name, ncIn_yCoord_name, ncIn_xCoord_name
     !

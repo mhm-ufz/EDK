@@ -14,7 +14,7 @@ CONTAINS
     use mo_netcdf, only: NcDataset, NcDimension, NcVariable
     use mo_string_utils, only: num2str
     use mainVar, only: gridMeteo, yStart, mStart, dStart
-    use NetCDFVar, only: fileOut, author_name, variable_name, variable_unit, variable_long_name
+    use NetCDFVar, only: fileOut, author_name, variable_name, variable_unit, variable_long_name, projection_name
 
     implicit none
 
@@ -32,7 +32,7 @@ CONTAINS
     ! create dimensions
     dim_x    = nc%setDimension("x", gridMeteo%ncols)
     dim_y    = nc%setDimension("y", gridMeteo%nrows)
-    dim_time = nc%setDimension("time", -1)
+    dim_time = nc%setDimension("time", 0)
 
     ! create variables
     var_time  = nc%setVariable('time', "i32", (/dim_time/))
@@ -68,7 +68,7 @@ CONTAINS
 
     ! add global attributes
     call nc%setAttribute("Author", trim(author_name))
-    call nc%setAttribute("Projection", "EPSG:XXXX")
+    call nc%setAttribute("Projection", trim(projection_name))
     
   end subroutine open_netcdf
 
