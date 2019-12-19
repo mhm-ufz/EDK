@@ -139,7 +139,7 @@ contains
     if (allocated(X)) deallocate (X)
     !
     ! correct negative
-    if (correctNeg) cell(k)%z = merge(0._sp, cell(k)%z, (cell(k)%z .gt. noDataValue) .and. (cell(k)%z .lt. 0.))
+    if (correctNeg) cell(k)%z = merge(0._sp, cell(k)%z, (cell(k)%z .gt. -9999._sp) .and. (cell(k)%z .lt. 0.))
     !
   end subroutine EDK
 
