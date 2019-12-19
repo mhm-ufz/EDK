@@ -32,14 +32,14 @@ CONTAINS
     ! create dimensions
     dim_x    = nc%setDimension("x", gridMeteo%ncols)
     dim_y    = nc%setDimension("y", gridMeteo%nrows)
-    dim_time = nc%setDimension("time", 0)
+    dim_time = nc%setDimension("time", -1)
 
     ! create variables
     var_time  = nc%setVariable('time', "i32", (/dim_time/))
     ! add some variable attributes
     call var_time%setAttribute("units", "days since " // trim(num2str(yStart, form='(I4)')) // "-"// &
         trim(num2str(mStart, form='(I0.2)')) // "-" // &
-        trim(num2str(dStart, form='(I0.2)')) // "-" // "12:00:00")
+        trim(num2str(dStart, form='(I0.2)')) // "-" // "00:00:00")
 
     allocate(dummy(gridMeteo%ncols, gridMeteo%nrows))
     do i = 1, gridMeteo%nrows

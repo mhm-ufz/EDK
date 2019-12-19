@@ -45,7 +45,7 @@ program ED_Kriging
   character(256)        :: fname
   character(256)        :: author_name
   character(256)        :: vname_data
-  integer(i4)           :: i, j, k
+  integer(i4)           :: i, j, k, t
   integer(i4)           :: icell              ! loop varaible for cells
   integer(i4)           :: jDay               ! loop variable - current julian day
   integer(i4)           :: itimer
@@ -154,8 +154,10 @@ program ED_Kriging
         tmp_array(i, gridMeteo%nrows - j + 1, :) = cell(k)%z
       end do
     end do
-    do i = 1, jEnd - jStart + 1
-      tmp_time(i) = i
+    t = 0
+    do i = 1,  jEnd - jStart + 1
+      tmp_time(i) = t
+      t = t + 1
     end do
 
     call nc_time%setData(tmp_time)
