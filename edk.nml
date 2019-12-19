@@ -1,43 +1,39 @@
 !EDK-Grid***Main configuration file for Precipitation for GER***
 &mainVars ! namelist mainpaths
-!
-! Correct interpolated negative values to zero
-correctNeg               = .True.
-!
-! Set values further away than the distance threshold to zero
-distZero                 = .True.
-noDataValue              = -9
+! -------------------------------------------------------------------
+! ----------------- INPUT SPECIFICATIONS ----------------------------
 !
 ! DataPathIn contains the path to the meteorological input files
 ! it can be a netcdf file, then a 3-dim field is expected and
 ! further coordinate and variable names are expected
 DataPathIn               = "check/pre_data/"
-! DataPathIn               = "output/input.nc"
-!
 ! Specifications of variable and coordinate names in case DataPathIn
 ! is a netcdf file
 ncIn_variable_name       = "pre"
-!
 ! name of coordinates, these must be in [m]
 ncIn_yCoord_name         = "northing"
 ncIn_xCoord_name         = "easting"
+noDataValue              = -9
 !
+! Correct interpolated negative values to zero 
+! (set for precipitation to true !)
+correctNeg               = .True.
+!
+! Set values further away than the distance threshold to zero
+distZero                 = .True.
 !
 fNameDEM                 = "check/dem.asc"
+cellFactor               = 40
+!
 DataPathOut              = "output/"
 FileOut                  = "edk.nc"
+!
+! Name of Look Up Table of Station data
 fNameSTA                 = "check/pre_data/Stations_in_study_domain.txt"
-cellFactor               = 40
 DataConvertFactor        = 1.0e-1
 !
-! SET INTERPOLATION
-!
-! InterMth = 2 -> EDK
-! InterMth = 1 -> OK
-! InterMth = 0 -> No interpolation
-InterMth                 = 2
-!
-! PROCESSING PERIOD 
+! -------------------------------------------------------------------
+! ------------ PROCESSING PERIOD ------------------------------------ 
 yStart                   = 1990
 mStart                   = 1
 dStart                   = 1
@@ -45,10 +41,18 @@ yEnd                     = 1990
 mEnd                     = 12
 dEnd                     = 31
 !
+! -------------------------------------------------------------------
+! ------------ INTERPOLATION METHOD ---------------------------------
+!
+! InterMth = 2 -> EDK
+! InterMth = 1 -> OK
+! InterMth = 0 -> No interpolation
+InterMth                 = 2
 ! maximum search distance for interpolation [m]
 maxDist                  = 1.5e5
 !
-! estimate variogram
+! -------------------------------------------------------------------
+! ----------------- VARIOGRAM ESTIMATION ----------------------------
 flagVario                = .False.
 !
 ! number of variogram parameters
@@ -56,11 +60,19 @@ nParam                   = 3
 ! type of theoritical variogramm (1=spherical, 2 = exponential)
 vType                    = 2
 !
-! file name where to store the variogram parameters
+! file name where to store the variogram parameters 
+! (if flagVario is false, variogram parameters )
+! (for interpolation are read in here:         )
 fNameVario               = "check/var_param_de_pre.txt"
 dh                       = 1.0e3 ! binsize for variogram [m]
 hMax                     = 1.5e5 ! max distance h for variogram estimation [m]
-! nc output specification
+! -------------------------------------------------------------------
+! --------------- NC OUPUT SPECIFICATION ----------------------------
 author_name              = 'XXX'
+projection_name          = 'EPSG: 31468'
 variable_name            = 'pre'
+variable_unit            = 'mm/d'
+variable_long_name       = 'daily precipitation'
+! -------------------------------------------------------------------
+! -------------------------------------------------------------------
 / !END*******Main Config***********
