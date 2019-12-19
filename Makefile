@@ -96,7 +96,7 @@ SHELL = /bin/bash
 # . is current directory, .. is parent directory
 SRCPATH    := ./src ./lib # where are the source files; use test_??? to
 PROGPATH   := .                  # where shall be the executable
-CONFIGPATH := /home/thober/lib/mhm/develop/make.config        # where are the $(system).$(compiler) files
+CONFIGPATH := ./make.config        # where are the $(system).$(compiler) files
 MAKEDPATH  := $(CONFIGPATH)      # where is the make.d.sh script
 CHECKPATH  :=               # path for $(CHECKPATH)/test* and $(CHECKPATH)/check* directories if target is check
 DOXCONFIG  := ./doxygen.config   # the doxygen config file
