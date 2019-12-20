@@ -7,13 +7,15 @@
 ! it can be a netcdf file, then a 3-dim field is expected and
 ! further coordinate and variable names are expected
 DataPathIn               = "check/pre_data/"
+!
+! value in the meteorological input files that is used as missing value
+noDataValue              = -9
 ! Specifications of variable and coordinate names in case DataPathIn
 ! is a netcdf file
 ncIn_variable_name       = "pre"
 ! name of coordinates, these must be in [m]
 ncIn_yCoord_name         = "northing"
 ncIn_xCoord_name         = "easting"
-noDataValue              = -9
 !
 ! Correct interpolated negative values to zero 
 ! (set for precipitation to true !)
