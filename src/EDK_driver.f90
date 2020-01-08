@@ -36,6 +36,7 @@ program ED_Kriging
   use mo_message             , only: message
   use mo_EDK                 , only: EDK
   use mo_ReadData            , only: readData
+  use NetCDFVar              , only: invert_y
   USE mo_timer, ONLY : &
       timers_init, timer_start, timer_stop, timer_get              ! Timing of processes
   use mo_string_utils, ONLY : num2str
@@ -149,10 +150,22 @@ program ED_Kriging
 
     k = 0
     do i = 1, gridMeteo%ncols
-      do j = 1, gridMeteo%nrows
-        k = k + 1
-        tmp_array(i, gridMeteo%nrows - j + 1, :) = cell(k)%z
-      end do
+    !    do j = 1, gridMeteo%nrows
+    !       k = k + 1
+    !       tmp_array(i, gridMeteo%nrows - j + 1, :) = cell(k)%z
+    !    end do
+    ! end do
+       if (invert_y) then
+          do j = gridMeteo%nrows, 1, -1
+             k = k + 1
+             tmp_array(i, gridMeteo%nrows - j + 1, :) = cell(k)%z
+          end do
+       else
+          do j = 1, gridMeteo%nrows
+             k = k + 1
+             tmp_array(i, gridMeteo%nrows - j + 1, :) = cell(k)%z
+          end do
+       end if
     end do
     t = 0
     do i = 1,  jEnd - jStart + 1

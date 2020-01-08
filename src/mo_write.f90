@@ -14,7 +14,7 @@ CONTAINS
     use mo_netcdf, only: NcDataset, NcDimension, NcVariable
     use mo_string_utils, only: num2str
     use mainVar, only: gridMeteo, yStart, mStart, dStart
-    use NetCDFVar, only: fileOut, author_name, variable_name, variable_unit, variable_long_name, projection_name
+    use NetCDFVar, only: fileOut, author_name, variable_name, variable_unit, variable_long_name, projection_name,invert_y
 
     implicit none
 
@@ -23,7 +23,7 @@ CONTAINS
     
     type(NcDimension)     :: dim_x, dim_y, dim_time
     type(NcVariable)      :: var_east, var_north
-    integer(i4)           :: i
+    integer(i4)           :: i, f
     real(dp), allocatable :: dummy(:, :)
 
     ! 1.1 create a file
@@ -42,9 +42,17 @@ CONTAINS
         trim(num2str(dStart, form='(I0.2)')) // "-" // "00:00:00")
 
     allocate(dummy(gridMeteo%ncols, gridMeteo%nrows))
-    do i = 1, gridMeteo%nrows
-      dummy(:, i) = gridMeteo%yllcorner + (real(i,dp) - 0.5_dp) * gridMeteo%cellsize
-    end do
+    if (invert_y) then
+       f = 1
+       do i = gridMeteo%nrows, 1, -1
+          dummy(:, i) = gridMeteo%yllcorner + (real(f,dp) - 0.5_dp) * gridMeteo%cellsize
+          f = f + 1
+       end do
+    else
+       do i = 1, gridMeteo%nrows
+          dummy(:, i) = gridMeteo%yllcorner + (real(i,dp) - 0.5_dp) * gridMeteo%cellsize
+       end do
+    end if
     var_north = nc%setVariable('northing',  "f32", (/dim_x, dim_y/))
     call var_north%setAttribute("standard_name", "northing")
     call var_north%setAttribute("units", "m")

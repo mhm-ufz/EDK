@@ -59,7 +59,7 @@ flagVario                = .False.
 !
 ! number of variogram parameters
 nParam                   = 3
-! type of theoritical variogramm (1=spherical, 2 = exponential)
+! type of theoretical variogramm (1=spherical, 2 = exponential)
 vType                    = 2
 !
 ! file name where to store the variogram parameters 
@@ -69,9 +69,10 @@ fNameVario               = "check/var_param_de_pre.txt"
 dh                       = 1.0e3 ! binsize for variogram [m]
 hMax                     = 1.5e5 ! max distance h for variogram estimation [m]
 ! -------------------------------------------------------------------
-! --------------- NC OUPUT SPECIFICATION ----------------------------
+! --------------- NC OUTPUT SPECIFICATION ----------------------------
 author_name              = 'XXX'
 projection_name          = 'EPSG: 31468'
+invert_y                 = .True. ! (set True if working with mHM input data!)
 variable_name            = 'pre'
 variable_unit            = 'mm/d'
 variable_long_name       = 'daily precipitation'
