@@ -67,7 +67,7 @@ CONTAINS
     call var_east%setData(dummy)
     deallocate(dummy)
     
-    var_data = nc%setVariable(variable_name, "f64", (/dim_x, dim_y, dim_time/))
+    var_data = nc%setVariable(variable_name, "f32", (/dim_x, dim_y, dim_time/))
     ! add some more variable attributes
     call var_data%setAttribute("units",   trim(variable_unit))
     call var_data%setAttribute("long_name", trim(variable_long_name))
