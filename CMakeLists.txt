@@ -26,7 +26,7 @@ set(CMAKE_WITH_MPI OFF CACHE STRING "build the module with MPI, so it can be exe
 # same with OpenMP
 set(CMAKE_WITH_OpenMP OFF CACHE STRING "build the module with OpenMP parallelization")
 # same with lapack
-set(CMAKE_WITH_LAPACK OFF CACHE STRING "build the module with lapack library")
+set(CMAKE_WITH_LAPACK ON CACHE STRING "build the module with lapack library")
 
 # additional cmake-modules created for the purpose of finding netCDF or other libraries ly in the source_directory in
 # a folder named cmake-modules. This command tells cmake to search there for Find<module>.cmake files
