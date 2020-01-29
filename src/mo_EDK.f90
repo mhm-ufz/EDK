@@ -20,7 +20,7 @@ contains
   !            Last Update       Zi                   05.05.2011   IWD if No stations < 2
   !            Last Update       Zi                   07.02.2012   correct prec data < 0 --> = 0
   !****************************************************************************
-  subroutine EDK(k, jStart, jEnd, dCS, MetSta, dS, cell, doOK)
+  subroutine EDK(k, jStart, jEnd, dCS, MetSta, dS, cell, X, Nk_old, doOK)
     use mo_kind,    only : i4, dp, sp
     use mainVar,    only : MeteoStation, noDataValue, nSta, thresholdDist
     use kriging,    only : CellCoarser, dtoS
@@ -29,25 +29,29 @@ contains
     implicit none
 
     ! input / output variables
-    integer(i4),        intent(in)    :: k         ! cell id
-    integer(i4),        intent(in)    :: jStart, jEnd
-    real(dp),           intent(in)    :: dCS(:, :) ! distances matrix
-    type(MeteoStation), intent(in)    :: MetSta(:) ! MeteoStation input
-    type(dtoS),         intent(in)    :: dS(:)     ! distance among stations
-    type(CellCoarser),  intent(inout) :: cell(:)   ! cell specification
-    logical, optional,  intent(in)    :: doOK   ! switch do ordinary kriging
+    integer(i4),                intent(in)    :: k         ! cell id
+    integer(i4),                intent(in)    :: jStart, jEnd
+    integer(i4),                intent(inout) :: Nk_old(nSta) ! added Nk_old(nSta)
+    real(dp),                   intent(in)    :: dCS(:, :) ! distances matrix
+    real(dp), allocatable,      intent(inout) :: X(:)      ! added X(:) 
+    type(MeteoStation),         intent(in)    :: MetSta(:) ! MeteoStation input
+    type(dtoS),                 intent(in)    :: dS(:)     ! distance among stations
+    type(CellCoarser),          intent(inout) :: cell(:)    ! cell specification
+    logical, optional,          intent(in)    :: doOK   ! switch do ordinary kriging
 
     ! local variables
     logical                         :: doOK_loc, calc_weights
     integer(i4)                     :: jd        ! julian day
     integer(i4)                     :: i, j, l, ll
     integer(i4)                     :: ii, jj
-    integer(i4)                     :: Nk(nSta), Nk_old(nSta), nNmax
-    real(dp), allocatable           :: A (:,:), B(:), X(:) , C(:,:)
+    integer(i4)                     :: Nk(nSta),nNmax !Nk_old !Nk(nSta), Nk_old(nSta), nNmax ! deleted: Nk_old(nSta)   
+    real(dp), allocatable           :: A (:,:), B(:), C(:,:) ! deleted: X(:)  
     real(dp), allocatable           :: lamda(:)
     real(dp)                        :: sumLamda
+
+!write(*,*),"Flag 3"
     !
-    ! Check which stations have valid data ( =/ -9, 999 etc. ) store them in Nk(:)
+    ! Check stations have valid data ( =/ -9, 999 etc. ) store them in Nk(:)
     l      = 0
     ll     = 0
     Nk     = 0
@@ -56,7 +60,7 @@ contains
     ! switch ordinary kriging off if not explicitly given
     doOK_loc = .False.
     if (present(doOK)) doOK_loc = doOK
-
+!write(*,*),"Flag 4"
     ! IF NK changed -> re-estimate weights
     timeloop: do jd = jStart, jEnd
 
@@ -81,7 +85,9 @@ contains
       else
         calc_weights = .True.
       end if
-
+      !write(*,*),"Nk = ", Nk
+      !write(*,*),"Nk_old = ",Nk_old
+      !write(*,*),"calc_weights = ",calc_weights 
 
       !>>>>  no value ! avoid indetermination
       ! avoid 0 value calculations ll == nNmax
@@ -91,10 +97,12 @@ contains
 
         if (calc_weights) then
           ! print *, 'cell:       ', k
-          ! print *, '#neighbors: ', nNmax
-          ! print *, 'Nk:     ', Nk
-          ! print *, 'Nk_old: ', Nk_old
+           !print *, '#neighbors: ', nNmax
+           !print *, 'Nk:     ', Nk
+           !print *, 'Nk_old: ', Nk_old
+           !write(*,*),"calc_weights inside = ",calc_weights
           call get_kriging_weights(X, nNmax, Nk, doOK_loc, dCS(k, :), dS, cell(k), MetSta)
+          !write(*,*),"X after kriging weights: ",X
         end if
 
         ! The BLUE of z is then:
@@ -136,7 +144,7 @@ contains
       end if
       ! stop 'TESTING'
     end do timeloop
-    if (allocated(X)) deallocate (X)
+    !if (allocated(X)) deallocate (X)
     !
     ! correct negative
     if (correctNeg) cell(k)%z = merge(0._sp, cell(k)%z, (cell(k)%z .gt. -9999._sp) .and. (cell(k)%z .lt. 0.))
@@ -155,7 +163,7 @@ contains
 
     real(dp), allocatable, intent(out) :: X(:)
     integer(i4),           intent(in)  :: nNmax
-    integer(i4),           intent(in)  :: Nk(nSta)
+    integer(i4),           intent(in)  :: Nk(nSta)!Nk(nSta)
     logical,               intent(in)  :: doOK_loc
     real(dp),              intent(in)  :: dCS(:)    ! distances matrix
     type(dtoS),            intent(in)  :: dS(:)     ! distance among stations

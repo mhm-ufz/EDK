@@ -25,7 +25,7 @@ program ED_Kriging
   use runControl             , only: flagEDK, interMth,        & ! flag for activate kriging, flag for 'OK' or 'EDK'
       correctNeg,                 & ! pre or temp
       flagVario                     ! flag for activate variogram estimation
-  use mainVar                , only: yStart, yEnd, jStart, jEnd, & ! interpolation time periods
+  use mainVar                , only: yStart, yEnd, jStart, jEnd, nSta, & ! interpolation time periods
       grid, gridMeteo,            & ! grid properties of input and output grid
       nCell, MetSta, &
       noDataValue
@@ -52,13 +52,17 @@ program ED_Kriging
   integer(i4)           :: itimer
   integer(i4)           :: doy                ! day of year
   integer(i4)           :: year, month, day   ! current date
+  integer(i4)           :: itime, itemp,sttemp,cnttemp       ! loop variable for chunking write
+  integer(i4)           :: jstarttmp, jendtmp ! more loop variables
   !$ integer(i4)        :: n_threads          ! OpenMP number of parallel threads
   real(sp), allocatable :: tmp_array(:, :, :) ! temporal array for output
   real(sp), allocatable :: tmp_time(:)        ! temporal array for time output
   real(dp)              :: param(3)           ! variogram parameters
   type(NcDataset)       :: nc_out
   type(NcVariable)      :: nc_data, nc_time
-
+  integer(i4), allocatable           :: Nk_old(:)
+  real(dp), allocatable              :: X(:)
+   
   call print_start_message()
   
   !$OMP PARALLEL
@@ -107,6 +111,7 @@ program ED_Kriging
   call message('    in ', trim(num2str(timer_get(itimer), '(F9.3)')), ' seconds.')
   call message('')
 
+!write(*,*), "jStart = ",jStart
 
   if (interMth .gt. 0) then
     itimer = 4
@@ -116,16 +121,72 @@ program ED_Kriging
     ! open netcdf if necessary
     call open_netcdf(nc_out, nc_data, nc_time)
 
+   ! do iCell = 1, nCell
+    !  ! initialize cell
+    !  allocate(cell(iCell)%z(jStart:jEnd))
+    !  cell(iCell)%z = noDataValue
+    !end do
+
+! Akash---------------------------------------------------------------- 
+  
+
     do iCell = 1, nCell
       ! initialize cell
-      allocate(cell(iCell)%z(jStart:jEnd))
+      allocate(cell(iCell)%Nk_old(nSta))
+      cell(iCell)%Nk_old = -9999
+    end do
+
+   do iCell = 1, nCell
+      ! initialize cell
+      allocate(cell(iCell)%W(nSta))
+      cell(iCell)%W = -9999
+    end do
+
+
+
+  if (mod((jEnd - jStart + 1),100) .eq. 0) then  ! just use mod 
+        iTime = ((jEnd - jStart + 1)/100)                         
+  else   
+  iTime = ((jEnd - jStart + 1)/100) + 1
+  end if
+  write(*,*),"Total Number of Time Buffers = ",iTime
+  t = 0 
+  bufferloop: do iTemp = 1, iTime
+    !call message('Time Loop Running')
+    
+    !call open_netcdf(nc_out, nc_data, nc_time) ! dont do this 
+     
+    !jStartTmp = jStart
+    !if (iTemp .lt. iTime) then
+    !    jEndTmp = jStartTmp + 100
+    !else
+    !    jEndTmp = (jEnd-jStart+1) - ((iTemp-1) * 100)
+    !end if   ! use minimum to never exceed jEnd
+     
+    jStartTmp = jStart + (iTemp - 1) * 100
+    if (iTemp .lt. iTime) then
+        jEndTmp = jStartTmp + 100 - 1
+    else 
+        jEndTmp = jStartTmp + (jEnd-jStartTmp+1) 
+    end if   ! use minimum to never exceed jEnd
+        jEndTmp = min(jEndTmp, jEnd) 
+   
+  ! write(*,*), "jStartTmp = ",jStartTmp," jEndTmp = ",jEndTmp,"jEnd = ",jEnd
+
+   
+    do iCell = 1, nCell
+      ! initialize cell        ! deallocate similarly 
+      allocate(cell(iCell)%z(jStartTmp:jEndTmp))
       cell(iCell)%z = noDataValue
     end do
 
-    
-    !$OMP parallel default(shared) &
-    !$OMP private(iCell)
-    !$OMP do SCHEDULE(STATIC)
+
+
+   
+!$OMP parallel default(shared) &
+!$OMP private(iCell, X, Nk_old)
+!$OMP do SCHEDULE(STATIC)
+
     ncellsloop: do iCell = 1, nCell
 
       ! check DEM
@@ -133,20 +194,46 @@ program ED_Kriging
         cell(iCell)%z = gridMeteo%nodata_value
         cycle
       end if
+      !write(*,*),"Interpolation Method = ",interMth
+      !write(*,*),"Cell = ",iCell
+      !write(*,*),"jStartTmp = ",jStartTmp
+      !write(*,*),"jEndTmp = ",jEndTmp 
+      !write(*,*),"dCS = ",dCS
+      !write(*,*),"MetSta = ",MetSta
+      !write(*,*),"Flag 1"
+    
+
+      X = cell(iCell)%W
+      !write(*,*),"Flag 1.25"
+      !write(*,*),tempX
+      Nk_old = cell(iCell)%Nk_old
+      !write(*,*),"Flag 1.5"      
+      !write(*,*),"X before call EDK: ",X
+   
       ! interploation
       select case (interMth)
       case (1)
-        call EDK(iCell, jStart, jEnd, dCS, MetSta, dS, cell, doOK=.True.)
+        !call EDK(iCell, jStartTmp, jEndTmp, dCS, MetSta, dS, cell, doOK=.True.)
+        !call EDK(iCell, jStartTmp, jEndTmp, dCS, MetSta, dS, cell, tempX, tempNkOld, doOK=.True.)
+         call EDK(iCell, jStartTmp, jEndTmp, dCS, MetSta, dS, cell, X, Nk_old, doOK=.True.)
       case (2)
-        call EDK(iCell, jStart, jEnd, dCS, MetSta, dS, cell)
+        !call EDK(iCell, jStartTmp, jEndTmp, dCS, MetSta, dS, cell)
+        !call EDK(iCell, jStartTmp, jEndTmp, dCS, MetSta, dS, cell, tempX, tempNkOld)
+        call EDK(iCell, jStartTmp, jEndTmp, dCS, MetSta, dS, cell, X, Nk_old)
       end select
+    cell(iCell)%W = X
+    cell(iCell)%Nk_old = Nk_old
+    !write(*,*),"X after call EDK = ",X
     end do ncellsloop
     !$OMP end do
     !$OMP end parallel
+      
+   
 
     ! write output
-    allocate(tmp_array(gridMeteo%ncols, gridMeteo%nrows, jEnd - jStart + 1))
-    allocate(tmp_time(jEnd - jStart + 1))
+    allocate(tmp_array(gridMeteo%ncols, gridMeteo%nrows, jEndTmp - jStartTmp + 1))
+    allocate(tmp_time(jEndTmp - jStartTmp + 1))
+    
 
     k = 0
     do i = 1, gridMeteo%ncols
@@ -167,15 +254,64 @@ program ED_Kriging
           end do
        end if
     end do
-    t = 0
-    do i = 1,  jEnd - jStart + 1
+    !t = 0
+    !do i = 1,  jEnd - jStart + 1
+    !  tmp_time(i) = t
+    !  t = t + 1
+    !end do
+
+    do i = 1,  jEndTmp - jStartTmp + 1
       tmp_time(i) = t
       t = t + 1
     end do
 
-    call nc_time%setData(tmp_time)
-    call nc_data%setData(tmp_array)
-    deallocate(tmp_array, tmp_time)
+   !write(*,*),tmp_time 
+   sttemp = nint(tmp_time(1)+1)
+   cnttemp = nint((tmp_time(size(tmp_time)) - sttemp))+2
+ 
+   !write(*,*),"array_size = ",size(tmp_array,1)," ",size(tmp_array,2) 
+   !write(*,*),"array_size = ",size(tmp_array,3)
+   !write(*,*),"tmp_time_1 = ",sttemp
+   !write(*,*),"tmp_last = ",cnttemp
+   !write(*,*),"Start tmp_time",(/sttemp/)
+   !write(*,*),"End tmp_time",(/cnttemp/)
+   !write(*,*),"Start tmp_array",(/sttemp,1,1/)
+   !write(*,*),"End tmp_array",(/cnttemp,size(tmp_array,2),size(tmp_array,1)/)     
+                                 
+    !call nc_time%setData(values=tmp_time,start=(/sttemp/),cnt=(/cnttemp/))
+    !call nc_data%setData(values=tmp_array,start=(/sttemp,1,1/),cnt=(/cnttemp,size(tmp_array,2),size(tmp_array,1)/))
+    call nc_time%setData(values=tmp_time,start=(/sttemp/),cnt=(/cnttemp/))
+    call nc_data%setData(values=tmp_array,start=(/1,1,sttemp/),cnt=(/size(tmp_array,1),size(tmp_array,2),cnttemp/))
+ 
+
+   deallocate(tmp_array, tmp_time)
+    !deallocate(cell)   
+ 
+    do iCell = 1, nCell
+      ! initialize cell        
+      deallocate(cell(iCell)%z)
+      !cell(iCell)%z = noDataValue
+    end do
+
+
+ ! close netcdf if necessary
+    !call nc_out%close()   ! outside 
+
+
+  end do bufferloop  
+! Akash end---------------------------------------------------- 
+
+     do iCell = 1, nCell
+      ! initialize cell
+      deallocate(cell(iCell)%Nk_old)
+      !cell(iCell)%z = noDataValue
+    end do
+
+     do iCell = 1, nCell
+      ! initialize cell
+      deallocate(cell(iCell)%W)
+      !cell(iCell)%z = noDataValue
+    end do
 
     ! close netcdf if necessary
     call nc_out%close()
