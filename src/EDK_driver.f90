@@ -209,7 +209,7 @@ program ED_Kriging
       Nk_old = cell(iCell)%Nk_old
       !write(*,*),"Flag 1.5"      
       !write(*,*),"X before call EDK: ",X
-   
+
       ! interploation
       select case (interMth)
       case (1)
@@ -221,8 +221,9 @@ program ED_Kriging
         !call EDK(iCell, jStartTmp, jEndTmp, dCS, MetSta, dS, cell, tempX, tempNkOld)
         call EDK(iCell, jStartTmp, jEndTmp, dCS, MetSta, dS, cell, X, Nk_old)
       end select
-    cell(iCell)%W = X
-    cell(iCell)%Nk_old = Nk_old
+      
+      cell(iCell)%W = X
+      cell(iCell)%Nk_old = Nk_old
     !write(*,*),"X after call EDK = ",X
     end do ncellsloop
     !$OMP end do
@@ -309,7 +310,7 @@ program ED_Kriging
 
      do iCell = 1, nCell
       ! initialize cell
-      deallocate(cell(iCell)%W)
+      if (allocated(cell(iCell)%W)) deallocate(cell(iCell)%W)
       !cell(iCell)%z = noDataValue
     end do
 

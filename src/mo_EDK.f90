@@ -55,7 +55,6 @@ contains
     l      = 0
     ll     = 0
     Nk     = 0
-    Nk_old = 0
 
     ! switch ordinary kriging off if not explicitly given
     doOK_loc = .False.
@@ -64,7 +63,7 @@ contains
     ! IF NK changed -> re-estimate weights
     timeloop: do jd = jStart, jEnd
 
-      Nk_old = Nk
+      if (jd > jStart) Nk_old = Nk
       Nk = 0_i4
       l = 0
       ll = 0
