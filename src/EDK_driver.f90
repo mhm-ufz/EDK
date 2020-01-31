@@ -25,7 +25,7 @@ program ED_Kriging
   use runControl             , only: flagEDK, interMth,        & ! flag for activate kriging, flag for 'OK' or 'EDK'
       correctNeg,                 & ! pre or temp
       flagVario                     ! flag for activate variogram estimation
-  use mainVar                , only: yStart, yEnd, jStart, jEnd, nSta, & ! interpolation time periods
+  use mainVar                , only: yStart, yEnd, jStart, jEnd, tBuffer, nSta, & ! interpolation time periods
       grid, gridMeteo,            & ! grid properties of input and output grid
       nCell, MetSta, &
       noDataValue
@@ -144,10 +144,10 @@ program ED_Kriging
 
 
 
-  if (mod((jEnd - jStart + 1),100) .eq. 0) then  ! just use mod 
-        iTime = ((jEnd - jStart + 1)/100)                         
+  if (mod((jEnd - jStart + 1),tBuffer) .eq. 0) then  ! just use mod 
+        iTime = ((jEnd - jStart + 1)/tBuffer)                         
   else   
-  iTime = ((jEnd - jStart + 1)/100) + 1
+  iTime = ((jEnd - jStart + 1)/tBuffer) + 1
   end if
   write(*,*),"Total Number of Time Buffers = ",iTime
   t = 0 
@@ -163,9 +163,9 @@ program ED_Kriging
     !    jEndTmp = (jEnd-jStart+1) - ((iTemp-1) * 100)
     !end if   ! use minimum to never exceed jEnd
      
-    jStartTmp = jStart + (iTemp - 1) * 100
+    jStartTmp = jStart + (iTemp - 1) * tBuffer
     if (iTemp .lt. iTime) then
-        jEndTmp = jStartTmp + 100 - 1
+        jEndTmp = jStartTmp + tBuffer - 1
     else 
         jEndTmp = jStartTmp + (jEnd-jStartTmp+1) 
     end if   ! use minimum to never exceed jEnd

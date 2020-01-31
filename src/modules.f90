@@ -20,6 +20,7 @@ module mainVar
   integer(i4)                                  :: dEnd                ! ending day
   integer(i4)                                  :: jStart              ! julian day start
   integer(i4)                                  :: jEnd                ! julian day end
+  integer(i4)                                  :: tBuffer             ! number of days for time buffering
   integer(i4)                                  :: tDays               ! number of days
   integer(i4)                                  :: nSta                ! number of stations for a block
   integer(i4)                                  :: nCell               ! number of cells to estimate z

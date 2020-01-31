@@ -27,7 +27,7 @@ contains
   !**************************************************************************
   subroutine ReadData()
     use mainVar,    only: noDataValue, cellFactor, DataConvertFactor, &
-        yStart, mStart, dStart, yEnd, mEnd, dEnd
+        yStart, mStart, dStart, yEnd, mEnd, dEnd, tBuffer
     use mo_kind,    only: i4, dp
     use mo_julian , only: NDAYS
 
@@ -54,7 +54,7 @@ contains
     namelist/mainVars/noDataValue, DataPathIn, fNameDEM,                    &
         DataPathOut, FileOut, fNameSTA, cellFactor, DataConvertFactor, InterMth, correctNeg,  &
         distZero, author_name, projection_name, variable_name, variable_unit, variable_long_name, &
-        yStart, mStart, dStart, yEnd, mEnd, dEnd, maxDist, flagVario, vType, nParam,  &  
+        yStart, mStart, dStart, yEnd, mEnd, dEnd,tBuffer, maxDist, flagVario, vType, nParam,  &  
         fNameVario, dh, hMax, ncIn_variable_name, ncIn_yCoord_name, ncIn_xCoord_name, invert_y
     !
     ! -----------------------------------------------------------------------

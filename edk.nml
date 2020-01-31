@@ -42,6 +42,8 @@ dStart                   = 1
 yEnd                     = 1990
 mEnd                     = 12 
 dEnd                     = 31
+! Number of Time Buffering Days (Divides the EDK processing into chunks accross the time dimension) 
+tBuffer                  = 10
 !
 ! -------------------------------------------------------------------
 ! ------------ INTERPOLATION METHOD ---------------------------------
