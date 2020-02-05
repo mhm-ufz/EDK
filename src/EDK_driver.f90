@@ -136,13 +136,6 @@ program ED_Kriging
       cell(iCell)%Nk_old = -9999
     end do
 
-   do iCell = 1, nCell
-      ! initialize cell
-      allocate(cell(iCell)%W(nSta))
-      cell(iCell)%W = -9999
-    end do
-
-
 
   if (mod((jEnd - jStart + 1),tBuffer) .eq. 0) then  ! just use mod 
         iTime = ((jEnd - jStart + 1)/tBuffer)                         
@@ -186,7 +179,6 @@ program ED_Kriging
 !$OMP parallel default(shared) &
 !$OMP private(iCell, X, Nk_old)
 !$OMP do SCHEDULE(STATIC)
-
     ncellsloop: do iCell = 1, nCell
 
       ! check DEM
@@ -202,28 +194,18 @@ program ED_Kriging
       !write(*,*),"MetSta = ",MetSta
       !write(*,*),"Flag 1"
     
-
-      X = cell(iCell)%W
-      !write(*,*),"Flag 1.25"
-      !write(*,*),tempX
-      Nk_old = cell(iCell)%Nk_old
-      !write(*,*),"Flag 1.5"      
-      !write(*,*),"X before call EDK: ",X
-
       ! interploation
       select case (interMth)
       case (1)
         !call EDK(iCell, jStartTmp, jEndTmp, dCS, MetSta, dS, cell, doOK=.True.)
         !call EDK(iCell, jStartTmp, jEndTmp, dCS, MetSta, dS, cell, tempX, tempNkOld, doOK=.True.)
-         call EDK(iCell, jStartTmp, jEndTmp, dCS, MetSta, dS, cell, X, Nk_old, doOK=.True.)
+         call EDK(iCell, jStartTmp, jEndTmp, dCS, MetSta, dS, cell, cell(iCell)%W, cell(iCell)%Nk_old, doOK=.True.)
       case (2)
         !call EDK(iCell, jStartTmp, jEndTmp, dCS, MetSta, dS, cell)
         !call EDK(iCell, jStartTmp, jEndTmp, dCS, MetSta, dS, cell, tempX, tempNkOld)
-        call EDK(iCell, jStartTmp, jEndTmp, dCS, MetSta, dS, cell, X, Nk_old)
+        call EDK(iCell, jStartTmp, jEndTmp, dCS, MetSta, dS, cell, cell(iCell)%W, cell(iCell)%Nk_old)
       end select
       
-      cell(iCell)%W = X
-      cell(iCell)%Nk_old = Nk_old
     !write(*,*),"X after call EDK = ",X
     end do ncellsloop
     !$OMP end do
@@ -308,7 +290,7 @@ program ED_Kriging
       !cell(iCell)%z = noDataValue
     end do
 
-     do iCell = 1, nCell
+    do iCell = 1, nCell
       ! initialize cell
       if (allocated(cell(iCell)%W)) deallocate(cell(iCell)%W)
       !cell(iCell)%z = noDataValue
