@@ -129,13 +129,12 @@ program ED_Kriging
 
 ! Akash---------------------------------------------------------------- 
   
-
+ write(*,*),noDataValue
     do iCell = 1, nCell
       ! initialize cell
       allocate(cell(iCell)%Nk_old(nSta))
-      cell(iCell)%Nk_old = -9999
+      cell(iCell)%Nk_old = nint(noDataValue)
     end do
-
 
   if (mod((jEnd - jStart + 1),tBuffer) .eq. 0) then  ! just use mod 
         iTime = ((jEnd - jStart + 1)/tBuffer)                         
@@ -284,17 +283,17 @@ program ED_Kriging
   end do bufferloop  
 ! Akash end---------------------------------------------------- 
 
-     do iCell = 1, nCell
+    ! do iCell = 1, nCell
       ! initialize cell
-      deallocate(cell(iCell)%Nk_old)
+    !  deallocate(cell(iCell)%Nk_old)
       !cell(iCell)%z = noDataValue
-    end do
+    !end do
 
-    do iCell = 1, nCell
+    !do iCell = 1, nCell
       ! initialize cell
-      if (allocated(cell(iCell)%W)) deallocate(cell(iCell)%W)
+     ! if (allocated(cell(iCell)%W)) deallocate(cell(iCell)%W)
       !cell(iCell)%z = noDataValue
-    end do
+    !end do
 
     ! close netcdf if necessary
     call nc_out%close()
