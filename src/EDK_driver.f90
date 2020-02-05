@@ -121,15 +121,7 @@ program ED_Kriging
     ! open netcdf if necessary
     call open_netcdf(nc_out, nc_data, nc_time)
 
-   ! do iCell = 1, nCell
-    !  ! initialize cell
-    !  allocate(cell(iCell)%z(jStart:jEnd))
-    !  cell(iCell)%z = noDataValue
-    !end do
 
-! Akash---------------------------------------------------------------- 
-  
- write(*,*),noDataValue
     do iCell = 1, nCell
       ! initialize cell
       allocate(cell(iCell)%Nk_old(nSta))
@@ -144,16 +136,6 @@ program ED_Kriging
   write(*,*),"Total Number of Time Buffers = ",iTime
   t = 0 
   bufferloop: do iTemp = 1, iTime
-    !call message('Time Loop Running')
-    
-    !call open_netcdf(nc_out, nc_data, nc_time) ! dont do this 
-     
-    !jStartTmp = jStart
-    !if (iTemp .lt. iTime) then
-    !    jEndTmp = jStartTmp + 100
-    !else
-    !    jEndTmp = (jEnd-jStart+1) - ((iTemp-1) * 100)
-    !end if   ! use minimum to never exceed jEnd
      
     jStartTmp = jStart + (iTemp - 1) * tBuffer
     if (iTemp .lt. iTime) then
@@ -162,19 +144,13 @@ program ED_Kriging
         jEndTmp = jStartTmp + (jEnd-jStartTmp+1) 
     end if   ! use minimum to never exceed jEnd
         jEndTmp = min(jEndTmp, jEnd) 
-   
-  ! write(*,*), "jStartTmp = ",jStartTmp," jEndTmp = ",jEndTmp,"jEnd = ",jEnd
-
-   
+  
     do iCell = 1, nCell
       ! initialize cell        ! deallocate similarly 
       allocate(cell(iCell)%z(jStartTmp:jEndTmp))
       cell(iCell)%z = noDataValue
     end do
-
-
-
-   
+  
 !$OMP parallel default(shared) &
 !$OMP private(iCell, X, Nk_old)
 !$OMP do SCHEDULE(STATIC)
@@ -185,27 +161,15 @@ program ED_Kriging
         cell(iCell)%z = gridMeteo%nodata_value
         cycle
       end if
-      !write(*,*),"Interpolation Method = ",interMth
-      !write(*,*),"Cell = ",iCell
-      !write(*,*),"jStartTmp = ",jStartTmp
-      !write(*,*),"jEndTmp = ",jEndTmp 
-      !write(*,*),"dCS = ",dCS
-      !write(*,*),"MetSta = ",MetSta
-      !write(*,*),"Flag 1"
     
       ! interploation
       select case (interMth)
       case (1)
-        !call EDK(iCell, jStartTmp, jEndTmp, dCS, MetSta, dS, cell, doOK=.True.)
-        !call EDK(iCell, jStartTmp, jEndTmp, dCS, MetSta, dS, cell, tempX, tempNkOld, doOK=.True.)
          call EDK(iCell, jStartTmp, jEndTmp, dCS, MetSta, dS, cell, cell(iCell)%W, cell(iCell)%Nk_old, doOK=.True.)
       case (2)
-        !call EDK(iCell, jStartTmp, jEndTmp, dCS, MetSta, dS, cell)
-        !call EDK(iCell, jStartTmp, jEndTmp, dCS, MetSta, dS, cell, tempX, tempNkOld)
         call EDK(iCell, jStartTmp, jEndTmp, dCS, MetSta, dS, cell, cell(iCell)%W, cell(iCell)%Nk_old)
       end select
       
-    !write(*,*),"X after call EDK = ",X
     end do ncellsloop
     !$OMP end do
     !$OMP end parallel
@@ -251,19 +215,8 @@ program ED_Kriging
    sttemp = nint(tmp_time(1)+1)
    cnttemp = nint((tmp_time(size(tmp_time)) - sttemp))+2
  
-   !write(*,*),"array_size = ",size(tmp_array,1)," ",size(tmp_array,2) 
-   !write(*,*),"array_size = ",size(tmp_array,3)
-   !write(*,*),"tmp_time_1 = ",sttemp
-   !write(*,*),"tmp_last = ",cnttemp
-   !write(*,*),"Start tmp_time",(/sttemp/)
-   !write(*,*),"End tmp_time",(/cnttemp/)
-   !write(*,*),"Start tmp_array",(/sttemp,1,1/)
-   !write(*,*),"End tmp_array",(/cnttemp,size(tmp_array,2),size(tmp_array,1)/)     
-                                 
-    !call nc_time%setData(values=tmp_time,start=(/sttemp/),cnt=(/cnttemp/))
-    !call nc_data%setData(values=tmp_array,start=(/sttemp,1,1/),cnt=(/cnttemp,size(tmp_array,2),size(tmp_array,1)/))
-    call nc_time%setData(values=tmp_time,start=(/sttemp/),cnt=(/cnttemp/))
-    call nc_data%setData(values=tmp_array,start=(/1,1,sttemp/),cnt=(/size(tmp_array,1),size(tmp_array,2),cnttemp/))
+   call nc_time%setData(values=tmp_time,start=(/sttemp/),cnt=(/cnttemp/))
+   call nc_data%setData(values=tmp_array,start=(/1,1,sttemp/),cnt=(/size(tmp_array,1),size(tmp_array,2),cnttemp/))
  
 
    deallocate(tmp_array, tmp_time)
@@ -281,19 +234,6 @@ program ED_Kriging
 
 
   end do bufferloop  
-! Akash end---------------------------------------------------- 
-
-    ! do iCell = 1, nCell
-      ! initialize cell
-    !  deallocate(cell(iCell)%Nk_old)
-      !cell(iCell)%z = noDataValue
-    !end do
-
-    !do iCell = 1, nCell
-      ! initialize cell
-     ! if (allocated(cell(iCell)%W)) deallocate(cell(iCell)%W)
-      !cell(iCell)%z = noDataValue
-    !end do
 
     ! close netcdf if necessary
     call nc_out%close()

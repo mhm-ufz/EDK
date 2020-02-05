@@ -49,7 +49,6 @@ contains
     real(dp), allocatable           :: lamda(:)
     real(dp)                        :: sumLamda
 
-!write(*,*),"Flag 3"
     !
     ! Check stations have valid data ( =/ -9, 999 etc. ) store them in Nk(:)
     l      = 0
@@ -59,7 +58,6 @@ contains
     ! switch ordinary kriging off if not explicitly given
     doOK_loc = .False.
     if (present(doOK)) doOK_loc = doOK
-!write(*,*),"Flag 4"
     ! IF NK changed -> re-estimate weights
     timeloop: do jd = jStart, jEnd
 
@@ -84,9 +82,6 @@ contains
       else
         calc_weights = .True.
       end if
-      !write(*,*),"Nk = ", Nk
-      !write(*,*),"Nk_old = ",Nk_old
-      !write(*,*),"calc_weights = ",calc_weights 
 
       !>>>>  no value ! avoid indetermination
       ! avoid 0 value calculations ll == nNmax
