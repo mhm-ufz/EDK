@@ -54,7 +54,10 @@ program ED_Kriging
   integer(i4)           :: year, month, day   ! current date
   integer(i4)           :: itime, itemp,sttemp,cnttemp       ! loop variable for chunking write
   integer(i4)           :: jstarttmp, jendtmp ! more loop variables
-  !$ integer(i4)        :: n_threads          ! OpenMP number of parallel threads
+  integer(i4)           :: n_threads          ! OpenMP number of parallel threads
+  integer(i4)           :: ncell_thread
+  integer(i4)           :: iThread
+  integer(i4)           :: loop_factor
   real(sp), allocatable :: tmp_array(:, :, :) ! temporal array for output
   real(sp), allocatable :: tmp_time(:)        ! temporal array for time output
   real(dp)              :: param(3)           ! variogram parameters
@@ -64,7 +67,10 @@ program ED_Kriging
   real(dp), allocatable              :: X(:)
    
   call print_start_message()
-  
+
+  loop_factor = 10 ! factor for setting openMP loop size
+
+  n_threads = 1
   !$OMP PARALLEL
   !$ n_threads = OMP_GET_NUM_THREADS()
   !$OMP END PARALLEL
@@ -85,10 +91,16 @@ program ED_Kriging
   call message('')
   call message('    in ', trim(num2str(timer_get(itimer), '(F9.3)')), ' seconds.')
   call message('')
+  ! number of cells per thread
+  ncell_thread = ceiling(real(nCell, sp) / real(loop_factor * n_threads, sp))
+  print *, 'nCell: ', nCell
+  print *, "ncell_thread: ", ncell_thread
+  print *, 'n_threads: ', n_threads
+        
 
   itimer = 2
   call timer_start(itimer)
-  call message(' >>> Calculating distance matrix')
+   call message(' >>> Calculating distance matrix')
   call message('')
   ! call distance matrix
   call dMatrix
@@ -128,52 +140,60 @@ program ED_Kriging
       cell(iCell)%Nk_old = nint(noDataValue)
     end do
 
-  if (mod((jEnd - jStart + 1),tBuffer) .eq. 0) then  ! just use mod 
+    if (mod((jEnd - jStart + 1),tBuffer) .eq. 0) then  ! just use mod 
         iTime = ((jEnd - jStart + 1)/tBuffer)                         
-  else   
-  iTime = ((jEnd - jStart + 1)/tBuffer) + 1
-  end if
-  write(*,*),"Total Number of Time Buffers = ",iTime
-  t = 0 
-  bufferloop: do iTemp = 1, iTime
-     
-    jStartTmp = jStart + (iTemp - 1) * tBuffer
-    if (iTemp .lt. iTime) then
-        jEndTmp = jStartTmp + tBuffer - 1
-    else 
-        jEndTmp = jStartTmp + (jEnd-jStartTmp+1) 
-    end if   ! use minimum to never exceed jEnd
-        jEndTmp = min(jEndTmp, jEnd) 
-  
-    do iCell = 1, nCell
-      ! initialize cell        ! deallocate similarly 
-      allocate(cell(iCell)%z(jStartTmp:jEndTmp))
-      cell(iCell)%z = noDataValue
-    end do
-  
-!$OMP parallel default(shared) &
-!$OMP private(iCell, X, Nk_old)
-!$OMP do SCHEDULE(STATIC)
-    ncellsloop: do iCell = 1, nCell
+     else   
+        iTime = ((jEnd - jStart + 1)/tBuffer) + 1
+     end if
+     write(*,*),"Total Number of Time Buffers = ",iTime
+     t = 0 
+     bufferloop: do iTemp = 1, iTime
 
-      ! check DEM
-      if (nint(cell(iCell)%h) == grid%nodata_value ) then
-        cell(iCell)%z = gridMeteo%nodata_value
-        cycle
-      end if
-    
-      ! interploation
-      select case (interMth)
-      case (1)
-         call EDK(iCell, jStartTmp, jEndTmp, dCS, MetSta, dS, cell, cell(iCell)%W, cell(iCell)%Nk_old, doOK=.True.)
-      case (2)
-        call EDK(iCell, jStartTmp, jEndTmp, dCS, MetSta, dS, cell, cell(iCell)%W, cell(iCell)%Nk_old)
-      end select
-      
-    end do ncellsloop
-    !$OMP end do
-    !$OMP end parallel
-      
+        jStartTmp = jStart + (iTemp - 1) * tBuffer
+        if (iTemp .lt. iTime) then
+           jEndTmp = jStartTmp + tBuffer - 1
+        else 
+           jEndTmp = jStartTmp + (jEnd-jStartTmp+1) 
+        end if   ! use minimum to never exceed jEnd
+        jEndTmp = min(jEndTmp, jEnd) 
+
+        do iCell = 1, nCell
+           ! initialize cell        ! deallocate similarly 
+           allocate(cell(iCell)%z(jStartTmp:jEndTmp))
+           cell(iCell)%z = noDataValue
+        end do
+
+        ! print *, iTemp, iTime
+
+        !$OMP parallel default(shared) &
+        !$OMP private(iThread, iCell, X, Nk_old)
+        !$OMP do SCHEDULE(dynamic)
+        do iThread = 1, loop_factor * n_threads
+           ! print *, 'thread: ', iThread, " start"
+           
+           ncellsloop: do iCell = iThread * ncell_thread, min((iThread + 1) * ncell_thread, ncell)
+
+              ! check DEM
+              if (nint(cell(iCell)%h) == grid%nodata_value ) then
+                 cell(iCell)%z = gridMeteo%nodata_value
+                 cycle
+              end if
+
+              ! interploation
+              select case (interMth)
+              case (1)
+                 call EDK(iCell, jStartTmp, jEndTmp, dCS, MetSta, dS, cell, cell(iCell)%W, cell(iCell)%Nk_old, doOK=.True.)
+              case (2)
+                 call EDK(iCell, jStartTmp, jEndTmp, dCS, MetSta, dS, cell, cell(iCell)%W, cell(iCell)%Nk_old)
+              end select
+
+           end do ncellsloop
+           
+           ! print *, 'thread: ', iThread, " end"
+        end do
+        !$OMP end do
+        !$OMP end parallel
+
    
 
     ! write output
