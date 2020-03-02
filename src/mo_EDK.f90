@@ -54,19 +54,17 @@ contains
     l      = 0
     ll     = 0
     Nk     = 0
-
     ! switch ordinary kriging off if not explicitly given
     doOK_loc = .False.
     if (present(doOK)) doOK_loc = doOK
     ! IF NK changed -> re-estimate weights
     timeloop: do jd = jStart, jEnd
-
       if (jd > jStart) Nk_old = Nk
       Nk = 0_i4
       l = 0
       ll = 0
       do i = 1, cell(k)%nNS
-        j = cell(k)%listNS(i)
+         j = cell(k)%listNS(i)
         if ( MetSta(j)%z(jd) /= noDataValue ) then
 
           !***      zero field     ***********************************
@@ -82,7 +80,6 @@ contains
       else
         calc_weights = .True.
       end if
-
       !>>>>  no value ! avoid indetermination
       ! avoid 0 value calculations ll == nNmax
       ! avoid calculations where only 1 station is available
@@ -98,7 +95,6 @@ contains
           call get_kriging_weights(X, nNmax, Nk, doOK_loc, dCS(k, :), dS, cell(k), MetSta)
           !write(*,*),"X after kriging weights: ",X
         end if
-
         ! The BLUE of z is then:
         cell(k)%z(jd) = 0.
         do i=1,nNmax

@@ -25,9 +25,10 @@ module mainVar
   integer(i4)                                  :: nSta                ! number of stations for a block
   integer(i4)                                  :: nCell               ! number of cells to estimate z
   integer(i4)                                  :: cellFactor          ! > 1 , size grid metereological data
+  integer(i4)                                  :: DEMNcFlag           ! flag for DEM format 0 = text file, 1 = netCDF  
   real(dp)                                     :: DataConvertFactor   ! precipitation & temperature(in 1/10 mm) **** only in NECKAR BASIN *****
   real(dp)                                     :: noDataValue 
-  real(dp)                                     :: thresholdDist        ! treshold cellsize  distance
+  real(dp)                                     :: thresholdDist        ! treshold cellsize  distance 
   ! constants
   real(dp),  parameter                         :: DayHours = 24.0_dp   ! hours per day
   real(dp),  parameter                         :: YearDays = 365.0_dp  ! days in a year
@@ -54,6 +55,8 @@ module mainVar
     real(dp)                                   :: yllcorner           ! y coordinate of the lowerleft corner
     integer(i4)                                :: cellsize            ! cellsize x = cellsize y
     integer(i4)                                :: nodata_value        ! code to define the mask
+    real(dp), dimension(:,:), allocatable      :: easting             ! irregular grid easting
+    real(dp), dimension(:,:), allocatable      :: northing            ! irregular grid northing
   end type gridGeoRef
   type (gridGeoRef)                            :: grid
   type (gridGeoRef)                            :: gridMeteo           ! reference of the metereological variables

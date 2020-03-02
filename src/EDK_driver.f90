@@ -25,7 +25,7 @@ program ED_Kriging
   use runControl             , only: flagEDK, interMth,        & ! flag for activate kriging, flag for 'OK' or 'EDK'
       correctNeg,                 & ! pre or temp
       flagVario                     ! flag for activate variogram estimation
-  use mainVar                , only: yStart, yEnd, jStart, jEnd, tBuffer, nSta, & ! interpolation time periods
+  use mainVar                , only: yStart, yEnd, jStart, jEnd, tBuffer, nSta, DEMNcFlag, & ! interpolation time periods
       grid, gridMeteo,            & ! grid properties of input and output grid
       nCell, MetSta, &
       noDataValue
@@ -93,10 +93,10 @@ program ED_Kriging
   call message('')
   ! number of cells per thread
   ncell_thread = ceiling(real(nCell, sp) / real(loop_factor * n_threads, sp))
-  print *, 'nCell: ', nCell
-  print *, "ncell_thread: ", ncell_thread
-  print *, 'n_threads: ', n_threads
-        
+  !print *, 'nCell: ', nCell
+  !print *, "ncell_thread: ", ncell_thread
+  !print *, 'n_threads: ', n_threads
+  ! print *, 'DEMNcFlag', DEMNcFlag     
 
   itimer = 2
   call timer_start(itimer)
@@ -148,7 +148,7 @@ program ED_Kriging
      write(*,*),"Total Number of Time Buffers = ",iTime
      t = 0 
      bufferloop: do iTemp = 1, iTime
-
+  
         jStartTmp = jStart + (iTemp - 1) * tBuffer
         if (iTemp .lt. iTime) then
            jEndTmp = jStartTmp + tBuffer - 1
@@ -163,13 +163,13 @@ program ED_Kriging
            cell(iCell)%z = noDataValue
         end do
 
-        ! print *, iTemp, iTime
+        !print *, iTemp, iTime
 
         !$OMP parallel default(shared) &
         !$OMP private(iThread, iCell, X, Nk_old)
         !$OMP do SCHEDULE(dynamic)
         do iThread = 1, loop_factor * n_threads
-           ! print *, 'thread: ', iThread, " start"
+          !  print *, 'thread: ', iThread, " start"
            
            ncellsloop: do iCell = iThread * ncell_thread, min((iThread + 1) * ncell_thread, ncell)
 
@@ -178,7 +178,6 @@ program ED_Kriging
                  cell(iCell)%z = gridMeteo%nodata_value
                  cycle
               end if
-
               ! interploation
               select case (interMth)
               case (1)
@@ -186,7 +185,6 @@ program ED_Kriging
               case (2)
                  call EDK(iCell, jStartTmp, jEndTmp, dCS, MetSta, dS, cell, cell(iCell)%W, cell(iCell)%Nk_old)
               end select
-
            end do ncellsloop
            
            ! print *, 'thread: ', iThread, " end"
@@ -194,7 +192,7 @@ program ED_Kriging
         !$OMP end do
         !$OMP end parallel
 
-   
+     
 
     ! write output
     allocate(tmp_array(gridMeteo%ncols, gridMeteo%nrows, jEndTmp - jStartTmp + 1))

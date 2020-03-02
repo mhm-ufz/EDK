@@ -27,7 +27,7 @@ contains
   !**************************************************************************
   subroutine ReadData()
     use mainVar,    only: noDataValue, cellFactor, DataConvertFactor, &
-        yStart, mStart, dStart, yEnd, mEnd, dEnd, tBuffer
+        yStart, mStart, dStart, yEnd, mEnd, dEnd, tBuffer,DEMNcFlag
     use mo_kind,    only: i4, dp
     use mo_julian , only: NDAYS
 
@@ -43,9 +43,11 @@ contains
     implicit none
     !
     logical                       :: isNcFile
+    logical                       :: isDEMNcFile
     integer(i4)                   :: i, ios
     character(256)                :: dummy, fileName
     character(256), allocatable   :: DataPathIn_parts(:)
+    character(256), allocatable   :: fNameDEM_parts(:)
     !
     !===============================================================
     !  namelist definition
@@ -111,9 +113,20 @@ contains
     write(*,'(3(a12),   a18)') 'nugget', 'sill', 'range', 'Variogramtype' 
     write(*,'(3(f12.2), i18)') (beta(i), i=1,nParam), vType
 
+    ! determine whether DEM is an nc file or not 
+    call divide_string(fNameDEM, '.', fNameDEM_parts)
+    isDEMNcFile = (fNameDEM_parts(size(fNameDEM_parts,1)) .eq. 'nc')
+    deallocate(fNameDEM_parts)
+    DEMNcFlag = 0
     ! read DEM
+    if (isDEMNcFile) then
+    ! read the netcdf DEM file
+    call ReadDEMNc
+    DEMNcFlag = 1
+    else
     call ReadDEM
-
+    end if
+    
     ! determine whether input path is actually a nc file
     call divide_string(DataPathIn, '.', DataPathIn_parts)
     isNcFile = (DataPathIn_parts(size(DataPathIn_parts,1)) .eq. 'nc')
@@ -255,6 +268,73 @@ contains
 101 format (i2.2, a4)
 
   end subroutine ReadDEM
+
+ ! -----------------------------------------------------------------------
+ !               DEM Blocks (for Irregular grids in NetCDF format )
+ ! -----------------------------------------------------------------------
+ subroutine ReadDEMNc
+   use mainVar
+   use mo_kind, only           : i4
+   use runControl
+   use mo_netCDF,               only:NcDataset, NcVariable
+   use NetCDFVar,               only:ncIn_variable_name, ncIn_yCoord_name, ncIn_xCoord_name 
+   
+   implicit none
+   
+   integer(i4)                 :: i,j
+   character(256)              :: dummy, fileName 
+   real(dp), allocatable       :: dem_x(:,:)           ! easting 
+   real(dp), allocatable       :: dem_y(:,:)           ! northing
+   real(dp), allocatable       :: dem_data(:,:)        ! dem data 
+   type(NcDataset)             :: ncin
+   type(NcVariable)            :: ncvar 
+
+   fileName = trim(fNameDEM)
+   
+   ! get northing and easting information
+   ncin = NcDataset(fileName, 'r')
+   ncvar = ncin%getVariable(ncIn_yCoord_name)
+   call ncvar%getData(dem_y)
+   ncvar = ncin%getVariable(ncIn_xCoord_name)
+   call ncvar%getData(dem_x)
+
+   ! get number of rows and columns  
+   grid%nrows = size(dem_x, dim=1)
+   grid%ncols = size(dem_x, dim=2)
+
+   ! read in the dem data 
+   if (.not. allocated(G)) allocate(G(grid%nrows, grid%ncols))
+   if (.not. allocated(gridMeteo%easting))  allocate(gridMeteo%easting(grid%nrows, grid%ncols))
+   if (.not. allocated(gridMeteo%northing)) allocate(gridMeteo%northing(grid%nrows, grid%ncols))
+   !if (.not. allocated(grid%easting))  allocate(grid%easting(grid%nrows, grid%ncols))
+   !if (.not. allocated(grid%northing)) allocate(grid%northing(grid%nrows, grid%ncols))
+
+
+   ncvar = ncin%getVariable('dem')
+   call ncvar%getData(dem_data)
+   call ncvar%getAttribute('_FillValue',grid%nodata_value)
+
+   ! store the dem data in G%h
+   do i=1,grid%nrows
+     do j=1,grid%ncols
+       G(i,j)%h = dem_data(i,j)
+       gridMeteo%northing(i,j) = dem_y(i,j)
+       gridMeteo%easting(i,j)  = dem_x(i,j)
+       !grid%northing(i,j) = dem_y(i,j)
+       !grid%easting(i,j)  = dem_x(i,j)
+     end do
+   end do
+
+
+   !write(*,*),"DEM data: ",G%h
+   !write(*,*),"Northing: ",gridMeteo%northing
+   !write(*,*),"Easting: ",gridMeteo%easting
+
+   gridMeteo%nodata_value = grid%nodata_value
+   nCell = gridMeteo%ncols * gridMeteo%nrows 
+   deallocate(dem_data, dem_y, dem_x)
+
+ end subroutine ReadDEMNc
 
   !
   !
@@ -434,6 +514,11 @@ contains
     ncvar = ncin%getVariable(ncIn_xCoord_name)
     call ncvar%getData(temp_x)
 
+    !print *,"Meteo Easting Min: ",minval(temp_x)
+    !print *,"Meteo Easting Max: ",maxval(temp_x)
+    !print *,"Meteo Northing Min: ",minval(temp_y)
+    !print *,"Meteo Northing Max: ",maxval(temp_y)
+ 
     nrows = size(temp_x, dim=1)
     ncols = size(temp_x, dim=2)
 
@@ -446,8 +531,8 @@ contains
 
     ncvar = ncin%getVariable(ncIn_variable_name)
     call ncvar%getData(met_data, start = (/1, 1, time_start/), cnt = (/nRows, nCols, time_count/))
-    call ncvar%getAttribute('missing_value', missing_value)
-
+    !call ncvar%getAttribute('missing_value', missing_value)
+    call ncvar%getAttribute('_FillValue',missing_value)
 
     ! close netcdf file
     call ncin%close()
@@ -464,6 +549,9 @@ contains
         ! check if station is within search distance
         ! if yes increase station counting by one
         ! otherwise overwrite station in next iteration
+        !print *,"Meteo Grid Easting: ",temp_x(i,j)
+        !print *,"DEM Grid Easting LL: ",domain%left
+        !print *,"DEM Grid Easting TR: ", domain%right
         if ((temp_x(i, j) .GE. domain%left)   .AND. (temp_x(i, j) .LE. domain%right) .AND. &
             (temp_y(i, j) .GE. domain%bottom) .AND. (temp_y(i, j) .LE. domain%top)  ) then
           nSta = nSta + 1
@@ -502,7 +590,7 @@ contains
 
   subroutine getSearchDomain(domain)
 
-    use mainVar,    only: grid
+    use mainVar,    only: grid,gridMeteo,DEMNcFlag
     use kriging,    only: maxDist
     use VarFit,     only: hMax
     use runControl, only: flagVario
@@ -521,13 +609,25 @@ contains
       search_distance = maxDist
     end if
 
+    print *,"DEMNcFlag: ",DEMNcFlag
+    if (DEMNcFlag == 0) then
     ! derive borders for station search
-    domain%bottom = -search_distance + grid%yllcorner  
-    domain%top    =  search_distance + grid%yllcorner + grid%nrows * grid%cellsize
-    domain%left   = -search_distance + grid%xllcorner
-    domain%right  =  search_distance + grid%xllcorner + grid%ncols * grid%cellsize 
+      domain%bottom = -search_distance + grid%yllcorner  
+      domain%top    =  search_distance + grid%yllcorner + grid%nrows * grid%cellsize
+      domain%left   = -search_distance + grid%xllcorner
+      domain%right  =  search_distance + grid%xllcorner + grid%ncols * grid%cellsize 
+    else
+      domain%bottom = -search_distance + minval(gridMeteo%northing)
+      domain%top    =  search_distance + maxval(gridMeteo%northing)
+      domain%left   = -search_distance + minval(gridMeteo%easting)
+      domain%right  =  search_distance + maxval(gridMeteo%easting)
+    end if 
 
-
+    !print *,"DEM Min Northing: ",minval(gridMeteo%northing)
+    !print *,"DEM Max Northing: ",maxval(gridMeteo%northing)
+    !print *,"DEM Min Easting: ",minval(gridMeteo%easting)
+    !print *,"DEM Max Easting: ",maxval(gridMeteo%easting)
+ 
   end subroutine getSearchDomain
 
 end module mo_ReadData

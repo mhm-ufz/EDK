@@ -177,8 +177,14 @@ subroutine dMatrix
        yc = yc - dble(gridMeteo%cellsize)
        ii = ii + cellFactor
     end if
+    print *,"DEMNcFlag: ",DEMNcFlag
+    if (DEMNcFlag == 1) then
+       cell(k)%x = gridMeteo%easting(r,c)
+       cell(k)%y = gridMeteo%northing(r,c)
+    else 
     cell(k)%x = xc
     cell(k)%y = yc
+    end if
 
     ! average of only four DEM cells around centre cell (from lower grid scale upto higher grid cell)
     !cell(k)%h = 0.25_dp*(G(ii,jj)%h + G(ii,jj+1)%h + G(ii+1,jj)%h + G(ii+1,jj+1)%h)
