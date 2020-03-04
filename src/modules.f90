@@ -195,6 +195,7 @@ module NetCDFVar
   !
   ! netcdf input specifications
   character(256)                                   :: ncIn_variable_name
+  character(256)                                   :: ncIn_dem_variable_name
   character(256)                                   :: ncIn_yCoord_name
   character(256)                                   :: ncIn_xCoord_name
 

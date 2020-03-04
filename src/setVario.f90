@@ -163,11 +163,18 @@ subroutine dMatrix
   jj = delta
   do k=1,nCell 
 
+     ! avancing the counters
      if (r == 1) then
         c = c + 1
+        if (c > 1) then
+           jj = jj + cellFactor
+        end if
+        ii = delta
+     else
+        ii = ii + cellFactor
      end if
 
-     print *,"DEMNcFlag: ",DEMNcFlag
+     ! print *,"DEMNcFlag: ",DEMNcFlag
      if (DEMNcFlag == 1) then
         cell(k)%x = gridMeteo%easting(r,c)
         cell(k)%y = gridMeteo%northing(r,c)
@@ -175,13 +182,10 @@ subroutine dMatrix
         if (r == 1) then
            if (c > 1) then 
               xc = xc + dble(gridMeteo%cellsize)
-              jj = jj + cellFactor
            end if
            yc = gridMeteo%yllcorner + dble(gridMeteo%cellsize) * (dble(gridMeteo%nrows) - 0.5_dp)
-           ii = delta 
         else
            yc = yc - dble(gridMeteo%cellsize)
-           ii = ii + cellFactor
         end if
         cell(k)%x = xc
         cell(k)%y = yc
@@ -191,23 +195,21 @@ subroutine dMatrix
     !cell(k)%h = 0.25_dp*(G(ii,jj)%h + G(ii,jj+1)%h + G(ii+1,jj)%h + G(ii+1,jj+1)%h)
     !
     ! average of all DEM cells (from lower grid scale upto higher grid cell)
-    nTcell =  count(G( (ii-delta+1):(ii+delta) , (jj-delta+1):(jj+delta) )%h  > grid%nodata_value )
-    if (nTcell == 0) then
-      cell(k)%h = gridMeteo%nodata_value
-    else
-      cell(k)%h  = sum(G( (ii-delta+1):(ii+delta) , (jj-delta+1):(jj+delta) )%h, &
-                       G( (ii-delta+1):(ii+delta) , (jj-delta+1):(jj+delta) )%h /= gridMeteo%nodata_value ) / dble(nTcell)
-    end if
+     if (cellFactor == 1) then
+        cell(k)%h = G(ii+1,jj+1)%h
+     else
+        nTcell =  count(G( (ii-delta+1):(ii+delta) , (jj-delta+1):(jj+delta) )%h  > grid%nodata_value )
+        if (nTcell == 0) then
+           cell(k)%h = gridMeteo%nodata_value
+        else
+           cell(k)%h  = sum(G( (ii-delta+1):(ii+delta) , (jj-delta+1):(jj+delta) )%h, &
+                G( (ii-delta+1):(ii+delta) , (jj-delta+1):(jj+delta) )%h /= gridMeteo%nodata_value ) / dble(nTcell)
+        end if
+     end if
 
+     ! advance the counters
     r=r+1
     if (r > gridMeteo%nrows) r = 1
-    ! MZMZMZMZ - delete !!!!!!!
-    if (cellFactor == 1) then
-       !print*, ii, jj
-       cell(k)%h = G(ii+1,jj+1)%h
-       cycle
-    end if
-    ! MZMZMZMZ - delete !!!!!!!
   end do
 
   ! distance matrix cell to stations: checked OK

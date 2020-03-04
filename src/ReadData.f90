@@ -36,7 +36,7 @@ contains
     use runControl, only: interMth, fnameDEM, DataPathOut, DataPathIn, fNameSta, correctNeg, &
         distZero, flagVario, fNameVario, flagEDK
     use NetCDFVar,  only: FileOut, author_name, projection_name, variable_name, variable_unit, &
-         variable_long_name, ncIn_variable_name, ncIn_yCoord_name, ncIn_xCoord_name, invert_y
+         variable_long_name, ncIn_variable_name, ncIn_dem_variable_name, ncIn_yCoord_name, ncIn_xCoord_name, invert_y
     use mo_message, only: message
     use mo_string_utils, only: divide_string
 
@@ -54,10 +54,10 @@ contains
     !===============================================================
     !
     namelist/mainVars/noDataValue, DataPathIn, fNameDEM,                    &
-        DataPathOut, FileOut, fNameSTA, cellFactor, DataConvertFactor, InterMth, correctNeg,  &
-        distZero, author_name, projection_name, variable_name, variable_unit, variable_long_name, &
-        yStart, mStart, dStart, yEnd, mEnd, dEnd,tBuffer, maxDist, flagVario, vType, nParam,  &  
-        fNameVario, dh, hMax, ncIn_variable_name, ncIn_yCoord_name, ncIn_xCoord_name, invert_y
+         DataPathOut, FileOut, fNameSTA, cellFactor, DataConvertFactor, InterMth, correctNeg,  &
+         distZero, author_name, projection_name, variable_name, variable_unit, variable_long_name, &
+         yStart, mStart, dStart, yEnd, mEnd, dEnd,tBuffer, maxDist, flagVario, vType, nParam,  &  
+         fNameVario, dh, hMax, ncIn_variable_name, ncIn_dem_variable_name, ncIn_yCoord_name, ncIn_xCoord_name, invert_y
     !
     ! -----------------------------------------------------------------------
     !	                               MAIN.DAT
@@ -479,9 +479,9 @@ contains
         yStart, mStart, dStart, yEnd, mEnd, dEnd, jStart, jEnd
     use kriging,        only: maxDist
     use VarFit,         only: hmax
-    use runControl,     only: DataPathIn
+    use runControl,     only: interMth, DataPathIn
     use mo_netCDF,      only: NcDataset, NcVariable
-    use NetCDFVar,      only: ncIn_variable_name, ncIn_yCoord_name, ncIn_xCoord_name
+    use NetCDFVar,      only: ncIn_variable_name, ncIn_yCoord_name, ncIn_xCoord_name, ncIn_dem_variable_name
     use mo_get_nc_time, only: get_time_vector_and_select
 
     implicit none
@@ -500,6 +500,7 @@ contains
     type(extend)          :: domain
     type(NcDataset)       :: ncin
     type(NcVariable)      :: ncvar
+    type(NcVariable)      :: ncdem
 
     call getSearchDomain(domain)
 
@@ -532,6 +533,13 @@ contains
     ! ! extract data and select time slice
     ! call ncvar%getData(data, start = (/1, 1, time_start/), cnt = (/nRows, nCols, time_count/))
 
+    ! read dem from nc
+    if (interMth .eq. 2) then
+       ncdem = ncin%getVariable(ncIn_dem_variable_name)
+       call ncvar%getData(temp_h, start = (/1, 1/), cnt = (/nRows, nCols/))
+    end if
+    
+    ! read meteo data from nc
     ncvar = ncin%getVariable(ncIn_variable_name)
     call ncvar%getData(met_data, start = (/1, 1, time_start/), cnt = (/nRows, nCols, time_count/))
     !call ncvar%getAttribute('missing_value', missing_value)
@@ -575,10 +583,10 @@ contains
       do j = 1, ncols
         if (.not. mask(i,j)) cycle
         iSta = iSta + 1
-        MetSta(iSta)%Id =  iSta
-        MetSta(iSta)%x  =  temp_x(i, j)
-        MetSta(iSta)%y  =  temp_y(i, j)
-        MetSta(iSta)%h  =  130_i4 ! temp_h(i, j)
+        MetSta(iSta)%Id = iSta
+        MetSta(iSta)%x  = temp_x(i, j)
+        MetSta(iSta)%y  = temp_y(i, j)
+        MetSta(iSta)%h  = temp_h(i, j)
         !
         ! add meteorological data
         allocate(MetSta(iSta)%z(target_period%julStart:target_period%julEnd))
