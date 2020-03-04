@@ -331,8 +331,11 @@ contains
    !write(*,*),"Easting: ",gridMeteo%easting
 
    gridMeteo%nodata_value = grid%nodata_value
-   nCell = gridMeteo%ncols * gridMeteo%nrows 
+   nCell = grid%ncols * grid%nrows 
+   print *,"nCell = ",nCell
    deallocate(dem_data, dem_y, dem_x)
+   ! close netcdf file
+   call ncin%close()
 
  end subroutine ReadDEMNc
 
@@ -609,7 +612,7 @@ contains
       search_distance = maxDist
     end if
 
-    print *,"DEMNcFlag: ",DEMNcFlag
+    !print *,"DEMNcFlag: ",DEMNcFlag
     if (DEMNcFlag == 0) then
     ! derive borders for station search
       domain%bottom = -search_distance + grid%yllcorner  
