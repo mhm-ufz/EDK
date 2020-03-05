@@ -200,7 +200,6 @@ program ED_Kriging
     
 
     k = 0
-    do i = 1, gridMeteo%ncols
     !    do j = 1, gridMeteo%nrows
     !       k = k + 1
     !       tmp_array(i, gridMeteo%nrows - j + 1, :) = cell(k)%z
@@ -208,16 +207,20 @@ program ED_Kriging
     ! end do
        if (invert_y) then
           do j = gridMeteo%nrows, 1, -1
-             k = k + 1
-             tmp_array(i, gridMeteo%nrows - j + 1, :) = cell(k)%z
+             do i = 1, gridMeteo%ncols
+                k = k + 1
+                tmp_array(i, gridMeteo%nrows - j + 1, :) = cell(k)%z
+             end do
           end do
        else
           do j = 1, gridMeteo%nrows
-             k = k + 1
-             tmp_array(i, gridMeteo%nrows - j + 1, :) = cell(k)%z
+             do i = 1, gridMeteo%ncols
+                k = k + 1
+                tmp_array(i, gridMeteo%nrows - j + 1, :) = cell(k)%z
+             end do
           end do
        end if
-    end do
+    ! end do
     !t = 0
     !do i = 1,  jEnd - jStart + 1
     !  tmp_time(i) = t
