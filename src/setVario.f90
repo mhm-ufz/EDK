@@ -162,8 +162,7 @@ subroutine dMatrix
   delta = cellFactor / 2
   jj = delta
   do k=1,nCell 
-
-     ! avancing the counters
+     ! advancing the counters
      if (r == 1) then
         c = c + 1
         if (c > 1) then
@@ -173,8 +172,7 @@ subroutine dMatrix
      else
         ii = ii + cellFactor
      end if
-
-     ! print *,"DEMNcFlag: ",DEMNcFlag
+     
      if (DEMNcFlag == 1) then
         cell(k)%x = gridMeteo%easting(r,c)
         cell(k)%y = gridMeteo%northing(r,c)
@@ -206,19 +204,19 @@ subroutine dMatrix
                 G( (ii-delta+1):(ii+delta) , (jj-delta+1):(jj+delta) )%h /= gridMeteo%nodata_value ) / dble(nTcell)
         end if
      end if
-
+    
      ! advance the counters
     r=r+1
     if (r > gridMeteo%nrows) r = 1
   end do
-
+  
   ! distance matrix cell to stations: checked OK
   do j=1, nSta
     do i=1,nCell
       dCS(i,j) = dsqrt( ( cell(i)%x - MetSta(j)%x )**2 + ( cell(i)%y - MetSta(j)%y )** 2)
     end do
   end do
-
+  
   ! find the closest stations to cell i (any order): checked  OK
   do i=1,nCell
     list = -9

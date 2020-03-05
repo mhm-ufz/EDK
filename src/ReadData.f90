@@ -331,8 +331,9 @@ contains
    !write(*,*),"Easting: ",gridMeteo%easting
 
    gridMeteo%nodata_value = grid%nodata_value
+   gridMeteo%nrows = grid%nrows
+   gridMeteo%ncols = grid%ncols
    nCell = grid%ncols * grid%nrows 
-   print *,"nCell = ",nCell
    deallocate(dem_data, dem_y, dem_x)
    ! close netcdf file
    call ncin%close()
