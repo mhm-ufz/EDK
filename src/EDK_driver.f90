@@ -171,7 +171,7 @@ program ED_Kriging
         do iThread = 1, loop_factor * n_threads
           !  print *, 'thread: ', iThread, " start"
 
-           ncellsloop: do iCell = iThread * ncell_thread, min((iThread + 1) * ncell_thread, ncell)
+           ncellsloop: do iCell = (iThread - 1) * ncell_thread + 1, min(iThread * ncell_thread, ncell)
 
               ! check DEM
               if (nint(cell(iCell)%h) == grid%nodata_value ) then
