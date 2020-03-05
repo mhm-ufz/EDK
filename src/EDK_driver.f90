@@ -141,14 +141,14 @@ program ED_Kriging
     end do
 
     if (mod((jEnd - jStart + 1),tBuffer) .eq. 0) then  ! just use mod 
-        iTime = ((jEnd - jStart + 1)/tBuffer)                         
-     else   
+        iTime = ((jEnd - jStart + 1)/tBuffer)
+     else
         iTime = ((jEnd - jStart + 1)/tBuffer) + 1
      end if
      write(*,*),"Total Number of Time Buffers = ",iTime
-     t = 0 
+     t = 0
      bufferloop: do iTemp = 1, iTime
-  
+
         jStartTmp = jStart + (iTemp - 1) * tBuffer
         if (iTemp .lt. iTime) then
            jEndTmp = jStartTmp + tBuffer - 1
@@ -170,7 +170,7 @@ program ED_Kriging
         !$OMP do SCHEDULE(dynamic)
         do iThread = 1, loop_factor * n_threads
           !  print *, 'thread: ', iThread, " start"
-           
+
            ncellsloop: do iCell = iThread * ncell_thread, min((iThread + 1) * ncell_thread, ncell)
 
               ! check DEM
@@ -186,7 +186,7 @@ program ED_Kriging
                  call EDK(iCell, jStartTmp, jEndTmp, dCS, MetSta, dS, cell, cell(iCell)%W, cell(iCell)%Nk_old)
               end select
            end do ncellsloop
-           
+
            ! print *, 'thread: ', iThread, " end"
         end do
         !$OMP end do

@@ -226,17 +226,20 @@ contains
     if (info .ne. 0_i4) then
       print *, '***WARNING: calculation of weights failed'
     end if
-    if (abs(sum(X(:nNmax)) - 1._dp) .gt. 1.e-4) then
-      print *, '***WARNING: sum of weights is not 1, calculation of weights failed'
-      print *, 'sum of weights: ', sum(X(:nNmax))
-    end if
+    ! print *, 'shape of A: ', shape(A)
+    ! print *, 'dem of stations: ', A(:, 10)
+    ! print *, 'maximum of dem at stations: ', maxval(MetSta(:)%h)
     ! print *, 'easting: ', cell%x
     ! print *, 'northing: ', cell%y
     ! print *, 'number of neighbors: ', nNmax
     ! print *, ''
     ! ! print *, 'ipvt: ', ipvt
     ! print *, 'info: ', info
-    ! stop 'testing'
+    if (abs(sum(X(:nNmax)) - 1._dp) .gt. 1.e-4) then
+       print *, '***WARNING: sum of weights is not 1, calculation of weights failed'
+       print *, 'sum of weights: ', sum(X(:nNmax))
+       ! stop 'testing'
+    end if
     deallocate (A, B, C, ipvt)
   end subroutine get_kriging_weights
 

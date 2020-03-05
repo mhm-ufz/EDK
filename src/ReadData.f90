@@ -537,7 +537,7 @@ contains
     ! read dem from nc
     if (interMth .eq. 2) then
        ncdem = ncin%getVariable(ncIn_dem_variable_name)
-       call ncvar%getData(temp_h, start = (/1, 1/), cnt = (/nRows, nCols/))
+       call ncdem%getData(temp_h, start = (/1, 1/), cnt = (/nRows, nCols/))
     end if
     
     ! read meteo data from nc
@@ -594,7 +594,7 @@ contains
         MetSta(iSta)%z = met_data(i, j, :)
         !
       end do
-    end do
+   end do
 
     deallocate(mask, temp_x, temp_y, met_data) !, temp_h)
     
