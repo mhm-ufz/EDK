@@ -30,8 +30,8 @@ CONTAINS
     nc = NcDataset(trim(fileOut), "w")
    
     if (DEMNcFlag == 1) then
-      dim_y    = nc%setDimension(ncOut_dem_Latitude, gridMeteo%ncols)
       dim_x    = nc%setDimension(ncOut_dem_Longitude, gridMeteo%nrows)
+      dim_y    = nc%setDimension(ncOut_dem_Latitude, gridMeteo%ncols)
       dim_time = nc%setDimension("time", -1)
     else 
     ! create dimensions
@@ -55,9 +55,7 @@ CONTAINS
     call var_east%setData(gridMeteo%easting)
 
     var_lat = nc%setVariable(ncOut_dem_Latitude, 'f32', (/dim_y/))
-    call var_lat%setData(gridMeteo%latitude)
     var_lon = nc%setVariable(ncOut_dem_Longitude, 'f32', (/dim_x/))
-    call var_lon%setData(gridMeteo%longitude)
 
   else
     allocate(dummy(gridMeteo%ncols, gridMeteo%nrows))

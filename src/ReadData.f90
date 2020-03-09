@@ -35,8 +35,9 @@ contains
     use VarFit,     only: vType, nParam, dh, hMax, beta
     use runControl, only: interMth, fnameDEM, DataPathOut, DataPathIn, fNameSta, correctNeg, &
         distZero, flagVario, fNameVario, flagEDK
-    use NetCDFVar,  only: FileOut, author_name, projection_name, variable_name, variable_unit, &
-         variable_long_name, ncIn_variable_name, ncIn_dem_variable_name, ncIn_yCoord_name, ncIn_xCoord_name, invert_y
+    use NetCDFVar,  only: FileOut, author_name, projection_name, variable_name, variable_unit, variable_standard_name, variable_calendar_type, &
+         variable_long_name, ncIn_variable_name, ncIn_dem_variable_name, ncIn_yCoord_name, ncIn_xCoord_name, invert_y,  &
+         ncOut_dem_variable_name, ncOut_dem_yCoord_name, ncOut_dem_xCoord_name, ncOut_dem_Latitude, ncOut_dem_Longitude
     use mo_message, only: message
     use mo_string_utils, only: divide_string
 
@@ -55,9 +56,10 @@ contains
     !
     namelist/mainVars/noDataValue, DataPathIn, fNameDEM,                    &
          DataPathOut, FileOut, fNameSTA, cellFactor, DataConvertFactor, InterMth, correctNeg,  &
-         distZero, author_name, projection_name, variable_name, variable_unit, variable_long_name, &
+         distZero, author_name, projection_name, variable_name, variable_unit, variable_long_name, variable_standard_name, variable_calendar_type,  &
          yStart, mStart, dStart, yEnd, mEnd, dEnd,tBuffer, maxDist, flagVario, vType, nParam,  &  
-         fNameVario, dh, hMax, ncIn_variable_name, ncIn_dem_variable_name, ncIn_yCoord_name, ncIn_xCoord_name, invert_y
+         fNameVario, dh, hMax, ncIn_variable_name, ncIn_dem_variable_name, ncIn_yCoord_name, ncIn_xCoord_name, invert_y, &
+         ncOut_dem_variable_name, ncOut_dem_yCoord_name, ncOut_dem_xCoord_name, ncOut_dem_Latitude, ncOut_dem_Longitude
     !
     ! -----------------------------------------------------------------------
     !	                               MAIN.DAT
@@ -277,7 +279,7 @@ contains
    use mo_kind, only           : i4
    use runControl
    use mo_netCDF,               only:NcDataset, NcVariable
-   use NetCDFVar,               only:ncIn_variable_name, ncIn_yCoord_name, ncIn_xCoord_name 
+   use NetCDFVar,               only:ncOut_dem_variable_name, ncOut_dem_yCoord_name, ncOut_dem_xCoord_name, ncOut_dem_Latitude, ncOut_dem_Longitude  
    
    implicit none
    
@@ -293,42 +295,56 @@ contains
    
    ! get northing and easting information
    ncin = NcDataset(fileName, 'r')
-   ncvar = ncin%getVariable(ncIn_yCoord_name)
+   ncvar = ncin%getVariable(ncOut_dem_yCoord_name)
    call ncvar%getData(dem_y)
-   ncvar = ncin%getVariable(ncIn_xCoord_name)
+   ncvar = ncin%getVariable(ncOut_dem_xCoord_name)
    call ncvar%getData(dem_x)
-
+ 
    ! get number of rows and columns  
    grid%nrows = size(dem_x, dim=1)
    grid%ncols = size(dem_x, dim=2)
+  
+   write(*,*),"Nrows: ",grid%nrows
+   write(*,*),"Ncols: ",grid%ncols
 
+   ! get latitude and longitude
+   if(.not. allocated(gridMeteo%latitude)) allocate(gridMeteo%latitude(grid%ncols))
+   if(.not. allocated(gridMeteo%longitude)) allocate(gridMeteo%longitude(grid%nrows))
+
+   ncvar = ncin%getVariable(ncOut_dem_Latitude)
+   call ncvar%getData(gridMeteo%latitude)
+   ncvar = ncin%getVariable(ncOut_dem_Longitude)
+   call ncvar%getData(gridMeteo%longitude)
+ 
    ! read in the dem data 
    if (.not. allocated(G)) allocate(G(grid%nrows, grid%ncols))
    if (.not. allocated(gridMeteo%easting))  allocate(gridMeteo%easting(grid%nrows, grid%ncols))
    if (.not. allocated(gridMeteo%northing)) allocate(gridMeteo%northing(grid%nrows, grid%ncols))
    !if (.not. allocated(grid%easting))  allocate(grid%easting(grid%nrows, grid%ncols))
    !if (.not. allocated(grid%northing)) allocate(grid%northing(grid%nrows, grid%ncols))
+   
 
-
-   ncvar = ncin%getVariable('dem')
+   ncvar = ncin%getVariable(ncOut_dem_variable_name)
    call ncvar%getData(dem_data)
    call ncvar%getAttribute('_FillValue',grid%nodata_value)
 
    ! store the dem data in G%h
-   do i=1,grid%nrows
-     do j=1,grid%ncols
-       G(i,j)%h = dem_data(i,j)
-       gridMeteo%northing(i,j) = dem_y(i,j)
-       gridMeteo%easting(i,j)  = dem_x(i,j)
+   do i=1,grid%ncols
+     do j=1,grid%nrows
+       G(j,i)%h = dem_data(j,i)
+       gridMeteo%northing(j,i) = dem_y(j,i)
+       gridMeteo%easting(j,i)  = dem_x(j,i)
        !grid%northing(i,j) = dem_y(i,j)
        !grid%easting(i,j)  = dem_x(i,j)
      end do
    end do
 
 
-   !write(*,*),"DEM data: ",G%h
-   !write(*,*),"Northing: ",gridMeteo%northing
-   !write(*,*),"Easting: ",gridMeteo%easting
+   !write(*,*),"DEM data: ",shape(G%h)
+   !write(*,*),"Northing: ",shape(gridMeteo%northing)
+   !write(*,*),"Easting: ",shape(gridMeteo%easting)
+   !write(*,*),"Northing,Easting First Row, First Column: ",gridMeteo%northing(1,1),",",gridMeteo%easting(1,1)
+   !write(*,*),"Northing,Easting Last Row, Last Column: ",gridMeteo%northing(192,64),",",gridMeteo%easting(192,64)
 
    gridMeteo%nodata_value = grid%nodata_value
    gridMeteo%nrows = grid%nrows
@@ -386,7 +402,7 @@ contains
   !	**************************************************************************
   !
   ! SUBROUTINE      READ METEOROLOGICAL DATABASE
-  ! UPDATES         Sa.2010-07-06     reading formats / conversion units
+  ! :UPDATES         Sa.2010-07-06     reading formats / conversion units
   !
   !	**************************************************************************
   subroutine ReadDataMeteo
@@ -539,12 +555,16 @@ contains
        ncdem = ncin%getVariable(ncIn_dem_variable_name)
        call ncdem%getData(temp_h, start = (/1, 1/), cnt = (/nRows, nCols/))
     end if
+
+   write(*,*),"DEM Source: ",shape(temp_h)
     
     ! read meteo data from nc
     ncvar = ncin%getVariable(ncIn_variable_name)
     call ncvar%getData(met_data, start = (/1, 1, time_start/), cnt = (/nRows, nCols, time_count/))
     !call ncvar%getAttribute('missing_value', missing_value)
     call ncvar%getAttribute('_FillValue',missing_value)
+
+    write(*,*),"Data Source: ",shape(met_data)
 
     ! close netcdf file
     call ncin%close()

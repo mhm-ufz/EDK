@@ -13,6 +13,7 @@ noDataValue              = -9
 ! Specifications of variable and coordinate names in case DataPathIn
 ! is a netcdf file
 ncIn_variable_name       = "pre"
+ncIn_dem_variable_name   = "dem"
 ! name of coordinates, these must be in [m]
 ncIn_yCoord_name         = "northing"
 ncIn_xCoord_name         = "easting"
@@ -26,6 +27,15 @@ distZero                 = .True.
 !
 fNameDEM                 = "check/dem.asc"
 cellFactor               = 40
+! name of coordinates (northing and easting) in [m]
+ncOut_dem_yCoord_name    = "northing"
+ncOut_dem_xCoord_name	 = "easting"
+! name of coordinates (latitude and longitude) in deg
+ncOut_dem_Latitude	 = "latitude"
+ncOut_dem_Longitude	 = "longitude"
+! name of the DEM variable in the netcdf file
+ncOut_dem_variable_name  = "dem"
+
 !
 DataPathOut              = "output/"
 FileOut                  = "edk.nc"
@@ -72,12 +82,14 @@ dh                       = 1.0e3 ! binsize for variogram [m]
 hMax                     = 1.5e5 ! max distance h for variogram estimation [m]
 ! -------------------------------------------------------------------
 ! --------------- NC OUTPUT SPECIFICATION ----------------------------
-author_name              = 'XXX'
-projection_name          = 'EPSG: 31468'
+author_name              = 'Akash Koppa'
+projection_name          = 'EPSG:4326 '
 invert_y                 = .True. ! (set True if working with mHM input data!)
-variable_name            = 'pre'
+variable_name            = 'pr'
 variable_unit            = 'mm/d'
-variable_long_name       = 'daily precipitation'
+variable_long_name       = 'Precipitation'
+variable_standard_name	 = 'precipitation_flux'
+variable_calendar_type	 = 'proleptic_gregorian'
 ! -------------------------------------------------------------------
 ! -------------------------------------------------------------------
 / !END*******Main Config***********

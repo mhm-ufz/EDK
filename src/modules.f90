@@ -57,6 +57,8 @@ module mainVar
     integer(i4)                                :: nodata_value        ! code to define the mask
     real(dp), dimension(:,:), allocatable      :: easting             ! irregular grid easting
     real(dp), dimension(:,:), allocatable      :: northing            ! irregular grid northing
+    real(dp), dimension(:), allocatable        :: latitude            ! latitude for the output 
+    real(dp), dimension(:), allocatable        :: longitude           ! longitude for the output
   end type gridGeoRef
   type (gridGeoRef)                            :: grid
   type (gridGeoRef)                            :: gridMeteo           ! reference of the metereological variables
@@ -191,6 +193,8 @@ module NetCDFVar
   character(256)                                   :: variable_long_name ! long name  of netcdf variable
   character(256)                                   :: author_name ! author name of netcdf file
   character(256)                                   :: projection_name ! name of EPSG (EPSG:XXXX)
+  character(256)                                   :: variable_standard_name ! standard name of netcdf variable
+  character(256)                                   :: variable_calendar_type ! calendar type (time variable attribute)
   logical                                          :: invert_y
   !
   ! netcdf input specifications
@@ -198,6 +202,11 @@ module NetCDFVar
   character(256)                                   :: ncIn_dem_variable_name
   character(256)                                   :: ncIn_yCoord_name
   character(256)                                   :: ncIn_xCoord_name
+  character(256)                                   :: ncOut_dem_variable_name
+  character(256)                                   :: ncOut_dem_yCoord_name
+  character(256)                                   :: ncOut_dem_xCoord_name
+  character(256)                                   :: ncOut_dem_Latitude
+  character(256)                                   :: ncOut_dem_Longitude
 
 end module NetCDFVar
 
