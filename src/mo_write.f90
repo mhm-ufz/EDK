@@ -94,7 +94,7 @@ CONTAINS
     call var_data%setAttribute("units",   trim(variable_unit))
     call var_data%setAttribute("long_name", trim(variable_long_name))
     call var_data%setAttribute("standard_name",trim(variable_standard_name))
-    call var_data%setAttribute("scaling", DataConvertFactor)
+    call var_data%setAttribute("scaling", 1.0_dp)
     call var_data%setAttribute("missing_value", -9999._dp)
     
 
