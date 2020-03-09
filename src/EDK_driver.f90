@@ -214,7 +214,7 @@ program ED_Kriging
    sttemp = nint(tmp_time(1)+1)
    cnttemp = nint((tmp_time(size(tmp_time)) - sttemp))+2
     
-   write(*,*),"Final Output ",shape(tmp_array)
+   !write(*,*),"Final Output ",shape(tmp_array)
  
    call nc_time%setData(values=tmp_time,start=(/sttemp/),cnt=(/cnttemp/))
    !call nc_data%setData(values=tmp_array,start=(/1,1,sttemp/),cnt=(/size(tmp_array,1),size(tmp_array,2),cnttemp/))
@@ -263,7 +263,7 @@ program ED_Kriging
    sttemp = nint(tmp_time(1)+1)
    cnttemp = nint((tmp_time(size(tmp_time)) - sttemp))+2
     
-   write(*,*),"Final Output ",shape(tmp_array)
+   !write(*,*),"Final Output ",shape(tmp_array)
  
    call nc_time%setData(values=tmp_time,start=(/sttemp/),cnt=(/cnttemp/))
    !call nc_data%setData(values=tmp_array,start=(/1,1,sttemp/),cnt=(/size(tmp_array,1),size(tmp_array,2),cnttemp/))

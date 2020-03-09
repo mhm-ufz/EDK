@@ -304,8 +304,8 @@ contains
    grid%nrows = size(dem_x, dim=1)
    grid%ncols = size(dem_x, dim=2)
   
-   write(*,*),"Nrows: ",grid%nrows
-   write(*,*),"Ncols: ",grid%ncols
+   !write(*,*),"Nrows: ",grid%nrows
+   !write(*,*),"Ncols: ",grid%ncols
 
    ! get latitude and longitude
    if(.not. allocated(gridMeteo%latitude)) allocate(gridMeteo%latitude(grid%ncols))
@@ -556,7 +556,7 @@ contains
        call ncdem%getData(temp_h, start = (/1, 1/), cnt = (/nRows, nCols/))
     end if
 
-   write(*,*),"DEM Source: ",shape(temp_h)
+   !write(*,*),"DEM Source: ",shape(temp_h)
     
     ! read meteo data from nc
     ncvar = ncin%getVariable(ncIn_variable_name)
@@ -564,7 +564,7 @@ contains
     !call ncvar%getAttribute('missing_value', missing_value)
     call ncvar%getAttribute('_FillValue',missing_value)
 
-    write(*,*),"Data Source: ",shape(met_data)
+    !write(*,*),"Data Source: ",shape(met_data)
 
     ! close netcdf file
     call ncin%close()

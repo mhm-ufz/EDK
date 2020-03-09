@@ -13,7 +13,7 @@ CONTAINS
     use mo_kind, only: i4, sp, dp
     use mo_netcdf, only: NcDataset, NcDimension, NcVariable
     use mo_string_utils, only: num2str
-    use mainVar, only: gridMeteo, yStart, mStart, dStart, DEMNcFlag
+    use mainVar, only: gridMeteo, yStart, mStart, dStart, DEMNcFlag, DataConvertFactor
     use NetCDFVar, only: fileOut, author_name, variable_name, variable_unit, variable_long_name, projection_name,invert_y, variable_standard_name, variable_calendar_type, ncOut_dem_Latitude, ncOut_dem_Longitude
 
     implicit none
@@ -46,6 +46,7 @@ CONTAINS
     call var_time%setAttribute("units", "days since " // trim(num2str(yStart, form='(I4)')) // "-"// &
         trim(num2str(mStart, form='(I0.2)')) // "-" // &
         trim(num2str(dStart, form='(I0.2)')) // "-" // "00:00:00")
+    call var_time%setAttribute("calendar", variable_calendar_type)
 
   if (DEMNcFlag == 1) then
     var_north = nc%setVariable('northing', 'f32', (/dim_x, dim_y/))
@@ -92,8 +93,10 @@ CONTAINS
     ! add some more variable attributes
     call var_data%setAttribute("units",   trim(variable_unit))
     call var_data%setAttribute("long_name", trim(variable_long_name))
-    call var_data%setAttribute("scaling", 0.1_dp)
+    call var_data%setAttribute("standard_name",trim(variable_standard_name))
+    call var_data%setAttribute("scaling", DataConvertFactor)
     call var_data%setAttribute("missing_value", -9999._dp)
+    
 
     ! add global attributes
     call nc%setAttribute("Author", trim(author_name))
