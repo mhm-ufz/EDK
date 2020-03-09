@@ -42,7 +42,13 @@ FileOut                  = "edk.nc"
 !
 ! Name of Look Up Table of Station data
 fNameSTA                 = "check/pre_data/Stations_in_study_domain.txt"
+
+! The value that should be multiplied to the data in the netcdf file 
 DataConvertFactor        = 1.0e-1
+! The value that should be added to the data in the netcdf file 
+OffSet			 = 0
+![FINAL VALUE = NETCDF VALUE * DataConvertFactor + OffSet]
+
 !
 ! -------------------------------------------------------------------
 ! ------------ PROCESSING PERIOD ------------------------------------ 

@@ -467,9 +467,10 @@ contains
         close (60)
         nStaEfec = nStaEfec + 1
         ! unit conversion
-        !if ( DataConvertFactor /= 1.0_dp ) then
-        where ( MetSta(i)%z(:) /= noDataValue  )   MetSta(i)%z(:) = MetSta(i)%z(:) * DataConvertFactor + OffSet
-        !end if
+        write(*,*),"data convert factor: ",DataConvertFactor
+        if ( DataConvertFactor /= 1.0_dp ) then
+          where ( MetSta(i)%z(:) /= noDataValue  )   MetSta(i)%z(:) = MetSta(i)%z(:) * DataConvertFactor
+        end if
         ! check consistency
         if (jDay /= jE ) then
           print *, 'File ', trim(fileName), ' has missing values.',  jE - jDay 

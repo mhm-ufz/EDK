@@ -27,6 +27,7 @@ module mainVar
   integer(i4)                                  :: cellFactor          ! > 1 , size grid metereological data
   integer(i4)                                  :: DEMNcFlag           ! flag for DEM format 0 = text file, 1 = netCDF  
   real(dp)                                     :: DataConvertFactor   ! precipitation & temperature(in 1/10 mm) **** only in NECKAR BASIN *****
+  real(dp)                                     :: OffSet              ! constant to be added (Ex: add  273 to convert tavg from C to K ) 
   real(dp)                                     :: noDataValue 
   real(dp)                                     :: thresholdDist        ! treshold cellsize  distance 
   ! constants
