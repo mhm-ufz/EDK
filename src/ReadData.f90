@@ -34,10 +34,13 @@ contains
     use kriging,    only: maxDist
     use VarFit,     only: vType, nParam, dh, hMax, beta
     use runControl, only: interMth, fnameDEM, DataPathOut, DataPathIn, fNameSta, correctNeg, &
-        distZero, flagVario, fNameVario, flagEDK
-    use NetCDFVar,  only: FileOut, author_name, projection_name, variable_name, variable_unit, variable_standard_name, variable_calendar_type, &
-         variable_long_name, ncIn_variable_name, ncIn_dem_variable_name, ncIn_yCoord_name, ncIn_xCoord_name, invert_y,  &
-         ncOut_dem_variable_name, ncOut_dem_yCoord_name, ncOut_dem_xCoord_name, ncOut_dem_Latitude, ncOut_dem_Longitude
+                          distZero, flagVario, fNameVario, flagEDK
+    use NetCDFVar,  only: FileOut, author_name, projection_name, variable_name, variable_unit, &
+                          variable_standard_name, variable_calendar_type, &
+                          variable_long_name, ncIn_variable_name, ncIn_dem_variable_name, & 
+                          ncIn_yCoord_name, ncIn_xCoord_name, invert_y,  &
+                          ncOut_dem_variable_name, ncOut_dem_yCoord_name, ncOut_dem_xCoord_name, &
+                          ncOut_dem_Latitude, ncOut_dem_Longitude
     use mo_message, only: message
     use mo_string_utils, only: divide_string
 
@@ -56,10 +59,13 @@ contains
     !
     namelist/mainVars/noDataValue, DataPathIn, fNameDEM,                    &
          DataPathOut, FileOut, fNameSTA, cellFactor, DataConvertFactor, OffSet, InterMth, correctNeg,  &
-         distZero, author_name, projection_name, variable_name, variable_unit, variable_long_name, variable_standard_name, variable_calendar_type,  &
+         distZero, author_name, projection_name, variable_name, variable_unit, variable_long_name, &
+         variable_standard_name, variable_calendar_type,  &
          yStart, mStart, dStart, yEnd, mEnd, dEnd,tBuffer, maxDist, flagVario, vType, nParam,  &  
-         fNameVario, dh, hMax, ncIn_variable_name, ncIn_dem_variable_name, ncIn_yCoord_name, ncIn_xCoord_name, invert_y, &
-         ncOut_dem_variable_name, ncOut_dem_yCoord_name, ncOut_dem_xCoord_name, ncOut_dem_Latitude, ncOut_dem_Longitude
+         fNameVario, dh, hMax, ncIn_variable_name, ncIn_dem_variable_name, ncIn_yCoord_name, &
+         ncIn_xCoord_name, invert_y, &
+         ncOut_dem_variable_name, ncOut_dem_yCoord_name, ncOut_dem_xCoord_name, ncOut_dem_Latitude,&
+         ncOut_dem_Longitude
     !
     ! -----------------------------------------------------------------------
     !	                               MAIN.DAT
@@ -279,7 +285,8 @@ contains
    use mo_kind, only           : i4
    use runControl
    use mo_netCDF,               only:NcDataset, NcVariable
-   use NetCDFVar,               only:ncOut_dem_variable_name, ncOut_dem_yCoord_name, ncOut_dem_xCoord_name, ncOut_dem_Latitude, ncOut_dem_Longitude  
+   use NetCDFVar,               only:ncOut_dem_variable_name, ncOut_dem_yCoord_name, &
+                                     ncOut_dem_xCoord_name, ncOut_dem_Latitude, ncOut_dem_Longitude  
    
    implicit none
    

@@ -14,7 +14,9 @@ CONTAINS
     use mo_netcdf, only: NcDataset, NcDimension, NcVariable
     use mo_string_utils, only: num2str
     use mainVar, only: gridMeteo, yStart, mStart, dStart, DEMNcFlag, DataConvertFactor
-    use NetCDFVar, only: fileOut, author_name, variable_name, variable_unit, variable_long_name, projection_name,invert_y, variable_standard_name, variable_calendar_type, ncOut_dem_Latitude, ncOut_dem_Longitude
+    use NetCDFVar, only: fileOut, author_name, variable_name, variable_unit, variable_long_name, &
+                         projection_name,invert_y, variable_standard_name, variable_calendar_type, &
+                         ncOut_dem_Latitude, ncOut_dem_Longitude
 
     implicit none
 
