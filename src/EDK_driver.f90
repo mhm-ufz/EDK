@@ -199,12 +199,21 @@ program ED_Kriging
    allocate(tmp_time(jEndTmp - jStartTmp + 1))
     
    k = 0
-   do i = 1, gridMeteo%ncols
-      do j = 1, gridMeteo%nrows
-         k = k + 1
-         tmp_array(j,i,:) = cell(k)%z
-      end do
-   end do  
+   if (invert_y) then
+    do i = 1, gridMeteo%ncols
+       do j = 1, gridMeteo%nrows
+          k = k + 1
+          tmp_array(j,gridMeteo%ncols - i + 1,:) = cell(k)%z
+       end do
+    end do
+   else  
+    do i = 1, gridMeteo%ncols
+       do j = 1, gridMeteo%nrows
+          k = k + 1
+          tmp_array(j,i,:) = cell(k)%z
+       end do
+    end do 
+   end if 
 
    do i = 1, jEndTmp - jStartTmp + 1
       tmp_time(i) = t

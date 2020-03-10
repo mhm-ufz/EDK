@@ -27,6 +27,7 @@ CONTAINS
     type(NcVariable)      :: var_east, var_north, var_lat, var_lon
     integer(i4)           :: i, f
     real(dp), allocatable :: dummy(:, :)
+    real(dp), allocatable :: dummy_lat(:)
 
     ! 1.1 create a file
     nc = NcDataset(trim(fileOut), "w")
@@ -51,14 +52,39 @@ CONTAINS
     call var_time%setAttribute("calendar", variable_calendar_type)
 
   if (DEMNcFlag == 1) then
-    var_north = nc%setVariable('northing', 'f32', (/dim_x, dim_y/))
-    call var_north%setData(gridMeteo%northing)
+
+    if (invert_y) then
+
+       allocate(dummy(gridMeteo%nrows, gridMeteo%ncols))
+       f = 1
+       do i = 1, gridMeteo%ncols
+         dummy(:,gridMeteo%ncols - i + 1) = gridMeteo%northing(:,f) 
+         f = f + 1 
+       end do
+       var_north = nc%setVariable('northing', 'f32', (/dim_x, dim_y/))
+       call var_north%setData(dummy)
+
+    else
+       var_north = nc%setVariable('northing', 'f32', (/dim_x, dim_y/))
+       call var_north%setData(gridMeteo%northing)
+    end if
 
     var_east = nc%setVariable('easting', 'f32', (/dim_x, dim_y/))
     call var_east%setData(gridMeteo%easting)
-
-    var_lat = nc%setVariable(ncOut_dem_Latitude, 'f32', (/dim_y/))
-    call var_lat%setData(gridMeteo%latitude)
+     
+    if (invert_y) then
+      allocate(dummy_lat(gridMeteo%ncols)) 
+      f = 1
+      do i = 1, gridMeteo%ncols
+         dummy_lat(gridMeteo%ncols - i + 1) = gridMeteo%latitude(f)
+         f = f + 1
+      end do
+      var_lat = nc%setVariable(ncOut_dem_Latitude, 'f32', (/dim_y/))
+      call var_lat%setData(dummy_lat)
+    else
+      var_lat = nc%setVariable(ncOut_dem_Latitude, 'f32', (/dim_y/))
+      call var_lat%setData(gridMeteo%latitude)
+    end if
     var_lon = nc%setVariable(ncOut_dem_Longitude, 'f32', (/dim_x/))
     call var_lon%setData(gridMeteo%longitude)
 
@@ -88,6 +114,7 @@ CONTAINS
     call var_east%setAttribute("units", "m")
     call var_east%setData(dummy)
     deallocate(dummy)
+    deallocate(dummy_lat)
 
   end if
     !var_data = nc%setVariable(variable_name, "f32", (/dim_x, dim_y, dim_time/))
