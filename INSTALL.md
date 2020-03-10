@@ -52,7 +52,7 @@ Some cygwin versions create a new home directory for you. You may check e.g. her
 ### Ubuntu, Mint and other apt-get based systems with matching repositories:
 
     sudo apt-get install git # (optional)
-    sudo apt-get install gfortran netcdf-bin libnetcdf-dev libnetcdff-dev cmake
+    sudo apt-get install gfortran netcdf-bin libnetcdf-dev libnetcdff-dev cmake libblas-dev liblapack-dev
 
 ### Archlinux:
 

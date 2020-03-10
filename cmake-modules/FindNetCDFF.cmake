@@ -63,7 +63,7 @@ if (NOT FOUND_NETCDFF_MODULE)
 	execute_process(COMMAND ${NETCDFF_CONFIG} --flibs OUTPUT_VARIABLE NETCDF_LDFLAGS OUTPUT_STRIP_TRAILING_WHITESPACE)
 	message(STATUS "netcdff netcdf library link flags ${NETCDF_LDFLAGS}")
 
-	if (CMAKE_BUILD_MODULE_SYSTEM_INDEPENDEND)
+	if (CMAKE_BUILD_MODULE_SYSTEM_INDEPENDENT)
 		find_program(NETCDF_CONFIG nc-config
 		  HINTS ${CMAKE_NETCDF_DIR})
 		execute_process(COMMAND ${NETCDF_CONFIG} --libs OUTPUT_VARIABLE NETCDF_LIBS OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -84,7 +84,7 @@ if (NOT FOUND_NETCDFF_MODULE)
 		if (flag MATCHES "^-l(.*)")
 			set(_pkg_search "${CMAKE_MATCH_1}")
 		else()
-			list(APPEND _link_flags "${flag}")
+			string(CONCAT _link_flags "${_link_flags}" " " "${flag}")
 			continue()
 		endif()
 
