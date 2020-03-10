@@ -54,19 +54,17 @@ contains
     l      = 0
     ll     = 0
     Nk     = 0
-
     ! switch ordinary kriging off if not explicitly given
     doOK_loc = .False.
     if (present(doOK)) doOK_loc = doOK
     ! IF NK changed -> re-estimate weights
     timeloop: do jd = jStart, jEnd
-
       if (jd > jStart) Nk_old = Nk
       Nk = 0_i4
       l = 0
       ll = 0
       do i = 1, cell(k)%nNS
-        j = cell(k)%listNS(i)
+         j = cell(k)%listNS(i)
         if ( MetSta(j)%z(jd) /= noDataValue ) then
 
           !***      zero field     ***********************************
@@ -82,7 +80,6 @@ contains
       else
         calc_weights = .True.
       end if
-
       !>>>>  no value ! avoid indetermination
       ! avoid 0 value calculations ll == nNmax
       ! avoid calculations where only 1 station is available
@@ -98,7 +95,6 @@ contains
           call get_kriging_weights(X, nNmax, Nk, doOK_loc, dCS(k, :), dS, cell(k), MetSta)
           !write(*,*),"X after kriging weights: ",X
         end if
-
         ! The BLUE of z is then:
         cell(k)%z(jd) = 0.
         do i=1,nNmax
@@ -230,17 +226,20 @@ contains
     if (info .ne. 0_i4) then
       print *, '***WARNING: calculation of weights failed'
     end if
-    if (abs(sum(X(:nNmax)) - 1._dp) .gt. 1.e-4) then
-      print *, '***WARNING: sum of weights is not 1, calculation of weights failed'
-      print *, 'sum of weights: ', sum(X(:nNmax))
-    end if
+    ! print *, 'shape of A: ', shape(A)
+    ! print *, 'dem of stations: ', A(:, 10)
+    ! print *, 'maximum of dem at stations: ', maxval(MetSta(:)%h)
     ! print *, 'easting: ', cell%x
     ! print *, 'northing: ', cell%y
     ! print *, 'number of neighbors: ', nNmax
     ! print *, ''
     ! ! print *, 'ipvt: ', ipvt
     ! print *, 'info: ', info
-    ! stop 'testing'
+    if (abs(sum(X(:nNmax)) - 1._dp) .gt. 1.e-4) then
+       print *, '***WARNING: sum of weights is not 1, calculation of weights failed'
+       print *, 'sum of weights: ', sum(X(:nNmax))
+       ! stop 'testing'
+    end if
     deallocate (A, B, C, ipvt)
   end subroutine get_kriging_weights
 

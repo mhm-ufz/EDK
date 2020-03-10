@@ -111,7 +111,6 @@ subroutine dMatrix
   integer(i4)                     :: i, j, k
   integer(i4)                     :: r, c, ii, jj
   integer(i4)                     :: delta, nTcell
-  integer(i4)                     :: NoCellsFiner
   real(dp)                        :: xc, yc
   integer(i4), allocatable        :: list(:)
   !
@@ -159,59 +158,65 @@ subroutine dMatrix
   !
   r=1
   c=0
-  NoCellsFiner = (gridMeteo%cellsize / grid%cellsize) **2 
-  xc = gridMeteo%xllcorner + dble(gridMeteo%cellsize) * 0.5_dp
+  if (DEMNcFlag /= 1) xc = gridMeteo%xllcorner + dble(gridMeteo%cellsize) * 0.5_dp
   delta = cellFactor / 2
   jj = delta
   do k=1,nCell 
- 
-    if (r == 1) then
-       c = c + 1
-       if (c > 1) then 
-         xc = xc + dble(gridMeteo%cellsize)
-         jj = jj + cellFactor
-       end if
-       yc = gridMeteo%yllcorner + dble(gridMeteo%cellsize) * (dble(gridMeteo%nrows) - 0.5_dp)
-       ii = delta 
-    else
-       yc = yc - dble(gridMeteo%cellsize)
-       ii = ii + cellFactor
-    end if
-    cell(k)%x = xc
-    cell(k)%y = yc
+     ! advancing the counters
+     if (r == 1) then
+        c = c + 1
+        if (c > 1) then
+           jj = jj + cellFactor
+        end if
+        ii = delta
+     else
+        ii = ii + cellFactor
+     end if
+     
+     if (DEMNcFlag == 1) then
+        cell(k)%x = gridMeteo%easting(r,c)
+        cell(k)%y = gridMeteo%northing(r,c)
+     else 
+        if (r == 1) then
+           if (c > 1) then 
+              xc = xc + dble(gridMeteo%cellsize)
+           end if
+           yc = gridMeteo%yllcorner + dble(gridMeteo%cellsize) * (dble(gridMeteo%nrows) - 0.5_dp)
+        else
+           yc = yc - dble(gridMeteo%cellsize)
+        end if
+        cell(k)%x = xc
+        cell(k)%y = yc
+     end if
 
     ! average of only four DEM cells around centre cell (from lower grid scale upto higher grid cell)
     !cell(k)%h = 0.25_dp*(G(ii,jj)%h + G(ii,jj+1)%h + G(ii+1,jj)%h + G(ii+1,jj+1)%h)
     !
     ! average of all DEM cells (from lower grid scale upto higher grid cell)
-    nTcell =  count(G( (ii-delta+1):(ii+delta) , (jj-delta+1):(jj+delta) )%h  > grid%nodata_value )
-    if (nTcell == 0) then
-      cell(k)%h = gridMeteo%nodata_value
-    else
-      cell(k)%h  = sum(G( (ii-delta+1):(ii+delta) , (jj-delta+1):(jj+delta) )%h, &
-                       G( (ii-delta+1):(ii+delta) , (jj-delta+1):(jj+delta) )%h /= gridMeteo%nodata_value ) / dble(nTcell)
-      if ( NoCellsFiner < NoCellsFiner) then
-         print*, 'Cells with non matching DEM on the finer scale (nodata values in finer grid)'
-      end if
-    end if
+     if (cellFactor == 1) then
+        cell(k)%h = G(ii+1,jj+1)%h
+     else
+        nTcell =  count(G( (ii-delta+1):(ii+delta) , (jj-delta+1):(jj+delta) )%h  > grid%nodata_value )
+        if (nTcell == 0) then
+           cell(k)%h = gridMeteo%nodata_value
+        else
+           cell(k)%h  = sum(G( (ii-delta+1):(ii+delta) , (jj-delta+1):(jj+delta) )%h, &
+                G( (ii-delta+1):(ii+delta) , (jj-delta+1):(jj+delta) )%h /= gridMeteo%nodata_value ) / dble(nTcell)
+        end if
+     end if
+    
+     ! advance the counters
     r=r+1
     if (r > gridMeteo%nrows) r = 1
-    ! MZMZMZMZ - delete !!!!!!!
-    if (cellFactor == 1) then
-       !print*, ii, jj
-       cell(k)%h = G(ii+1,jj+1)%h
-       cycle
-    end if
-    ! MZMZMZMZ - delete !!!!!!!
   end do
-
+  
   ! distance matrix cell to stations: checked OK
   do j=1, nSta
     do i=1,nCell
       dCS(i,j) = dsqrt( ( cell(i)%x - MetSta(j)%x )**2 + ( cell(i)%y - MetSta(j)%y )** 2)
     end do
   end do
-
+  
   ! find the closest stations to cell i (any order): checked  OK
   do i=1,nCell
     list = -9
