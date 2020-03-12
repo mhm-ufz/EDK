@@ -10,6 +10,7 @@
 ## input and output paths
 # absolute path to target DEM 
 source_dem="/data/hicam/data/processed/de_hicam/morph/dem.asc"
+met_dem="/data/hicam/data/processed/dem_OR/raw/dem_hicam_EU.nc"
 # absolute path to meteorological files (currently supports mHM inputs)
 path_rr="/data/hicam/EOBS/raw/latlon/rr_ens_mean_0.1deg_reg_v20.0e.nc"  # precipitation
 path_tg="/data/hicam/EOBS/raw/latlon/tg_ens_mean_0.1deg_reg_v20.0e.nc"  # average temperature
@@ -18,13 +19,18 @@ path_tx="/data/hicam/EOBS/raw/latlon/tx_ens_mean_0.1deg_reg_v20.0e.nc"  # maximu
 # output directory
 output_dir="/work/koppa/hicam_edk/test"
 
-# domain specifications
+# domain specifications for target dem
 xmin="4.0" 
 xmax="19.5"
 ymin="45.0"
-ymax="55.5"  # domain extent, format xmin xmax, ymin ymax 
+ymax="55.5"  
 target_res="0.015625"   # target resolution
-met_res="0.10"
+# domain specification for meteorological datasets (to subset the met domain)
+#xmin_met="3.7"
+#xmax_met="19.8"
+#ymin_met="44.7"
+#ymax_met="55.8"
+met_res="0.10" # resolution of meteorology datasets
 crs_reqd="+init=epsg:3035" # provide the epsg of the m-m coordinate system
 
 # meteorological variable details (name of the variable in the netcdf file)
@@ -46,7 +52,7 @@ module load GCC/7.3.0-2.30 OpenMPI/3.1.1 NCO/4.7.8 CDO/1.9.5 GDAL/2.2.3-Python-3
 gdal_translate ${source_dem} "${output_dir}/dem_target.tif"
 
 # upscale the DEM to the required resolution. Also convert to netcdf
-gdalwarp -tr ${target_res} ${target_res} -r "average" -of netCDF "${output_dir}/dem_target.tif" "${output_dir}/dem_target.nc"
+gdalwarp -srcnodata "-9999" -dstnodata "-9999" -tr ${target_res} ${target_res} -r "average" -of netCDF  "${output_dir}/dem_target.tif" "${output_dir}/dem_target.nc"
 
 # use ncks to cut domain 
 ncks -d lon,${xmin},${xmax} -d lat,${ymin},${ymax} -O "${output_dir}/dem_target.nc" "${output_dir}/dem_target.nc" 
@@ -85,10 +91,12 @@ Rscript latlon2northeast.R "${output_dir}/tn_final.nc" ${var_tn} ${crs_reqd}
 Rscript latlon2northeast.R "${output_dir}/tx_final.nc" ${var_tx} ${crs_reqd}
 
 # remap dem to meteorological forcing
-gdalwarp -tr ${met_res} ${met_res} -r "average" -of netCDF "${output_dir}/dem_target.tif" "${output_dir}/dem_met.nc"
+gdalwarp -srcnodata "-9999" -dstnodata "-9999" -tr ${met_res} ${met_res} -r "average" -of netCDF "${output_dir}/dem_target.tif" "${output_dir}/dem_met.nc"
 ncrename -v Band1,dem "${output_dir}/dem_met.nc" "${output_dir}/dem_temp.nc"
 cdo setmissval,-9999 "${output_dir}/dem_temp.nc" "${output_dir}/dem_met.nc"
 rm "${output_dir}/dem_temp.nc"
+
+#ncks -d longitude,${xmin_met},${xmax_met} -d latitude,${ymin_met},${ymax_met} "${met_dem}" "$output_dir}/dem_met.nc"
 
 # add dem to the meteorological forcing
 Rscript add_dem2met.R "${output_dir}/rr_final.nc" "${output_dir}/dem_met.nc"
