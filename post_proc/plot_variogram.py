@@ -8,7 +8,8 @@
 #
 import numpy as np
 import matplotlib as mpl
-import ufz
+from fread import fread
+from position import position
 
 # -------------------------------------------------------------------------
 # Command line arguments
@@ -21,7 +22,7 @@ parser  = optparse.OptionParser(usage='%prog [options]',
                                description="Plotting of SMI for drought monitor.")
 parser.add_option('-i', '--infile', action='store', dest='infile', type='string',
                   default=infile, metavar='File',
-                  help='Name of NetCDF input file (no default).')
+                  help='Name of variogram file written by EDK (no default).')
 parser.add_option('-p', '--pdffile', action='store', dest='pdffile', type='string',
                   default=pdffile, metavar='File',
                   help='Name of pdf output file (default: open X-window).')
@@ -130,26 +131,26 @@ mpl.rc('text.latex', unicode=True)
 
 ##############################################################################################
 if (outtype == 'pdf'):
-    print 'Plot PDF ', pdffile
+    print('Plot PDF ', pdffile)
     pdf_pages = PdfPages(pdffile)
 elif (outtype == 'png'):
     print('Plot PNG ', pngbase)
 else:
-    print 'Plot X'
+    print('Plot X')
 
 figsize = mpl.rcParams['figure.figsize']
 ifig = 0
 
 # read variogram data
-data    = ufz.fread(infile, skip=1)
-header  = ufz.fread(infile, skip=1, header=True, strarr=True)
+data    = fread(infile, skip=1)
+header  = fread(infile, skip=1, header=True, strarr=True)
 
 dist    = data[:,np.where(header=='h')[0][0]] / 1000
 empvar  = data[:,np.where(header=='gamma(h)')[0][0]]
 varfit  = data[:,np.where(header=='g_cal(h)')[0][0]]
 
 fig        = plt.figure(ifig)
-ax         = fig.add_axes(ufz.position(nrow,ncol, 1, bottom=0.08, top=0.94, left=0.08, right=0.97))
+ax         = fig.add_axes(position(nrow,ncol, 1, bottom=0.08, top=0.94, left=0.08, right=0.97))
 
 ax.plot(dist,empvar,'+k')
 ax.plot(dist,varfit,'k')
