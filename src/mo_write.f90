@@ -114,7 +114,7 @@ CONTAINS
     call var_east%setAttribute("units", "m")
     call var_east%setData(dummy)
     deallocate(dummy)
-    if( allocated(dummylat) ) deallocate(dummy_lat)
+    if( allocated(dummy_lat) ) deallocate(dummy_lat)
 
   end if
     !var_data = nc%setVariable(variable_name, "f32", (/dim_x, dim_y, dim_time/))
