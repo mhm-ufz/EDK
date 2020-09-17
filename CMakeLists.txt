@@ -63,7 +63,12 @@ endif()
 
 if (CMAKE_WITH_LAPACK)
 	# find if there is an LAPACK library on the system and if so, set corresponding variables
-        find_package(LAPACK)
+           # list(APPEND EXTRA_LIBS $MKLROOT/lib/intel64/)
+           set(LAPACK_DIR $MKLROOTlib/intel64)
+           find_package(LAPACK
+           PATHS $MKLROOT/lib/intel64)
+           # LAPACK_DIR $MKLROOT/lib/intel64)
+
 	if (NOT ${LAPACK_FOUND})
 		message(FATAL_ERROR "lapack required but not found")
 	endif()
