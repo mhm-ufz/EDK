@@ -63,7 +63,7 @@ endif()
 
 if (CMAKE_WITH_LAPACK)
 	# find if there is an LAPACK library on the system and if so, set corresponding variables
-        find_package(LAPACK)
+           find_package(LAPACK)
 	if (NOT ${LAPACK_FOUND})
 		message(FATAL_ERROR "lapack required but not found")
 	endif()
