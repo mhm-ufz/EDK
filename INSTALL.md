@@ -70,10 +70,17 @@ right dependencies, potentially use corresponding wiki pages.
 
 #### On eve (the cluster at the UFZ):
 
+From 2020 onward the software is installed in toolchains, where all included software specific compilers
 From the source directory use a script provided in `moduleLoadScripts`,
 for example for the GNU 7.3 compiler:
 
     source moduleLoadScripts/eve.gfortran73
+    
+for intel use
+    source moduleLoadScripts/eve.intel[version]
+    
+    ATTENTION!: in intel cmake cannot find LAPACK and BLAS Libraries, the paths need to be set manually by
+    cmake -DLAPACK_LIBRARIES=$MKLROOT/lib/intel64/libmkl.so -DBLAS_LIBRARIES=$MKLROOT/lib/intel64/libmkl.so ..
 
 ### MacOS:
 
