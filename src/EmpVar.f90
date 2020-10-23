@@ -1,9 +1,9 @@
 !*************************************************************************
-!EmpVar.f90  
+!EmpVar.f90
 !AUTHOR:   Luis Samaniego-eguiguren
-!         
+!
 !DESCRIPTION
-!         This program calculates the empirical variogram 
+!         This program calculates the empirical variogram
 !         gamma(:,1) : distance
 !         gamme(:,2) : semivarance
 !         botm are normalized with gmax(:)
@@ -31,24 +31,7 @@ subroutine EmpVar(jd, flagMax)
   logical, intent(in)       :: flagMax
   integer(i4)               :: i, j, k, nhk, ni
   real(dp)                  :: gk, delta
-  ! ******************************************
-  ! Calculate all combinations (var. function)
-  ! ******************************************  
-  do i=1,nSta-1
-    do j=i+1,nSta
-      ! clasical
-      if ( (MetSta(i)%z(jd) /=  noDataValue   ) .and. &
-           (MetSta(j)%z(jd) /=  noDataValue   )        )   then
-         dz2S(i)%S(j) = (MetSta(i)%z(jd)-MetSta(j)%z(jd))**2
-      else
-         dz2S(i)%S(j) = noDataValue
-      end if
-      !
-      ! Cressi-Hawkins
-      !dz2S(i)%S(j)= dsqrt( dabs( MetSta(i)%z(jd) - MetSta(j)%z(jd) ) )
-    end do
-  end do
-  ! 
+
   ! variance h=0 (one pass algorithm)
   do i = 1,nSta
     if ( MetSta(i)%z(jd) ==  noDataValue ) cycle
@@ -64,7 +47,7 @@ subroutine EmpVar(jd, flagMax)
   !
   ! selecting pair - bins
   if (jd == jStart) then
-    nbins = ceiling(hMax/dh) 
+    nbins = ceiling(hMax/dh)
     if (.not. allocated (nH))   allocate (Nh(nbins),      gamma(nbins,2))
     Nh = 0
     gamma = 0.0_dp
@@ -73,20 +56,20 @@ subroutine EmpVar(jd, flagMax)
   print *, '***WARNING: Removal of outliers in the estimation of the variogram is activated'
   do i=1,nSta-1
     do j=i+1,nSta
-      if (dz2S(i)%S(j) /=  noDataValue ) then
+      if (edk_dist%getZ2(i,j,jd) /=  noDataValue ) then
         ! take values up to max distance
-        if (dS(i)%S(j) > hMax ) cycle
+        if (edk_dist%getSS(i,j) > hMax ) cycle
         ! ! remove outliers for the estimation of the variogram
-        ! if (flagVarTyp == 2 ) then 
-          if (  dabs( MetSta(i)%h - MetSta(j)%h ) / dS(i)%S(j)  > gradE ) then
+        ! if (flagVarTyp == 2 ) then
+          if (  dabs( MetSta(i)%h - MetSta(j)%h ) / edk_dist%getSS(i,j)  > gradE ) then
              ! write(999,*), 'pair removed', MetSta(i)%id, MetSta(j)%id
               cycle
           end if
         ! end if
         !
-        k=max(1, ceiling(dS(i)%S(j)/dh))
+        k=max(1, ceiling(edk_dist%getSS(i,j)/dh))
         Nh(k)=Nh(k)+1
-        gamma(k,2)=gamma(k,2) + dz2S(i)%S(j)
+        gamma(k,2)=gamma(k,2) + edk_dist%getZ2(i,j,jd)
       end if
     end do
   end do
@@ -102,7 +85,7 @@ subroutine EmpVar(jd, flagMax)
       if ((nhk>0) .and. (nhk<30)) then
         Nh(k)=-9
         gamma(k,2)=0.0_dp
-        if (Nh(k+1)>0) then 
+        if (Nh(k+1)>0) then
           Nh(k+1)=Nh(k+1)+nhk
           gamma(k+1,2)=gamma(k+1,2)+gk
         else
@@ -118,7 +101,7 @@ subroutine EmpVar(jd, flagMax)
       if ((nhk>0) .and. (nhk<30)) then
         Nh(k)=-9
         gamma(k,2)=0_dp
-        if (Nh(k-1)>0) then 
+        if (Nh(k-1)>0) then
           Nh(k-1)=Nh(k-1)+nhk
           gamma(k-1,2)=gamma(k-1,2)+gk
         else
@@ -138,7 +121,7 @@ subroutine EmpVar(jd, flagMax)
         !
         ! Cressi-Hawkins: adjust bias
         !gamma(k,2)=0.5_dp/(0.457_dp+0.494_dp/dfloat(Nh(k)))*(gamma(k,2)/dfloat(Nh(k)))**4
-        ! 
+        !
         gamma(k,1)=real(k, dp)*dh-real(ni, dp)*dh/2.0_dp
         ni=0
       else
@@ -147,9 +130,9 @@ subroutine EmpVar(jd, flagMax)
       end if
     end do
     !
-    ! scaling 
+    ! scaling
     if (flagMax) gmax=maxval(gamma, dim=1)
-    
+
     do k=1,nbins
       if (gamma(k,1) > 0.0_dp) then
         gamma(k,1) = gamma(k,1)/gmax(1)
