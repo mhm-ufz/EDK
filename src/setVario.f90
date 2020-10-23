@@ -1,6 +1,6 @@
 !**********************************************************************************
 !  VARIOGRAM: Seting or estimating and fitting
-!  PURPOSE:  
+!  PURPOSE:
 !          1) Set variagram from DB for a block, or
 !          2.1) Estimate an empirical semi variogram for daily met. values
 !          2.2) Fitting a teoretical variogram
@@ -8,7 +8,7 @@
 !  WHERE:
 !  UPDATES:
 !          Created      Sa  19.02.2004     main structure
-!          Last update      12.04.2006   
+!          Last update      12.04.2006
 !**********************************************************************************
 module mo_setVario
 
@@ -39,7 +39,7 @@ subroutine setVario(param)
      y0 = 0
      !
      do jd= jStart, jEnd
-        y = floor(float(jd-jStart)/365.) 
+        y = floor(float(jd-jStart)/365.)
         if (y > y0 ) then
            y0 = y
            print*, 'VarFit. Processing ', yStart+y0-1 , '...'
@@ -55,7 +55,8 @@ subroutine setVario(param)
 
      print *, "ST: replace old GRG2 opti with something better"
      call opti(param)
-
+  else
+    print *, "   ... no variogram estimation, parameters given."
   end if
 end subroutine setVario
 
@@ -102,7 +103,7 @@ end function tVar
 !
 !*******************************************************
 subroutine dMatrix
-  use mo_kind, only                : i4, dp 
+  use mo_kind, only                : i4, dp
   use mainVar
   use kriging
   use runControl
@@ -115,31 +116,14 @@ subroutine dMatrix
   integer(i4), allocatable        :: list(:)
   !
   ! Initialize variables
-  if ( allocated(dCS) ) deallocate (dCS)
-  if ( allocated(dS)  ) deallocate (dS)
   if ( allocated(cell)) deallocate (cell)
-  if ( allocated(dz2S)) deallocate (dz2S)
-
   !
-  allocate ( dz2S(nSta-1) )
-  allocate ( dCS(nCell,nSta) )
-  allocate ( dS(nSta-1)      )
+  print*, nCell, "cells", nSta, "stations"
+  edk_dist%ncell = nCell
+  allocate(edk_dist%cell_pos(nCell, 2))
   allocate ( cell(nCell)     )
   allocate ( list(nSta)      )
-  
-  !
-  do i=1,nSta-1
-    allocate ( dS(i)%S(i+1:nSta) )
-    allocate ( dz2S(i)%S(i+1:nSta) )
-    ! distance matrix between stations:            checked OK
-    do j=i+1, nSta
-      dS(i)%S(j) = dsqrt( ( MetSta(i)%x - MetSta(j)%x )**2 +  ( MetSta(i)%y - MetSta(j)%y )**2 )
-      if (dS(i)%S(j) == 0.0_dp) then
-        print* , 'Stations: ', MetSta(i)%Id, MetSta(j)%Id, ' have the same coordinates, or are repeated. Check LUT.'
-        !stop
-      end if
-    end do
-  end do
+
   ! cell coordinates and elevation : checked OK
   ! ***************************************
   ! cell numbering convention (1DIM first)
@@ -161,7 +145,7 @@ subroutine dMatrix
   if (DEMNcFlag /= 1) xc = gridMeteo%xllcorner + dble(gridMeteo%cellsize) * 0.5_dp
   delta = cellFactor / 2
   jj = delta
-  do k=1,nCell 
+  do k=1,nCell
      ! advancing the counters
      if (r == 1) then
         c = c + 1
@@ -172,13 +156,13 @@ subroutine dMatrix
      else
         ii = ii + cellFactor
      end if
-     
+
      if (DEMNcFlag == 1) then
         cell(k)%x = gridMeteo%easting(r,c)
         cell(k)%y = gridMeteo%northing(r,c)
-     else 
+     else
         if (r == 1) then
-           if (c > 1) then 
+           if (c > 1) then
               xc = xc + dble(gridMeteo%cellsize)
            end if
            yc = gridMeteo%yllcorner + dble(gridMeteo%cellsize) * (dble(gridMeteo%nrows) - 0.5_dp)
@@ -187,7 +171,8 @@ subroutine dMatrix
         end if
         cell(k)%x = xc
         cell(k)%y = yc
-     end if
+      end if
+      edk_dist%cell_pos(k,:) = [cell(k)%x, cell(k)%y]
 
     ! average of only four DEM cells around centre cell (from lower grid scale upto higher grid cell)
     !cell(k)%h = 0.25_dp*(G(ii,jj)%h + G(ii,jj+1)%h + G(ii+1,jj)%h + G(ii+1,jj+1)%h)
@@ -204,24 +189,17 @@ subroutine dMatrix
                 G( (ii-delta+1):(ii+delta) , (jj-delta+1):(jj+delta) )%h /= gridMeteo%nodata_value ) / dble(nTcell)
         end if
      end if
-    
+
      ! advance the counters
     r=r+1
     if (r > gridMeteo%nrows) r = 1
   end do
-  
-  ! distance matrix cell to stations: checked OK
-  do j=1, nSta
-    do i=1,nCell
-      dCS(i,j) = dsqrt( ( cell(i)%x - MetSta(j)%x )**2 + ( cell(i)%y - MetSta(j)%y )** 2)
-    end do
-  end do
-  
+
   ! find the closest stations to cell i (any order): checked  OK
   do i=1,nCell
     list = -9
     do j=1,nSta
-      if (dCS(i,j) <= maxDist) list(j) = j
+      if (edk_dist%getCS(i,j) <= maxDist) list(j) = j
     end do
     cell(i)%nNS = count(list > -9)
     allocate ( cell(i)%listNS( cell(i)%nNS ) )
