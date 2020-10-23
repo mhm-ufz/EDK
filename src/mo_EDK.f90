@@ -20,11 +20,12 @@ contains
   !            Last Update       Zi                   05.05.2011   IWD if No stations < 2
   !            Last Update       Zi                   07.02.2012   correct prec data < 0 --> = 0
   !****************************************************************************
-  subroutine EDK(k, jStart, jEnd, dCS, MetSta, dS, cell, X, Nk_old, doOK)
+  subroutine EDK(k, jStart, jEnd, edk_dist, MetSta, cell, X, Nk_old, doOK)
     use mo_kind,    only : i4, dp, sp
     use mainVar,    only : MeteoStation, noDataValue, nSta, thresholdDist
-    use kriging,    only : CellCoarser, dtoS
+    use kriging,    only : CellCoarser
     use runControl, only : correctNeg, distZero
+    use mo_edk_types, only: dist_t
 
     implicit none
 
@@ -32,10 +33,9 @@ contains
     integer(i4),                intent(in)    :: k         ! cell id
     integer(i4),                intent(in)    :: jStart, jEnd
     integer(i4),                intent(inout) :: Nk_old(nSta) ! added Nk_old(nSta)
-    real(dp),                   intent(in)    :: dCS(:, :) ! distances matrix
-    real(dp), allocatable,      intent(inout) :: X(:)      ! added X(:) 
+    type(dist_t),               intent(in)    :: edk_dist  ! distances matrix
+    real(dp), allocatable,      intent(inout) :: X(:)      ! added X(:)
     type(MeteoStation),         intent(in)    :: MetSta(:) ! MeteoStation input
-    type(dtoS),                 intent(in)    :: dS(:)     ! distance among stations
     type(CellCoarser),          intent(inout) :: cell(:)    ! cell specification
     logical, optional,          intent(in)    :: doOK   ! switch do ordinary kriging
 
@@ -44,8 +44,8 @@ contains
     integer(i4)                     :: jd        ! julian day
     integer(i4)                     :: i, j, l, ll
     integer(i4)                     :: ii, jj
-    integer(i4)                     :: Nk(nSta),nNmax !Nk_old !Nk(nSta), Nk_old(nSta), nNmax ! deleted: Nk_old(nSta)   
-    real(dp), allocatable           :: A (:,:), B(:), C(:,:) ! deleted: X(:)  
+    integer(i4)                     :: Nk(nSta),nNmax !Nk_old !Nk(nSta), Nk_old(nSta), nNmax ! deleted: Nk_old(nSta)
+    real(dp), allocatable           :: A (:,:), B(:), C(:,:) ! deleted: X(:)
     real(dp), allocatable           :: lamda(:)
     real(dp)                        :: sumLamda
 
@@ -53,7 +53,7 @@ contains
     ! Check stations have valid data ( =/ -9, 999 etc. ) store them in Nk(:)
     l      = 0
     ll     = 0
-    Nk     = 0
+    Nk     = 0  ! indices (k) of nearest (N) Neighbors -> Nk
     ! switch ordinary kriging off if not explicitly given
     doOK_loc = .False.
     if (present(doOK)) doOK_loc = doOK
@@ -61,8 +61,8 @@ contains
     timeloop: do jd = jStart, jEnd
       if (jd > jStart) Nk_old = Nk
       Nk = 0_i4
-      l = 0
-      ll = 0
+      l = 0 ! counter for no-data-values in current Neighborhood
+      ll = 0 ! counter for zero data values in current Neighborhood
       do i = 1, cell(k)%nNS
          j = cell(k)%listNS(i)
         if ( MetSta(j)%z(jd) /= noDataValue ) then
@@ -76,15 +76,15 @@ contains
       end do
       nNmax = l
       if (all(Nk == Nk_old) .and. allocated(X)) then
-        calc_weights = .False.
+        calc_weights = .False. ! same Neighborhood
       else
-        calc_weights = .True.
+        calc_weights = .True.  ! new Neighborhood (new stations or old station with missing data)
       end if
       !>>>>  no value ! avoid indetermination
       ! avoid 0 value calculations ll == nNmax
       ! avoid calculations where only 1 station is available
       ! avoid numerical instabilities nNmax == 2 (may happen that the solver matrix becomes singular)
-      if (.not. ( ll == nNmax .or.  nNmax == 1 .or. nNmax == 2 ) ) then     
+      if (.not. ( ll == nNmax .or.  nNmax == 1 .or. nNmax == 2 ) ) then
 
         if (calc_weights) then
           ! print *, 'cell:       ', k
@@ -92,7 +92,7 @@ contains
            !print *, 'Nk:     ', Nk
            !print *, 'Nk_old: ', Nk_old
            !write(*,*),"calc_weights inside = ",calc_weights
-          call get_kriging_weights(X, nNmax, Nk, doOK_loc, dCS(k, :), dS, cell(k), MetSta)
+          call get_kriging_weights(X, nNmax, Nk, doOK_loc, edk_dist, k, cell(k), MetSta)
           !write(*,*),"X after kriging weights: ",X
         end if
         ! The BLUE of z is then:
@@ -106,22 +106,22 @@ contains
       else if (ll /= nNmax .AND. nNmax == 1) then
         ii = Nk(1)
         cell(k)%z(jd) = MetSta(ii)%z(jd)
-        ! 
+        !
         ! for precipitation, distant values are set to zero
-        if (distZero .and. dCS(k,ii) .gt. thresholdDist) then
+        if (distZero .and. edk_dist%getCS(k,ii) .gt. thresholdDist) then
           cell(k)%z(jd) = 0.0_dp
         end if
-        !  
+        !
         ! if all stations have the value 0
-      else if (ll == nNmax ) then 
+      else if (ll == nNmax ) then
         cell(k)%z(jd) = 0.0_dp
         ! avoid numerical instabilities --> IWD insverse weighted squared distance
-        ! matrix of solver may become instable if only two or three stations are available 
+        ! matrix of solver may become instable if only two or three stations are available
       else if (ll /= nNmax .AND. nNmax == 2) then
         allocate (lamda(nNmax))
         do i=1,nNmax
           ii=Nk(i)
-          lamda(i)=1/dCS(k,ii)/dCS(k,ii)
+          lamda(i)=1/edk_dist%getCS(k,ii)/edk_dist%getCS(k,ii)
         end do
         sumLamda=sum(lamda)
         lamda=lamda/sum(lamda)
@@ -141,13 +141,14 @@ contains
     !
   end subroutine EDK
 
-  subroutine get_kriging_weights(X, nNmax, Nk, doOK_loc, dCS, dS, cell, MetSta)
+  subroutine get_kriging_weights(X, nNmax, Nk, doOK_loc, edk_dist, k, cell, MetSta)
 
     use mo_kind,     only : dp, i4
     use mainVar,     only : MeteoStation, noDataValue, nSta, thresholdDist
-    use kriging,     only : CellCoarser, dtoS
+    use kriging,     only : CellCoarser
     use varfit,      only : beta
     use mo_setVario, only : tVar
+    use mo_edk_types, only : dist_t
 
     implicit none
 
@@ -155,8 +156,8 @@ contains
     integer(i4),           intent(in)  :: nNmax
     integer(i4),           intent(in)  :: Nk(nSta)!Nk(nSta)
     logical,               intent(in)  :: doOK_loc
-    real(dp),              intent(in)  :: dCS(:)    ! distances matrix
-    type(dtoS),            intent(in)  :: dS(:)     ! distance among stations
+    type(dist_t),          intent(in)  :: edk_dist  ! distances
+    integer(i4),           intent(in)  :: k         ! cell index
     type(CellCoarser),     intent(in)  :: cell      ! cell specification
     type(MeteoStation),    intent(in)  :: MetSta(:) ! MeteoStation input
 
@@ -185,11 +186,10 @@ contains
 
         ! available only the upper triangular matrix
         if (jj > ii) then
-          A(i,j)=tVar(dS(ii)%S(jj),beta(1),beta(2),beta(3))
+          A(i,j)=tVar(edk_dist%getSS(ii,jj),beta(1),beta(2),beta(3))
           A(j,i)=A(i,j)
-          ! print *, 'A: ', A(i,j), dS(ii)%S(jj),beta(1),beta(2),beta(3)
         else
-          A(i,j)=tVar(dS(jj)%S(ii),beta(1),beta(2),beta(3))
+          A(i,j)=tVar(edk_dist%getSS(jj,ii),beta(1),beta(2),beta(3))
           A(j,i)=A(i,j)
         end if
       end do
@@ -200,8 +200,7 @@ contains
       if (.not. doOK_loc) A(i,nNmax+2) = MetSta(ii)%h
       if (.not. doOK_loc) A(nNmax+2,i) = MetSta(ii)%h
 
-      B(i)=tVar(dCS(ii), beta(1),beta(2),beta(3))
-      ! print *, 'B: ', B(i), dCS(k,ii), beta(1),beta(2),beta(3)
+      B(i)=tVar(edk_dist%getCS(k,ii), beta(1),beta(2),beta(3))
     end do
 
     !
