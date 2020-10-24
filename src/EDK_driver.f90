@@ -63,8 +63,8 @@ program ED_Kriging
   real(dp)              :: param(3)           ! variogram parameters
   type(NcDataset)       :: nc_out
   type(NcVariable)      :: nc_data, nc_time
-  integer(i4), allocatable           :: Nk_old(:)
-  real(dp), allocatable              :: X(:)
+  ! integer(i4), allocatable           :: Nk_old(:)
+  ! real(dp), allocatable              :: X(:)
 
   call print_start_message()
 
@@ -132,21 +132,22 @@ program ED_Kriging
     ! open netcdf if necessary
     call open_netcdf(nc_out, nc_data, nc_time)
 
-    do iCell = 1, nCell
-      ! initialize cell
-      allocate(cell(iCell)%Nk_old(nSta))
-      cell(iCell)%Nk_old = nint(noDataValue)
-    end do
+    ! do iCell = 1, nCell
+    !   ! initialize cell
+    !   allocate(cell(iCell)%Nk_old(nSta))
+    !   cell(iCell)%Nk_old = nint(noDataValue)
+    ! end do
 
     if (mod((jEnd - jStart + 1),tBuffer) .eq. 0) then  ! just use mod
       iTime = ((jEnd - jStart + 1)/tBuffer)
     else
       iTime = ((jEnd - jStart + 1)/tBuffer) + 1
     end if
-    write(*,*),"Total Number of Time Buffers = ",iTime
+    write(*,*) "Total Number of Threads = ",n_threads
+    write(*,*) "Total Number of Time Buffers = ",iTime
     t = 0
     bufferloop: do iTemp = 1, iTime
-      write(*,*),"  >>> Started buffer #", iTemp
+      write(*,*) "  >>> Started buffer #", iTemp
       jStartTmp = jStart + (iTemp - 1) * tBuffer
       if (iTemp .lt. iTime) then
         jEndTmp = jStartTmp + tBuffer - 1
@@ -158,13 +159,13 @@ program ED_Kriging
       do iCell = 1, nCell
         ! initialize cell        ! deallocate similarly
         allocate(cell(iCell)%z(jStartTmp:jEndTmp))
-        cell(iCell)%z = noDataValue
+        cell(iCell)%z = real(noDataValue, sp)
       end do
 
       !print *, iTemp, iTime
 
       !$omp parallel default(shared) &
-      !$omp private(iThread, iCell, X, Nk_old)
+      !$omp private(iThread, iCell)
       !$omp do SCHEDULE(dynamic)
       do iThread = 1, loop_factor * n_threads
         !  print *, 'thread: ', iThread, " start"
@@ -177,7 +178,7 @@ program ED_Kriging
             cycle
           end if
           ! interploation
-          call EDK(iCell, jStartTmp, jEndTmp, edk_dist, MetSta, cell, cell(iCell)%W, cell(iCell)%Nk_old, doOK=(interMth==1))
+          call EDK(iCell, jStartTmp, jEndTmp, edk_dist, MetSta, cell(iCell), doOK=(interMth==1))
         end do ncellsloop
 
         ! print *, 'thread: ', iThread, " end"
