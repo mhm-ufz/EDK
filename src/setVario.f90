@@ -195,8 +195,11 @@ subroutine dMatrix
     if (r > gridMeteo%nrows) r = 1
   end do
 
+  print*, "   ... find neighborhoods"
+
   ! find the closest stations to cell i (any order): checked  OK
   do i=1,nCell
+    if ( modulo(i,100000) == 0 ) print*, "      ... cells ready", i, "of", nCell
     list = -9
     do j=1,nSta
       if (edk_dist%getCS(i,j) <= maxDist) list(j) = j
