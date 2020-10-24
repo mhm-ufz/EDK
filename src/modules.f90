@@ -136,20 +136,16 @@ module kriging
   real(dp)                                     :: maxDist             ! max distance [m] search stations
   type CellCoarser
     integer(i4)                                :: nNS                 ! No. Nearest Stations (NS) d <= maxDist
-    integer(i4), allocatable                                :: Nk_old(:)              ! old stations (added)
     integer(i4), dimension(:), allocatable     :: listNS              ! list of NS
     real(dp)                                   :: x                   ! x- coordinate
     real(dp)                                   :: y                   ! y- coordinate
     real(dp)                                   :: h                   ! (estimated) elevation [m] (from the nearest cells DEM)
     real(sp),                  allocatable     :: z(:)                ! z values to be interpolated (OUTPUT)
-    real(dp),                  allocatable     :: W(:)
   end type CellCoarser
   type(CellCoarser),  dimension(:), allocatable  :: cell              ! EDK output
 
   type(dist_t)                                 :: edk_dist            ! distance calculations for EDK
   real(dp)                                     :: xl, xr, yd, yu      ! coordinates of the interpolation block
-  !real(dp)                 , allocatable       :: X(:)
-!
 end module kriging
 
 module VarFit
