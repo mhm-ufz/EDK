@@ -71,9 +71,9 @@ program ED_Kriging
   loop_factor = 10 ! factor for setting openMP loop size
 
   n_threads = 1
-  !$omp PARALLEL
+  !$OMP PARALLEL
   !$ n_threads = OMP_GET_NUM_THREADS()
-  !$omp END PARALLEL
+  !$OMP END PARALLEL
   !$ print *, 'Run with OpenMP with ', trim(num2str(n_threads)), ' threads.'
 
   ! initialize timers
@@ -100,7 +100,7 @@ program ED_Kriging
 
   itimer = 2
   call timer_start(itimer)
-  call message(' >>> Calculating distance matrix')
+  call message(' >>> Calculating distances and neighborhoods')
   call message('')
   ! call distance matrix
   call dMatrix
@@ -164,9 +164,9 @@ program ED_Kriging
 
       !print *, iTemp, iTime
 
-      !$omp parallel default(shared) &
-      !$omp private(iThread, iCell)
-      !$omp do SCHEDULE(dynamic)
+      !$OMP parallel default(shared) &
+      !$OMP private(iThread, iCell)
+      !$OMP do SCHEDULE(dynamic)
       do iThread = 1, loop_factor * n_threads
         !  print *, 'thread: ', iThread, " start"
 
@@ -183,8 +183,8 @@ program ED_Kriging
 
         ! print *, 'thread: ', iThread, " end"
       end do
-      !$omp end do
-      !$omp end parallel
+      !$OMP end do
+      !$OMP end parallel
 
       if (DEMNcFlag == 1) then
         ! write output
