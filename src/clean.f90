@@ -16,24 +16,19 @@ subroutine clean
   !
   ! DEM will be reused...
   !
-  
+
   ! Stations
   do i = 1, nSta
     if ( allocated( MetSta(i)%z ) ) deallocate( MetSta(i)%z )
   end do
   if ( allocated(MetSta)  ) deallocate (MetSta)
 
-  do i=1,nSta-1
-    if ( allocated( dS(i)%S ) ) deallocate( dS(i)%S )
-  end do  
-  if ( allocated(dS)  ) deallocate (dS)
-
   do i=1,nCell
     if ( allocated( cell(i)%listNS ) )  deallocate ( cell(i)%listNS )
   end do
   if ( allocated(cell)) deallocate (cell)
-  if ( allocated(dCS) ) deallocate (dCS)
-  if ( allocated(dz2S)) deallocate (dz2S)
+
+  call edk_dist%clean
 
 end subroutine clean
 

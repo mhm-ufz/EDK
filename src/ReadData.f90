@@ -14,7 +14,7 @@ module mo_ReadData
     real(dp) :: right
     real(dp) :: bottom
   end type extend
-  
+
 contains
   !*************************************************************************
   !    SUBROUTINE Read Database Precipitation
@@ -37,7 +37,7 @@ contains
                           distZero, flagVario, fNameVario, flagEDK
     use NetCDFVar,  only: FileOut, author_name, projection_name, variable_name, variable_unit, &
                           variable_standard_name, variable_calendar_type, &
-                          variable_long_name, ncIn_variable_name, ncIn_dem_variable_name, & 
+                          variable_long_name, ncIn_variable_name, ncIn_dem_variable_name, &
                           ncIn_yCoord_name, ncIn_xCoord_name, invert_y,  &
                           ncOut_dem_variable_name, ncOut_dem_yCoord_name, ncOut_dem_xCoord_name, &
                           ncOut_dem_Latitude, ncOut_dem_Longitude
@@ -61,7 +61,7 @@ contains
          DataPathOut, FileOut, fNameSTA, cellFactor, DataConvertFactor, OffSet, InterMth, correctNeg,  &
          distZero, author_name, projection_name, variable_name, variable_unit, variable_long_name, &
          variable_standard_name, variable_calendar_type,  &
-         yStart, mStart, dStart, yEnd, mEnd, dEnd,tBuffer, maxDist, flagVario, vType, nParam,  &  
+         yStart, mStart, dStart, yEnd, mEnd, dEnd,tBuffer, maxDist, flagVario, vType, nParam,  &
          fNameVario, dh, hMax, ncIn_variable_name, ncIn_dem_variable_name, ncIn_yCoord_name, &
          ncIn_xCoord_name, invert_y, &
          ncOut_dem_variable_name, ncOut_dem_yCoord_name, ncOut_dem_xCoord_name, ncOut_dem_Latitude,&
@@ -117,11 +117,11 @@ contains
       print*, "***ERROR: Variogram type not known: ", vType
     end if
 
-    write(*,*) 'variogram parameters: ' 
-    write(*,'(3(a12),   a18)') 'nugget', 'sill', 'range', 'Variogramtype' 
+    write(*,*) 'variogram parameters: '
+    write(*,'(3(a12),   a18)') 'nugget', 'sill', 'range', 'Variogramtype'
     write(*,'(3(f12.2), i18)') (beta(i), i=1,nParam), vType
 
-    ! determine whether DEM is an nc file or not 
+    ! determine whether DEM is an nc file or not
     call divide_string(fNameDEM, '.', fNameDEM_parts)
     isDEMNcFile = (fNameDEM_parts(size(fNameDEM_parts,1)) .eq. 'nc')
     deallocate(fNameDEM_parts)
@@ -134,7 +134,7 @@ contains
     else
     call ReadDEM
     end if
-    
+
     ! determine whether input path is actually a nc file
     call divide_string(DataPathIn, '.', DataPathIn_parts)
     isNcFile = (DataPathIn_parts(size(DataPathIn_parts,1)) .eq. 'nc')
@@ -147,7 +147,7 @@ contains
     else
       ! read look up table for meteorological stations
       call ReadStationLut
-      
+
       ! read whole METEO data
       call ReadDataMeteo
     end if
@@ -160,8 +160,8 @@ contains
   subroutine ReadStationLut
     use mo_kind,    only: i4, dp
 
-    use mainVar,    only: nSta, MetSta, grid
-    use kriging,    only: maxDist
+    use mainVar,    only: nSta, MetSta, grid, noDataValue
+    use kriging,    only: maxDist, edk_dist
     use VarFit,     only: hmax
     use runControl
 
@@ -216,11 +216,16 @@ contains
 
     ! save relevant stations in MetSta
     allocate(MetSta(nSta))
+    edk_dist%nstat = nSta
+    edk_dist%noDataValue = noDataValue
+    allocate(edk_dist%stat_pos(nSta, 2))
+
     do iSta = 1, nSta
       MetSta(iSta)%Id =  temp_id(iSta)
       MetSta(iSta)%x  =  temp_x(iSta)
       MetSta(iSta)%y  =  temp_y(iSta)
       MetSta(iSta)%h  =  temp_h(iSta)
+      edk_dist%stat_pos(iSta, :) = [MetSta(iSta)%x, MetSta(iSta)%y]
     end do
 
     deallocate(temp_id, temp_x, temp_y, temp_h)
@@ -259,7 +264,7 @@ contains
     call readHeader(15, fileName)
     if (.not. allocated(G) ) allocate (G(grid%nrows , grid%ncols))
     do i=1,grid%nrows
-      read (15, *) (G(i,j)%h, j=1,grid%ncols) 
+      read (15, *) (G(i,j)%h, j=1,grid%ncols)
     end do
 
     close (15)
@@ -286,31 +291,31 @@ contains
    use runControl
    use mo_netCDF,               only:NcDataset, NcVariable
    use NetCDFVar,               only:ncOut_dem_variable_name, ncOut_dem_yCoord_name, &
-                                     ncOut_dem_xCoord_name, ncOut_dem_Latitude, ncOut_dem_Longitude  
-   
+                                     ncOut_dem_xCoord_name, ncOut_dem_Latitude, ncOut_dem_Longitude
+
    implicit none
-   
+
    integer(i4)                 :: i,j
-   character(256)              :: dummy, fileName 
-   real(dp), allocatable       :: dem_x(:,:)           ! easting 
+   character(256)              :: dummy, fileName
+   real(dp), allocatable       :: dem_x(:,:)           ! easting
    real(dp), allocatable       :: dem_y(:,:)           ! northing
-   real(dp), allocatable       :: dem_data(:,:)        ! dem data 
+   real(dp), allocatable       :: dem_data(:,:)        ! dem data
    type(NcDataset)             :: ncin
-   type(NcVariable)            :: ncvar 
+   type(NcVariable)            :: ncvar
 
    fileName = trim(fNameDEM)
-   
+
    ! get northing and easting information
    ncin = NcDataset(fileName, 'r')
    ncvar = ncin%getVariable(ncOut_dem_yCoord_name)
    call ncvar%getData(dem_y)
    ncvar = ncin%getVariable(ncOut_dem_xCoord_name)
    call ncvar%getData(dem_x)
- 
-   ! get number of rows and columns  
+
+   ! get number of rows and columns
    grid%nrows = size(dem_x, dim=1)
    grid%ncols = size(dem_x, dim=2)
-  
+
    !write(*,*),"Nrows: ",grid%nrows
    !write(*,*),"Ncols: ",grid%ncols
 
@@ -322,14 +327,14 @@ contains
    call ncvar%getData(gridMeteo%latitude)
    ncvar = ncin%getVariable(ncOut_dem_Longitude)
    call ncvar%getData(gridMeteo%longitude)
- 
-   ! read in the dem data 
+
+   ! read in the dem data
    if (.not. allocated(G)) allocate(G(grid%nrows, grid%ncols))
    if (.not. allocated(gridMeteo%easting))  allocate(gridMeteo%easting(grid%nrows, grid%ncols))
    if (.not. allocated(gridMeteo%northing)) allocate(gridMeteo%northing(grid%nrows, grid%ncols))
    !if (.not. allocated(grid%easting))  allocate(grid%easting(grid%nrows, grid%ncols))
    !if (.not. allocated(grid%northing)) allocate(grid%northing(grid%nrows, grid%ncols))
-   
+
 
    ncvar = ncin%getVariable(ncOut_dem_variable_name)
    call ncvar%getData(dem_data)
@@ -356,7 +361,7 @@ contains
    gridMeteo%nodata_value = grid%nodata_value
    gridMeteo%nrows = grid%nrows
    gridMeteo%ncols = grid%ncols
-   nCell = grid%ncols * grid%nrows 
+   nCell = grid%ncols * grid%nrows
    deallocate(dem_data, dem_y, dem_x)
    ! close netcdf file
    call ncin%close()
@@ -376,7 +381,7 @@ contains
     implicit none
     !
     character(50)                  :: dummy
-    integer(i4), intent(in)        :: ic                  ! input channel 
+    integer(i4), intent(in)        :: ic                  ! input channel
     character(256), intent(in)     :: fName
     !
     open (unit=ic, file=fName, status='old', action='read')
@@ -397,10 +402,10 @@ contains
     gridMeteo%nrows = ceiling(float(grid%nrows)/float(cellFactor))
     !
     gridMeteo%cellsize     = grid%cellsize * cellFactor
-    gridMeteo%xllcorner    = grid%xllcorner 
+    gridMeteo%xllcorner    = grid%xllcorner
     ! to correct the increment that may be produced by ceiling (ensure consistent output in surfer)
     gridMeteo%yllcorner    = grid%yllcorner  + float(grid%nrows) * float(grid%cellsize) &
-        - float(gridMeteo%nrows) * float(gridMeteo%cellsize)  
+        - float(gridMeteo%nrows) * float(gridMeteo%cellsize)
     gridMeteo%nodata_value = grid%nodata_value
     thresholdDist = 7.07d-1 * gridMeteo%cellsize
   end subroutine readHeader
@@ -414,7 +419,8 @@ contains
   !	**************************************************************************
   subroutine ReadDataMeteo
     use mo_kind, only         : i4, dp
-    use mo_julian, only       : NDAYS 
+    use mo_julian, only       : NDAYS
+    use kriging, only         : edk_dist
     use mainVar
     use runControl
     implicit none
@@ -432,6 +438,8 @@ contains
     ! allocate vectors for interpolation period
     jStart = NDAYS (dStart, mStart, yStart)
     jEnd   = NDAYS (dEnd,   mEnd,   yEnd)
+
+    allocate(edk_dist%stat_z(nSta, jStart:jEnd))
 
     nStaEfec = 0
     do i = 1, nSta
@@ -454,8 +462,8 @@ contains
       dateEnd   = dateEnd(3:12)
       read(dateStart, 3) ys, ms, ds
       read(dateEnd, 3)   ye, me, de
-      !<<<  -------------------------------------------------------------   
-      !    
+      !<<<  -------------------------------------------------------------
+      !
       ! set limits
       jS = NDAYS (ds,ms,ys)
       jE = NDAYS (de,me,ye)
@@ -479,12 +487,13 @@ contains
         !end if
         ! check consistency
         if (jDay /= jE ) then
-          print *, 'File ', trim(fileName), ' has missing values.',  jE - jDay 
+          print *, 'File ', trim(fileName), ' has missing values.',  jE - jDay
           stop
         end if
       else
         close (60)
       end if
+      edk_dist%stat_z(i,:) = MetSta(i)%z ! fill dist container
     end do
     print *, nStaEfec, ' of ', nSta, ' have data from ', yStart , ' to ', yEnd
     !
@@ -499,9 +508,9 @@ contains
 
     use mo_kind,        only: i4, dp
 
-    use mainVar,        only: nSta, MetSta, grid, period, &
+    use mainVar,        only: nSta, MetSta, grid, period, noDataValue, &
         yStart, mStart, dStart, yEnd, mEnd, dEnd, jStart, jEnd, DataConvertFactor, OffSet
-    use kriging,        only: maxDist
+    use kriging,        only: maxDist, edk_dist
     use VarFit,         only: hmax
     use runControl,     only: interMth, DataPathIn
     use mo_netCDF,      only: NcDataset, NcVariable
@@ -533,7 +542,7 @@ contains
     jStart = target_period%julStart
     jEnd = target_period%julEnd
     print *, jStart, jEnd
-    
+
     ! open netcdf file
     ncin = NcDataset(dataPathIn, 'r')
 
@@ -546,7 +555,7 @@ contains
     !print *,"Meteo Easting Max: ",maxval(temp_x)
     !print *,"Meteo Northing Min: ",minval(temp_y)
     !print *,"Meteo Northing Max: ",maxval(temp_y)
- 
+
     nrows = size(temp_x, dim=1)
     ncols = size(temp_x, dim=2)
 
@@ -564,7 +573,7 @@ contains
     end if
 
    !write(*,*),"DEM Source: ",shape(temp_h)
-    
+
     ! read meteo data from nc
     ncvar = ncin%getVariable(ncIn_variable_name)
     call ncvar%getData(met_data, start = (/1, 1, time_start/), cnt = (/nRows, nCols, time_count/))
@@ -605,6 +614,11 @@ contains
 
     ! >>> populate MetSta object
     allocate(MetSta(nSta))
+    ! >>> populate the dynamic distance object
+    edk_dist%nstat = nSta
+    edk_dist%noDataValue = noDataValue
+    allocate(edk_dist%stat_pos(nSta, 2))
+    allocate(edk_dist%stat_z(nSta, target_period%julStart:target_period%julEnd))
 
     iSta = 0
     do i = 1, nrows
@@ -620,11 +634,13 @@ contains
         allocate(MetSta(iSta)%z(target_period%julStart:target_period%julEnd))
         MetSta(iSta)%z = met_data(i, j, :) * DataConvertFactor + OffSet
         !
+        edk_dist%stat_pos(iSta, :) = [MetSta(iSta)%x, MetSta(iSta)%y]
+        edk_dist%stat_z(iSta, :) = MetSta(iSta)%z
       end do
    end do
 
     deallocate(mask, temp_x, temp_y, met_data) !, temp_h)
-    
+
   end subroutine initMetStaNc
 
   subroutine getSearchDomain(domain)
@@ -639,7 +655,7 @@ contains
     type(extend), intent(out) :: domain
 
     real(dp) :: search_distance
-    
+
     ! take only stations which are in search distance
     ! two possibilties for search distance for vario - hMax for EDK - maxDist
     if (flagVario) then
@@ -651,22 +667,22 @@ contains
     !print *,"DEMNcFlag: ",DEMNcFlag
     if (DEMNcFlag == 0) then
     ! derive borders for station search
-      domain%bottom = -search_distance + grid%yllcorner  
+      domain%bottom = -search_distance + grid%yllcorner
       domain%top    =  search_distance + grid%yllcorner + grid%nrows * grid%cellsize
       domain%left   = -search_distance + grid%xllcorner
-      domain%right  =  search_distance + grid%xllcorner + grid%ncols * grid%cellsize 
+      domain%right  =  search_distance + grid%xllcorner + grid%ncols * grid%cellsize
     else
       domain%bottom = -search_distance + minval(gridMeteo%northing)
       domain%top    =  search_distance + maxval(gridMeteo%northing)
       domain%left   = -search_distance + minval(gridMeteo%easting)
       domain%right  =  search_distance + maxval(gridMeteo%easting)
-    end if 
+    end if
 
     !print *,"DEM Min Northing: ",minval(gridMeteo%northing)
     !print *,"DEM Max Northing: ",maxval(gridMeteo%northing)
     !print *,"DEM Min Easting: ",minval(gridMeteo%easting)
     !print *,"DEM Max Easting: ",maxval(gridMeteo%easting)
- 
+
   end subroutine getSearchDomain
 
 end module mo_ReadData
