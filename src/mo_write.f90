@@ -46,9 +46,9 @@ CONTAINS
     ! create variables
     var_time  = nc%setVariable('time', "i32", (/dim_time/))
     ! add some variable attributes
-    call var_time%setAttribute("units", "days since " // trim(num2str(yStart, form='(I4)')) // " "// &
+    call var_time%setAttribute("units", "days since " // trim(num2str(yStart, form='(I4)')) // "-"// &
         trim(num2str(mStart, form='(I0.2)')) // "-" // &
-        trim(num2str(dStart, form='(I0.2)')) // "-" // "00:00:00")
+        trim(num2str(dStart, form='(I0.2)')) // " " // "00:00:00")
     call var_time%setAttribute("calendar", variable_calendar_type)
 
   if (DEMNcFlag == 1) then
