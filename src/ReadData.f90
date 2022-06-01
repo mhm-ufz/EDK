@@ -685,4 +685,30 @@ contains
 
   end subroutine getSearchDomain
 
+
+  !  *************************************************************************
+  !
+  !  SUBROUTINE   WRITE HEADER GRIDs
+  !
+  !  *************************************************************************
+  subroutine writeHeader(ic, fName)
+    use mainVar
+    use mo_kind, only         : i4
+    implicit none
+    integer(i4), intent(in)        :: ic                  ! input channel
+    character(256), intent(in)    :: fName
+    !
+    open (unit=ic, file=fName, status='unknown')
+    write (ic, 1)  'ncols       ',    gridMeteo%ncols
+    write (ic, 1)  'nrows       ',    gridMeteo%nrows
+    write (ic, 2)  'xllcorner   ',    gridMeteo%xllcorner
+    write (ic, 2)  'yllcorner   ',    gridMeteo%yllcorner
+    write (ic, 1)  'cellsize    ',    gridMeteo%cellsize
+    write (ic, 1)  'NODATA_value',    gridMeteo%nodata_value
+    close (ic)
+    ! formats
+    1 format (a12, 2x, i10)
+    2 format (a12, 2x, f10.1)
+    !
+  end subroutine writeHeader
 end module mo_ReadData

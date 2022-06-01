@@ -34,7 +34,7 @@ program ED_Kriging
   use mo_netcdf              , only: NcDataset, NcVariable
   use mo_write               , only: open_netcdf
   use mo_message             , only: message
-  use mo_EDK                 , only: EDK
+  use mo_EDK                 , only: EDK, clean, WriteDataMeteo
   use mo_ReadData            , only: readData
   use NetCDFVar              , only: invert_y
   USE mo_timer, ONLY : &
