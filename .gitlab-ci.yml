@@ -1,0 +1,357 @@
+# to use the env-var "GIT_CLONE_PATH", set the following in
+# ./gitlab-runner/config.toml under [[runners]]:
+#   [runners.custom_build_dir]
+#     enabled = true
+# This will prevent git clone conflicts for jobs ran in parallel
+
+variables:
+  GIT_DEPTH: 10
+  GIT_CLONE_PATH: $CI_BUILDS_DIR/$CI_RUNNER_SHORT_TOKEN/$CI_PROJECT_PATH/$CI_COMMIT_REF_NAME/$CI_JOB_NAME
+
+stages:
+  - info
+  - build
+  - check-cases
+  - code-analysis
+  - deploy
+
+show-env-vars:
+  stage: info
+  variables:
+    GIT_STRATEGY: none
+    SEP: "##################################################################"
+    S00: "commit date - "
+    S01: "project: ${CI_PROJECT_PATH}"
+    S02: "branch: ${CI_COMMIT_REF_NAME}"
+    S03: "commit: ${CI_COMMIT_SHA}"
+    S04: "commit msg: ${CI_COMMIT_MESSAGE}"
+    S05: "clone base path: "
+    S06: "runner token: ${CI_RUNNER_SHORT_TOKEN}"
+  script:
+    - echo -e "${SEP}\n${S00}$(date)\n${SEP}\n${S01}\n${S02}\n${S03}\n${S04}\n${SEP}\n${S05}${GIT_CLONE_PATH}\n${S06}\n${SEP}"
+
+documentation:
+  stage: build
+  variables:
+    GIT_FETCH_EXTRA_FLAGS: --all --no-tags --prune --quiet
+  script:
+    - source hpc-module-loads/eve.chs-conda01
+    - module load GCCcore/9.3.0 texlive/2020
+    # use doxygen from the chs conda environment
+    - doxygen doc/doxygen.config > doxygen_log_dev.txt
+    # create pdf documentation
+    - cd latex/ && make > ../doxygen_latex_dev.txt
+    - cp refman.pdf ../html/edk_doc.pdf
+    - cp refman.pdf ../edk_doc_dev.pdf
+    - cd .. && mv html html_dev
+    - mv doxygen_warn.txt doxygen_warn_dev.txt
+  artifacts:
+    name: "$CI_COMMIT_REF_NAME"
+    paths:
+      - html_dev
+      - edk_doc_dev.pdf
+      - doxygen_log_dev.txt
+      - doxygen_latex_dev.txt
+      - doxygen_warn_dev.txt
+  when: always
+
+documentation_stable:
+  only:
+    - main
+  stage: build
+  variables:
+    GIT_DEPTH: 0
+    GIT_FETCH_EXTRA_FLAGS: --all --prune --quiet
+  script:
+    # doc for latest version tag
+    - ml git-lfs
+    - git checkout $(git describe --match "v*" --abbrev=0 --tags $(git rev-list --tags --max-count=1))
+    - if [ ! -d "doc" ]; then git checkout $CI_COMMIT_REF_NAME; fi
+    - source hpc-module-loads/eve.chs-conda01
+    - module load GCCcore/9.3.0 texlive/2020
+    # use doxygen from the chs conda environment
+    - doxygen doc/doxygen.config > doxygen_log_tag.txt
+    - cd latex/ && make > ../doxygen_latex_tag.txt
+    - cp refman.pdf ../html/edk_doc.pdf
+    - cp refman.pdf ../edk_doc_tag.pdf
+    - cd .. && mv html html_tag
+    - mv doxygen_warn.txt doxygen_warn_tag.txt
+  artifacts:
+    name: "$CI_COMMIT_REF_NAME"
+    paths:
+      - html_tag
+      - edk_doc_tag.pdf
+      - doxygen_log_tag.txt
+      - doxygen_latex_tag.txt
+      - doxygen_warn_tag.txt
+  when: always
+
+cmake-nagfor62:
+  stage: build
+  script:
+    - source hpc-module-loads/eve.nagfor62
+    - source CI-scripts/compile
+    - source CI-scripts/compile_debug
+  artifacts:
+    paths:
+    - edk
+    - edk_debug
+
+cmake-gfortran73:
+  stage: build
+  script:
+    - source hpc-module-loads/eve.gfortran73
+    - source CI-scripts/compile
+    - source CI-scripts/compile_debug
+    - source CI-scripts/compile_OpenMP
+    - source CI-scripts/compile_OpenMP_debug
+  artifacts:
+    paths:
+    - edk
+    - edk_debug
+    - edk_openmp
+    - edk_openmp_debug
+
+cmake-gfortran83:
+  stage: build
+  script:
+    - source hpc-module-loads/eve.gfortran83
+    - source CI-scripts/compile
+    - source CI-scripts/compile_debug
+    - source CI-scripts/compile_OpenMP
+    - source CI-scripts/compile_OpenMP_debug
+  artifacts:
+    paths:
+    - edk
+    - edk_debug
+    - edk_openmp
+    - edk_openmp_debug
+
+cmake-gfortran102:
+  stage: build
+  script:
+    - source hpc-module-loads/eve.gfortran102
+    - source CI-scripts/compile
+    - source CI-scripts/compile_debug
+    - source CI-scripts/compile_OpenMP
+    - source CI-scripts/compile_OpenMP_debug
+  artifacts:
+    paths:
+    - edk
+    - edk_debug
+    - edk_openmp
+    - edk_openmp_debug
+
+cmake-intel18:
+  stage: build
+  script:
+    - source hpc-module-loads/eve.intel18
+    - source CI-scripts/compile
+    - source CI-scripts/compile_debug
+    - source CI-scripts/compile_OpenMP
+    - source CI-scripts/compile_OpenMP_debug
+  artifacts:
+    paths:
+    - edk
+    - edk_debug
+    - edk_openmp
+    - edk_openmp_debug
+
+cmake-intel19:
+  stage: build
+  script:
+    - source hpc-module-loads/eve.intel19
+    - source CI-scripts/compile
+    - source CI-scripts/compile_debug
+    - source CI-scripts/compile_OpenMP
+    - source CI-scripts/compile_OpenMP_debug
+  artifacts:
+    paths:
+    - edk
+    - edk_debug
+    - edk_openmp
+    - edk_openmp_debug
+
+cmake-intel2020b:
+  stage: build
+  script:
+    - source hpc-module-loads/eve.intel2020b
+    - source CI-scripts/compile
+    - source CI-scripts/compile_debug
+    - source CI-scripts/compile_OpenMP
+    - source CI-scripts/compile_OpenMP_debug
+  artifacts:
+    paths:
+    - edk
+    - edk_debug
+    - edk_openmp
+    - edk_openmp_debug
+
+check-nagfor62:
+  when: always
+  stage: check-cases
+  needs:
+    - job: cmake-nagfor62
+      artifacts: true
+  script:
+    - source hpc-module-loads/eve.nagfor62
+    - source CI-scripts/pre_check
+    - python -u edk_checks_run.py -l logs -e ../edk
+  artifacts:
+    when: always
+    paths:
+    - check/logs/
+
+check-nagfor62DEBUG:
+  when: always
+  stage: check-cases
+  needs:
+    - job: cmake-nagfor62
+      artifacts: true
+  script:
+    - source hpc-module-loads/eve.nagfor62
+    - source CI-scripts/pre_check
+    - python -u edk_checks_run.py -l logs -e ../edk_debug
+  artifacts:
+    when: always
+    paths:
+    - check/logs/
+
+check-gfortran73:
+  when: always
+  stage: check-cases
+  needs:
+    - job: cmake-gfortran73
+      artifacts: true
+  script:
+    - source hpc-module-loads/eve.gfortran73
+    - source CI-scripts/pre_check
+    - python -u edk_checks_run.py -l logs -e ../edk_debug ../edk ../edk_openmp_debug ../edk_openmp -t 4
+  artifacts:
+    when: always
+    paths:
+    - check/logs/
+
+check-gfortran83:
+  when: always
+  stage: check-cases
+  needs:
+    - job: cmake-gfortran83
+      artifacts: true
+  script:
+    - source hpc-module-loads/eve.gfortran83
+    - source CI-scripts/pre_check
+    - python -u edk_checks_run.py -l logs -e ../edk_debug ../edk ../edk_openmp_debug ../edk_openmp -t 4
+  artifacts:
+    when: always
+    paths:
+    - check/logs/
+
+check-gfortran102:
+  when: always
+  stage: check-cases
+  needs:
+    - job: cmake-gfortran102
+      artifacts: true
+  script:
+    - source hpc-module-loads/eve.gfortran102
+    - source CI-scripts/pre_check
+    - python -u edk_checks_run.py -l logs -e ../edk_debug ../edk ../edk_openmp_debug ../edk_openmp -t 4
+  artifacts:
+    when: always
+    paths:
+    - check/logs/
+
+check-intel18:
+  when: always
+  stage: check-cases
+  needs:
+    - job: cmake-intel18
+      artifacts: true
+  script:
+    - source hpc-module-loads/eve.intel18
+    - source CI-scripts/pre_check
+    - python -u edk_checks_run.py -l logs -e ../edk_debug ../edk ../edk_openmp_debug ../edk_openmp -t 4
+  artifacts:
+    when: always
+    paths:
+    - check/logs/
+
+check-intel19:
+  when: always
+  stage: check-cases
+  needs:
+    - job: cmake-intel19
+      artifacts: true
+  script:
+    - source hpc-module-loads/eve.intel19
+    - source CI-scripts/pre_check
+    - python -u edk_checks_run.py -l logs -e ../edk_debug ../edk ../edk_openmp_debug ../edk_openmp -t 4
+  artifacts:
+    when: always
+    paths:
+    - check/logs/
+
+check-intel2020b:
+  when: always
+  stage: check-cases
+  needs:
+    - job: cmake-intel2020b
+      artifacts: true
+  script:
+    - source hpc-module-loads/eve.intel2020b
+    - source CI-scripts/pre_check
+    - python -u edk_checks_run.py -l logs -e ../edk_debug ../edk ../edk_openmp_debug ../edk_openmp -t 4
+  artifacts:
+    when: always
+    paths:
+    - check/logs/
+
+coverage:
+  when: always
+  stage: code-analysis
+  needs: []
+  script:
+    # gcov is part of GCC
+    - source hpc-module-loads/eve.chs-conda01
+    # run cmake with coverage support
+    - cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_WITH_COVERAGE=ON -B build
+    - cmake --build build --parallel
+    # run all check-case for coverage calculation
+    - cd build && make edk_coverage_CI
+    # copy the output to a top-level folder
+    - cd .. && mkdir coverage
+    - cp build/edk_coverage_CI/* coverage -R
+  artifacts:
+    when: always
+    paths:
+    - coverage
+
+pages:
+  only:
+    - main
+  stage: deploy
+  dependencies:
+    - documentation
+    - documentation_stable
+    - coverage
+  script:
+    # create public dir (remove if already present)
+    - test -d public && rm -rf public
+    - mkdir -p public
+    # create the subdir
+    - mkdir public/stable/
+    - mkdir public/latest/
+    # copy the doxygen generated html page to the public site
+    - cp html_tag/* public/stable/ -R
+    - cp html_dev/* public/latest/ -R
+    # create an index.html that redirects to the main documentation (in stable folder)
+    - cp doc/html_files/index.html public/
+    # create the coverage site
+    - mkdir -p public/coverage
+    - cp coverage/* public/coverage/ -R
+  artifacts:
+    name: "$CI_COMMIT_REF_NAME"
+    paths:
+      - public
+  when: always
