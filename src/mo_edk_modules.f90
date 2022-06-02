@@ -11,7 +11,6 @@ module mainVar
   use mo_kind, only: i4, dp
   implicit none
   ! parameters
-  character(10), parameter                     :: version = '2.0'
   integer(i4)                                  :: yStart              ! starting year
   integer(i4)                                  :: mStart              ! starting month
   integer(i4)                                  :: dStart              ! starting day

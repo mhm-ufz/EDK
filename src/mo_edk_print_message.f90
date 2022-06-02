@@ -11,7 +11,7 @@ contains
 
   subroutine print_start_message()
 
-    use mainVar, only: version
+    use mo_edk_info, only: version
     use mo_message, only: message
 
     implicit none
