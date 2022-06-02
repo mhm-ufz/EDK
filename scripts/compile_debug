@@ -1,0 +1,4 @@
+cmake -B debug -DCMAKE_BUILD_TYPE=Debug ${1}
+cmake --build debug --parallel
+cmake --install debug --prefix debug/_tmp
+cp debug/_tmp/bin/* . && rm -rf debug/_tmp
