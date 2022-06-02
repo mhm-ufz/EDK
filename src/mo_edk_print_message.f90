@@ -1,4 +1,4 @@
-module mo_print_message
+module mo_edk_print_message
 
   implicit none
 
@@ -24,7 +24,7 @@ contains
     call message('!!                                          !!')
     call message('==============================================')
     call message('')
-    
+
   end subroutine print_start_message
 
   subroutine print_end_message
@@ -43,5 +43,5 @@ contains
     call message('')
 
   end subroutine print_end_message
-  
-end module mo_print_message
+
+end module mo_edk_print_message

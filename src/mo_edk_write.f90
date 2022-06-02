@@ -1,4 +1,4 @@
-module mo_write
+module mo_edk_write
 
   implicit none
 
@@ -22,7 +22,7 @@ CONTAINS
 
     type(NcDataset),  intent(out) :: nc
     type(NcVariable), intent(out) :: var_time, var_data
-    
+
     type(NcDimension)     :: dim_x, dim_y, dim_time
     type(NcVariable)      :: var_east, var_north, var_lat, var_lon
     integer(i4)           :: i, f
@@ -31,12 +31,12 @@ CONTAINS
 
     ! 1.1 create a file
     nc = NcDataset(trim(fileOut), "w")
-   
+
     if (DEMNcFlag == 1) then
       dim_y    = nc%setDimension(ncOut_dem_Latitude, gridMeteo%ncols)
       dim_x    = nc%setDimension(ncOut_dem_Longitude, gridMeteo%nrows)
       dim_time = nc%setDimension("time", -1)
-    else 
+    else
     ! create dimensions
       dim_x    = nc%setDimension("x", gridMeteo%ncols)
       dim_y    = nc%setDimension("y", gridMeteo%nrows)
@@ -58,8 +58,8 @@ CONTAINS
        allocate(dummy(gridMeteo%nrows, gridMeteo%ncols))
        f = 1
        do i = 1, gridMeteo%ncols
-         dummy(:,gridMeteo%ncols - i + 1) = gridMeteo%northing(:,f) 
-         f = f + 1 
+         dummy(:,gridMeteo%ncols - i + 1) = gridMeteo%northing(:,f)
+         f = f + 1
        end do
        var_north = nc%setVariable('northing', 'f32', (/dim_x, dim_y/))
        call var_north%setData(dummy)
@@ -71,9 +71,9 @@ CONTAINS
 
     var_east = nc%setVariable('easting', 'f32', (/dim_x, dim_y/))
     call var_east%setData(gridMeteo%easting)
-     
+
     if (invert_y) then
-      allocate(dummy_lat(gridMeteo%ncols)) 
+      allocate(dummy_lat(gridMeteo%ncols))
       f = 1
       do i = 1, gridMeteo%ncols
          dummy_lat(gridMeteo%ncols - i + 1) = gridMeteo%latitude(f)
@@ -125,12 +125,12 @@ CONTAINS
     call var_data%setAttribute("standard_name",trim(variable_standard_name))
     call var_data%setAttribute("scaling", 1.0_dp)
     call var_data%setAttribute("missing_value", -9999._dp)
-    
+
 
     ! add global attributes
     call nc%setAttribute("Author", trim(author_name))
     call nc%setAttribute("Projection", trim(projection_name))
-    
+
   end subroutine open_netcdf
 
-end module mo_write
+end module mo_edk_write

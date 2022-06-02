@@ -1,4 +1,4 @@
-module mo_ReadData
+module mo_edk_read_data
 
   use mo_kind, only: dp
 
@@ -515,7 +515,7 @@ contains
     use runControl,     only: interMth, DataPathIn
     use mo_netCDF,      only: NcDataset, NcVariable
     use NetCDFVar,      only: ncIn_variable_name, ncIn_yCoord_name, ncIn_xCoord_name, ncIn_dem_variable_name
-    use mo_get_nc_time, only: get_time_vector_and_select
+    use mo_edk_get_nc_time, only: get_time_vector_and_select
 
     implicit none
     !
@@ -711,4 +711,4 @@ contains
     2 format (a12, 2x, f10.1)
     !
   end subroutine writeHeader
-end module mo_ReadData
+end module mo_edk_read_data

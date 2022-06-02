@@ -20,7 +20,7 @@
 program ED_Kriging
 
   use mo_kind                , only: i4, dp, sp
-  use mo_print_message       , only: print_start_message, print_end_message
+  use mo_edk_print_message       , only: print_start_message, print_end_message
   use mo_julian              , only: NDAYS, NDYIN, dec2date, julday
   use runControl             , only: flagEDK, interMth,        & ! flag for activate kriging, flag for 'OK' or 'EDK'
     correctNeg,                 & ! pre or temp
@@ -30,12 +30,12 @@ program ED_Kriging
     nCell, MetSta, &
     noDataValue
   use kriging                , only: edk_dist, cell
-  use mo_setVario            , only: setVario, dMatrix
+  use mo_edk_setvario            , only: setVario, dMatrix
   use mo_netcdf              , only: NcDataset, NcVariable
-  use mo_write               , only: open_netcdf
+  use mo_edk_write               , only: open_netcdf
   use mo_message             , only: message
-  use mo_EDK                 , only: EDK, clean, WriteDataMeteo
-  use mo_ReadData            , only: readData
+  use mo_edk                 , only: EDK, clean, WriteDataMeteo
+  use mo_edk_read_data            , only: readData
   use NetCDFVar              , only: invert_y
   USE mo_timer, ONLY : &
     timers_init, timer_start, timer_stop, timer_get              ! Timing of processes

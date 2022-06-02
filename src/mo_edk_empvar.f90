@@ -12,7 +12,7 @@
 !         Last update  19.02.2004
 !
 !**************************************************************************
-module mo_EmpVar
+module mo_edk_empvar
 
   implicit none
 
@@ -145,4 +145,4 @@ subroutine EmpVar(jd, flagMax)
 
 end subroutine EmpVar
 
-end module mo_EmpVar
+end module mo_edk_empvar

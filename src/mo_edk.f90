@@ -1,4 +1,4 @@
-module mo_EDK
+module mo_edk
 
   implicit none
 
@@ -143,7 +143,7 @@ contains
     use mo_kind,     only : dp, i4
     use mainVar,     only : MeteoStation
     use varfit,      only : beta
-    use mo_setVario, only : tVar
+    use mo_edk_setvario, only : tVar
     use mo_edk_types, only : dist_t
 
     implicit none
@@ -297,7 +297,7 @@ contains
     use runControl
     use kriging
     use VarFit
-    use mo_setVario, only : tvar
+    use mo_edk_setvario, only : tvar
     !
     implicit none
     integer(i4), intent (in)  :: y, d, wFlag
@@ -379,4 +379,4 @@ contains
     !
   end subroutine WriteDataMeteo
 
-end module mo_EDK
+end module mo_edk

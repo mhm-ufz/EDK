@@ -1,4 +1,4 @@
-module mo_get_nc_time
+module mo_edk_get_nc_time
 
   implicit none
 
@@ -165,7 +165,7 @@ contains
     call dec2date(time_data(n_time) / DaySecs - 0.5_dp + jRef + hRef / 24._dp, nc_period%dEnd, nc_period%mEnd, &
             nc_period%yEnd, hend_int)
     nc_period%julEnd = int(time_data(n_time) / DaySecs + jRef + hRef / 24._dp)
-    
+
     ! if no target period is present, use the whole time period
     if (present(target_period)) then
       clip_period = target_period
@@ -236,4 +236,4 @@ contains
 
   end subroutine get_time_vector_and_select
 
-end module mo_get_nc_time
+end module mo_edk_get_nc_time

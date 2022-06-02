@@ -10,7 +10,7 @@
 !          Created      Sa  19.02.2004     main structure
 !          Last update      12.04.2006
 !**********************************************************************************
-module mo_setVario
+module mo_edk_setvario
 
   implicit none
 
@@ -26,7 +26,7 @@ contains
     use runControl
     use VarFit
     use mainVar
-    use mo_EmpVar, only: EmpVar
+    use mo_edk_empvar, only: EmpVar
     use mo_kind, only: i4, dp
     implicit none
     real(dp), intent(out) :: param(3)
@@ -422,4 +422,4 @@ contains
     deallocate (error, denom, zCal, zObs)
   end subroutine stats
 
-end module mo_setVario
+end module mo_edk_setvario
