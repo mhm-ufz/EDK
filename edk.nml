@@ -18,7 +18,7 @@ ncIn_dem_variable_name   = "dem"
 ncIn_yCoord_name         = "northing"
 ncIn_xCoord_name         = "easting"
 !
-! Correct interpolated negative values to zero 
+! Correct interpolated negative values to zero
 ! (set for precipitation to true !)
 correctNeg               = .True.
 !
@@ -43,22 +43,22 @@ FileOut                  = "edk.nc"
 ! Name of Look Up Table of Station data
 fNameSTA                 = "check/pre_data/Stations_in_study_domain.txt"
 
-! The value that should be multiplied to the data in the netcdf file 
+! The value that should be multiplied to the data in the netcdf file
 DataConvertFactor        = 1.0e-1
-! The value that should be added to the data in the netcdf file 
+! The value that should be added to the data in the netcdf file
 OffSet			 = 0
 ![FINAL VALUE = NETCDF VALUE * DataConvertFactor + OffSet]
 
 !
 ! -------------------------------------------------------------------
-! ------------ PROCESSING PERIOD ------------------------------------ 
+! ------------ PROCESSING PERIOD ------------------------------------
 yStart                   = 1990
 mStart                   = 1
 dStart                   = 1
 yEnd                     = 1990
-mEnd                     = 12 
+mEnd                     = 12
 dEnd                     = 31
-! Number of Time Buffering Days (Divides the EDK processing into chunks accross the time dimension) 
+! Number of Time Buffering Days (Divides the EDK processing into chunks accross the time dimension)
 tBuffer                  = 10
 !
 ! -------------------------------------------------------------------
@@ -80,7 +80,7 @@ nParam                   = 3
 ! type of theoretical variogramm (1=spherical, 2 = exponential)
 vType                    = 2
 !
-! file name where to store the variogram parameters 
+! file name where to store the variogram parameters
 ! (if flagVario is false, variogram parameters )
 ! (for interpolation are read in here:         )
 fNameVario               = "check/var_param_de_pre.txt"
