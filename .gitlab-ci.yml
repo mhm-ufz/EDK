@@ -320,10 +320,10 @@ coverage:
     - cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_WITH_COVERAGE=ON -B build
     - cmake --build build --parallel
     # run all check-case for coverage calculation
-    - cd build && make edk_coverage_CI
+    - cmake --build build --target coverage
     # copy the output to a top-level folder
-    - cd .. && mkdir coverage
-    - cp build/edk_coverage_CI/* coverage -R
+    - mkdir coverage
+    - cp build/coverage/* coverage -R
   artifacts:
     when: always
     paths:
