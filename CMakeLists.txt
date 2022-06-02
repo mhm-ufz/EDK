@@ -7,7 +7,7 @@ get_version(EDK_VER EDK_VER_DEV EDK_DATE)
 project(                                                                                       #
   edk                                                                                          #
   VERSION ${EDK_VER}                                                                           #
-  LANGUAGES Fortran                                                                            #
+  LANGUAGES Fortran C                                                                          #
 )                                                                                              #
 ################################################################################################
 
