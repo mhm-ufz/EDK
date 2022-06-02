@@ -11,7 +11,7 @@
 !          Last update      12.04.2006
 !**********************************************************************************
 module mo_edk_setvario
-
+  use mo_kind, only: i4, dp
   implicit none
 
   private
@@ -27,7 +27,6 @@ contains
     use VarFit
     use mainVar
     use mo_edk_empvar, only: EmpVar
-    use mo_kind, only: i4, dp
     implicit none
     real(dp), intent(out) :: param(3)
     integer(i4) :: jd, y, y0
@@ -66,9 +65,8 @@ contains
   !  tVAR:: Function to calulate variogram at given distance
   !
   !***********************************************************
-  real(8) function tVar(h,c0,c,a)
+  real(dp) function tVar(h,c0,c,a)
     use VarFit,  only      : vType
-    use mo_kind, only      : dp
     real(dp), intent(in)  :: h                ! distance
     real(dp), intent(in)  :: c0               ! nugget = beta(1) = XU(1)
     real(dp), intent(in)  :: c                ! sill   = beta(2) = XU(2)
@@ -103,7 +101,6 @@ contains
   !
   !*******************************************************
   subroutine dMatrix
-    use mo_kind, only                : i4, dp
     use mainVar
     use kriging
     use runControl
@@ -228,7 +225,6 @@ contains
   !******************************************************************************
   subroutine OPTI(pmin)
     use VarFit
-    use mo_kind, only: i4, dp
     use mo_nelmin, only: nelminrange
 
     ! parameters for Nelder-Mead algorithm
@@ -305,7 +301,6 @@ contains
   ! Function to be minimised for the nelder mead algorithm
   !******************************************************************************
   function obj_func(p)
-    use mo_kind, only     : i4, dp
     use varfit, only      : nbins, gamma, nh
     implicit none
     real(dp), dimension(:), intent(in) :: p
@@ -333,7 +328,6 @@ contains
   !      **************************************************************************
   subroutine stats
     use varFit, only                     : E, beta, gamma
-    use mo_kind, only                    : i4, dp
     implicit none
     integer(i4), parameter               :: incx = 1
     integer(i4)                          :: k
