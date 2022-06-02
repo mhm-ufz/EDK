@@ -31,5 +31,7 @@ module mo_edk_info
 
   !> Driver file
   character(len = *), parameter :: file_main = 'EDK_driver.f90'
+  !> Namelist file name
+  character(:), allocatable :: file_namelist ! = 'edk.nml'
 
 end module mo_edk_info

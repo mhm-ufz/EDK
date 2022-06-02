@@ -43,6 +43,7 @@ contains
                           ncOut_dem_Latitude, ncOut_dem_Longitude
     use mo_message, only: message
     use mo_string_utils, only: divide_string
+    use mo_edk_info, only: file_namelist
 
     implicit none
     !
@@ -70,7 +71,7 @@ contains
     ! -----------------------------------------------------------------------
     !	                               MAIN.DAT
     ! -----------------------------------------------------------------------
-    open(unit=10, file='edk.nml', STATUS='OLD', ACTION='read')
+    open(unit=10, file=file_namelist, STATUS='OLD', ACTION='read')
     read(10, nml=mainVars)
     close(10)
 

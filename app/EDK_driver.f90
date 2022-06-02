@@ -40,6 +40,7 @@ program ED_Kriging
   USE mo_timer, ONLY : &
     timers_init, timer_start, timer_stop, timer_get              ! Timing of processes
   use mo_string_utils, ONLY : num2str
+  use mo_edk_cli, only: parse_command_line
   !$ use omp_lib, ONLY : OMP_GET_NUM_THREADS           ! OpenMP routines
   implicit none
 
@@ -66,6 +67,7 @@ program ED_Kriging
   ! integer(i4), allocatable           :: Nk_old(:)
   ! real(dp), allocatable              :: X(:)
 
+  call parse_command_line()
   call print_start_message()
 
   loop_factor = 10 ! factor for setting openMP loop size
