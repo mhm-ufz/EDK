@@ -95,8 +95,10 @@ contains
         ! composed:   nugget + exponential + sill
         if ( eq(h, 0.0_dp) ) then
           tVar = c0 ! 0.0_dp
+        elseif ( a > 0 ) then
+          tVar = c0 + c * (1.0_dp - exp(-r))
         else
-          tVar = c0 + c * (1.0_dp - dexp(-r))
+          tVar = c0 + c
         end if
       end select
     !
