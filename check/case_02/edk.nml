@@ -78,7 +78,7 @@ flagVario                = .True.
 ! number of variogram parameters
 nParam                   = 3
 ! type of theoretical variogramm (1=spherical, 2 = exponential)
-vType                    = 2
+vType                    = 1
 !
 ! file name where to store the variogram parameters
 ! (if flagVario is false, variogram parameters )
