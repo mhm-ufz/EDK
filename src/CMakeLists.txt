@@ -25,7 +25,7 @@ if (CMAKE_WITH_OpenMP)
   target_link_libraries(${LIB_NAME} PUBLIC OpenMP::OpenMP_Fortran)
 endif()
 if (CMAKE_WITH_LAPACK)
-  target_link_libraries(${LIB_NAME} PUBLIC LAPACK::LAPACK)
+  target_link_libraries(${LIB_NAME} PUBLIC ${LAPACK_LIBRARIES})
 endif()
 
 # set compiling flags for debug and relese version
