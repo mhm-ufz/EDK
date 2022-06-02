@@ -1,4 +1,3 @@
 cmake -B release -DCMAKE_BUILD_TYPE=Release ${1}
 cmake --build release --parallel
-cmake --install release --prefix release/_tmp
-cp release/_tmp/bin/* . && rm -rf release/_tmp
+cp release/app/edk .

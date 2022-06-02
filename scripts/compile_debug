@@ -1,4 +1,3 @@
-cmake -B debug -DCMAKE_BUILD_TYPE=Debug ${1}
+cmake ${1} -DCMAKE_BUILD_TYPE=Debug -B debug -S .
 cmake --build debug --parallel
-cmake --install debug --prefix debug/_tmp
-cp debug/_tmp/bin/* . && rm -rf debug/_tmp
+cp debug/app/edk ./edk_debug
