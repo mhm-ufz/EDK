@@ -92,8 +92,8 @@ cmake-nagfor62:
   stage: build
   script:
     - source hpc-module-loads/eve.nagfor62
-    - source CI-scripts/compile
-    - source CI-scripts/compile_debug
+    - source scripts/compile
+    - source scripts/compile_debug
   artifacts:
     paths:
     - edk
@@ -103,10 +103,10 @@ cmake-gfortran73:
   stage: build
   script:
     - source hpc-module-loads/eve.gfortran73
-    - source CI-scripts/compile
-    - source CI-scripts/compile_debug
-    - source CI-scripts/compile_OpenMP
-    - source CI-scripts/compile_OpenMP_debug
+    - source scripts/compile
+    - source scripts/compile_debug
+    - source scripts/compile_OpenMP
+    - source scripts/compile_OpenMP_debug
   artifacts:
     paths:
     - edk
@@ -118,10 +118,10 @@ cmake-gfortran83:
   stage: build
   script:
     - source hpc-module-loads/eve.gfortran83
-    - source CI-scripts/compile
-    - source CI-scripts/compile_debug
-    - source CI-scripts/compile_OpenMP
-    - source CI-scripts/compile_OpenMP_debug
+    - source scripts/compile
+    - source scripts/compile_debug
+    - source scripts/compile_OpenMP
+    - source scripts/compile_OpenMP_debug
   artifacts:
     paths:
     - edk
@@ -133,10 +133,10 @@ cmake-gfortran102:
   stage: build
   script:
     - source hpc-module-loads/eve.gfortran102
-    - source CI-scripts/compile
-    - source CI-scripts/compile_debug
-    - source CI-scripts/compile_OpenMP
-    - source CI-scripts/compile_OpenMP_debug
+    - source scripts/compile
+    - source scripts/compile_debug
+    - source scripts/compile_OpenMP
+    - source scripts/compile_OpenMP_debug
   artifacts:
     paths:
     - edk
@@ -148,10 +148,10 @@ cmake-intel18:
   stage: build
   script:
     - source hpc-module-loads/eve.intel18
-    - source CI-scripts/compile
-    - source CI-scripts/compile_debug
-    - source CI-scripts/compile_OpenMP
-    - source CI-scripts/compile_OpenMP_debug
+    - source scripts/compile
+    - source scripts/compile_debug
+    - source scripts/compile_OpenMP
+    - source scripts/compile_OpenMP_debug
   artifacts:
     paths:
     - edk
@@ -163,10 +163,10 @@ cmake-intel19:
   stage: build
   script:
     - source hpc-module-loads/eve.intel19
-    - source CI-scripts/compile
-    - source CI-scripts/compile_debug
-    - source CI-scripts/compile_OpenMP
-    - source CI-scripts/compile_OpenMP_debug
+    - source scripts/compile
+    - source scripts/compile_debug
+    - source scripts/compile_OpenMP
+    - source scripts/compile_OpenMP_debug
   artifacts:
     paths:
     - edk
@@ -178,10 +178,10 @@ cmake-intel2020b:
   stage: build
   script:
     - source hpc-module-loads/eve.intel2020b
-    - source CI-scripts/compile
-    - source CI-scripts/compile_debug
-    - source CI-scripts/compile_OpenMP
-    - source CI-scripts/compile_OpenMP_debug
+    - source scripts/compile
+    - source scripts/compile_debug
+    - source scripts/compile_OpenMP
+    - source scripts/compile_OpenMP_debug
   artifacts:
     paths:
     - edk
@@ -197,7 +197,7 @@ check-nagfor62:
       artifacts: true
   script:
     - source hpc-module-loads/eve.nagfor62
-    - source CI-scripts/pre_check
+    - source scripts/pre_check
     - python -u edk_checks_run.py -l logs -e ../edk
   artifacts:
     when: always
@@ -212,7 +212,7 @@ check-nagfor62DEBUG:
       artifacts: true
   script:
     - source hpc-module-loads/eve.nagfor62
-    - source CI-scripts/pre_check
+    - source scripts/pre_check
     - python -u edk_checks_run.py -l logs -e ../edk_debug
   artifacts:
     when: always
@@ -227,7 +227,7 @@ check-gfortran73:
       artifacts: true
   script:
     - source hpc-module-loads/eve.gfortran73
-    - source CI-scripts/pre_check
+    - source scripts/pre_check
     - python -u edk_checks_run.py -l logs -e ../edk_debug ../edk ../edk_openmp_debug ../edk_openmp -t 4
   artifacts:
     when: always
@@ -242,7 +242,7 @@ check-gfortran83:
       artifacts: true
   script:
     - source hpc-module-loads/eve.gfortran83
-    - source CI-scripts/pre_check
+    - source scripts/pre_check
     - python -u edk_checks_run.py -l logs -e ../edk_debug ../edk ../edk_openmp_debug ../edk_openmp -t 4
   artifacts:
     when: always
@@ -257,7 +257,7 @@ check-gfortran102:
       artifacts: true
   script:
     - source hpc-module-loads/eve.gfortran102
-    - source CI-scripts/pre_check
+    - source scripts/pre_check
     - python -u edk_checks_run.py -l logs -e ../edk_debug ../edk ../edk_openmp_debug ../edk_openmp -t 4
   artifacts:
     when: always
@@ -272,7 +272,7 @@ check-intel18:
       artifacts: true
   script:
     - source hpc-module-loads/eve.intel18
-    - source CI-scripts/pre_check
+    - source scripts/pre_check
     - python -u edk_checks_run.py -l logs -e ../edk_debug ../edk ../edk_openmp_debug ../edk_openmp -t 4
   artifacts:
     when: always
@@ -287,7 +287,7 @@ check-intel19:
       artifacts: true
   script:
     - source hpc-module-loads/eve.intel19
-    - source CI-scripts/pre_check
+    - source scripts/pre_check
     - python -u edk_checks_run.py -l logs -e ../edk_debug ../edk ../edk_openmp_debug ../edk_openmp -t 4
   artifacts:
     when: always
@@ -302,7 +302,7 @@ check-intel2020b:
       artifacts: true
   script:
     - source hpc-module-loads/eve.intel2020b
-    - source CI-scripts/pre_check
+    - source scripts/pre_check
     - python -u edk_checks_run.py -l logs -e ../edk_debug ../edk ../edk_openmp_debug ../edk_openmp -t 4
   artifacts:
     when: always
