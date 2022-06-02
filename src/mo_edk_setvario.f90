@@ -67,20 +67,25 @@ contains
   !***********************************************************
   real(dp) function tVar(h,c0,c,a)
     use VarFit,  only      : vType
+    use mo_utils, only: eq
     real(dp), intent(in)  :: h                ! distance
     real(dp), intent(in)  :: c0               ! nugget = beta(1) = XU(1)
     real(dp), intent(in)  :: c                ! sill   = beta(2) = XU(2)
     real(dp), intent(in)  :: a                ! range  = beta(3) = XU(3)
     real(dp)              :: r
     !
+    if ( a > 0.0_dp ) then
+      r = h/a
+    else
+      r = 0.0_dp
+    end if
     select case (vType)
       !
       case (1)
         ! composed:   nugget + spherical + sill
-        r = h/a
-        if (h == 0.0_dp) then
+        if ( eq(h, 0.0_dp) ) then
           tVar = c0 ! 0.0_dp
-        elseif ( h <= a) then
+        elseif ( h < a ) then
           tVar = c0 + c * (1.5_dp * r - 0.5_dp * r**3)
         else
           tVar = c0 + c
@@ -88,8 +93,11 @@ contains
         !
       case (2)
         ! composed:   nugget + exponential + sill
-        r = h/a
-        tVar = c0 + c * (1.0_dp - dexp(-r))
+        if ( eq(h, 0.0_dp) ) then
+          tVar = c0 ! 0.0_dp
+        else
+          tVar = c0 + c * (1.0_dp - dexp(-r))
+        end if
       end select
     !
   end function tVar
