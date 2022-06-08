@@ -3,13 +3,12 @@ cmake_minimum_required(VERSION 3.14)
 include(cmake/cmake-modules/version.cmake)
 get_version(EDK_VER EDK_VER_DEV EDK_DATE)
 
-# define the project ###########################################################################
-project(                                                                                       #
-  edk                                                                                          #
-  VERSION ${EDK_VER}                                                                           #
-  LANGUAGES Fortran C                                                                          #
-)                                                                                              #
-################################################################################################
+# define the project
+project(
+  edk
+  VERSION ${EDK_VER}
+  LANGUAGES Fortran C
+)
 
 # add the library
 add_subdirectory(./src)

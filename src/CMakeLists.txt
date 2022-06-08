@@ -10,7 +10,7 @@ else()
 endif()
 target_include_directories(${LIB_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 
-# download forces and link it (or use local forces folder) if wanted
+# download forces and link it
 include(../cmake/cmake-modules/CPM.cmake)
 CPMAddPackage("https://git.ufz.de/chs/forces.git@0.3.1")
 if(BUILD_${PROJECT_NAME}_LIB_SHARED)
