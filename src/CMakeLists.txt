@@ -1,7 +1,7 @@
 set(LIB_NAME "${PROJECT_NAME}-lib")
 
 # add sources .f90 and .F90 files
-file(GLOB sources ./*.*90)
+file(GLOB sources *.*90)
 option(BUILD_${PROJECT_NAME}_LIB_SHARED "Build library as shared." OFF)
 if(BUILD_${PROJECT_NAME}_LIB_SHARED)
   add_library(${LIB_NAME} SHARED ${sources})
@@ -12,7 +12,7 @@ target_include_directories(${LIB_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 
 # download forces and link it
 include(../cmake/cmake-modules/CPM.cmake)
-CPMAddPackage("https://git.ufz.de/chs/forces.git@0.3.1")
+CPMAddPackage("https://git.ufz.de/chs/forces.git@0.3.2")
 if(BUILD_${PROJECT_NAME}_LIB_SHARED)
   set_property(TARGET forces PROPERTY POSITION_INDEPENDENT_CODE ON)
 endif()

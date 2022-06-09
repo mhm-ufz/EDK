@@ -11,11 +11,11 @@ project(
 )
 
 # add the library
-add_subdirectory(./src)
+add_subdirectory(src)
 set(LIB_NAME "${PROJECT_NAME}-lib")
 
 # add the executable
-add_subdirectory(./app)
+add_subdirectory(app)
 
 # add full version and date to pre-processor flags (qoutes need in before hand)
 target_compile_definitions(${LIB_NAME} PRIVATE

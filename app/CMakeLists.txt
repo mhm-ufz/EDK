@@ -1,5 +1,5 @@
 # Example application target
-file(GLOB exe_sources ./*.*90)
+file(GLOB exe_sources *.*90)
 add_executable(
   "${PROJECT_NAME}-exe"
   ${exe_sources}
