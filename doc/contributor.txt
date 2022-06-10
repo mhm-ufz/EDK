@@ -5,4 +5,5 @@ Matthias Cuntz,
 Matthias Kelbling,
 Akash Koppa,
 Friedrich Boeing,
-Sebastian Müller
+Sebastian Müller,
+Stephan Thober
