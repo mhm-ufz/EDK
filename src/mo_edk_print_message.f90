@@ -1,3 +1,7 @@
+!> \file    mo_edk_print_message.f90
+!> \copydoc mo_edk_print_message
+
+!> \brief   Module containing messages for the EDK program.
 module mo_edk_print_message
 
   implicit none
@@ -9,6 +13,7 @@ module mo_edk_print_message
 
 contains
 
+  !> \brief   Start up messages for the EDK program.
   subroutine print_start_message()
 
     use mo_edk_info, only: version
@@ -27,6 +32,7 @@ contains
 
   end subroutine print_start_message
 
+  !> \brief   Ending messages for the EDK program.
   subroutine print_end_message
 
     use mo_message, only: message

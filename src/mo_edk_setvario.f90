@@ -1,15 +1,16 @@
-!**********************************************************************************
-!  VARIOGRAM: Seting or estimating and fitting
-!  PURPOSE:
-!          1) Set variagram from DB for a block, or
-!          2.1) Estimate an empirical semi variogram for daily met. values
-!          2.2) Fitting a teoretical variogram
-!          2.3) Set variogram for a block
-!  WHERE:
-!  UPDATES:
-!          Created      Sa  19.02.2004     main structure
-!          Last update      12.04.2006
-!**********************************************************************************
+!> \file    mo_edk_setvario.f90
+!> \copydoc mo_edk_setvario
+
+!> \brief   VARIOGRAM: Seting or estimating and fitting
+!> \details PURPOSE:
+!!          1) Set variagram from DB for a block, or
+!!          2.1) Estimate an empirical semi variogram for daily met. values
+!!          2.2) Fitting a teoretical variogram
+!!          2.3) Set variogram for a block
+!> \author  Luis Samaniego
+!> \date    19.02.2004
+!!          - main structure
+!> \date    12.04.2006
 module mo_edk_setvario
   use mo_kind, only: i4, dp
   implicit none
@@ -22,13 +23,14 @@ module mo_edk_setvario
 
 contains
 
+  !> \brief   find optimal variogram parameters, if wanted
   subroutine setVario(param)
     use runControl
     use VarFit
     use mainVar
     use mo_edk_empvar, only: EmpVar
     implicit none
-    real(dp), intent(out) :: param(3)
+    real(dp), intent(out) :: param(3) !< parameters (nugget, sill, range)
     integer(i4) :: jd, y, y0
     !
     ! Estimation
@@ -59,19 +61,15 @@ contains
     end if
   end subroutine setVario
 
-  !
-  !***********************************************************
-  !
-  !  tVAR:: Function to calulate variogram at given distance
-  !
-  !***********************************************************
+  !> \brief   Function to calulate variogram at given distance
+  !> \return  variogram value
   real(dp) function tVar(h,c0,c,a)
     use VarFit,  only      : vType
     use mo_utils, only: eq
-    real(dp), intent(in)  :: h                ! distance
-    real(dp), intent(in)  :: c0               ! nugget = beta(1) = XU(1)
-    real(dp), intent(in)  :: c                ! sill   = beta(2) = XU(2)
-    real(dp), intent(in)  :: a                ! range  = beta(3) = XU(3)
+    real(dp), intent(in)  :: h                !< distance
+    real(dp), intent(in)  :: c0               !< nugget = beta(1) = XU(1)
+    real(dp), intent(in)  :: c                !< sill   = beta(2) = XU(2)
+    real(dp), intent(in)  :: a                !< range  = beta(3) = XU(3)
     real(dp)              :: r
     !
     if ( a > 0.0_dp ) then
@@ -104,12 +102,7 @@ contains
     !
   end function tVar
 
-  !
-  !*******************************************************
-  !
-  !  DMATRIX:: To calculate distance between pairs.......
-  !
-  !*******************************************************
+  !> \brief   DMATRIX:: To calculate distance between pairs.
   subroutine dMatrix
     use mainVar
     use kriging
@@ -220,26 +213,18 @@ contains
 
   end subroutine dMatrix
 
-  !*****************************************************************************
-  !    Main_opti.for
-  !    AUTHOR
-  !         Luis E. Samaniego-Eguiguren, IREUS, 28.05.1999
-  !    DESCRIPTION
-  !         Initialization of the Nonlinear Optimization Subroutine GRG2
-  !         The function to be optimized is suplied in subroutine GCOMP
-  !    DEFINITION OF INPUT/OUTPUT-CHANNELS
-  !         SCREEN:            *
-  !
-  !         SCREEN OUTPUT:     *
-  !         OUTPUT FILE:       6
-  !******************************************************************************
+  !> \brief   Optimization routine for variograms.
+  !> \details Initialization of the Nonlinear Optimization Subroutine GRG2
+  !!          The function to be optimized is suplied in subroutine GCOMP
+  !> \author  Luis Samaniego
+  !> \date    28.05.1999
   subroutine OPTI(pmin)
     use VarFit
     use mo_nelmin, only: nelminrange
 
     ! parameters for Nelder-Mead algorithm
+    real(dp), intent(out) :: pmin(3) !< optimized parameter set
     real(dp) :: pstart(3) ! Starting point for the iteration.
-    real(dp), intent(out) :: pmin(3) ! optimized parameter set
     real(dp) :: prange(3, 2) ! Range of parameters (upper and lower bound).
     real(dp) :: varmin ! the terminating limit for the variance of the function values. varmin>0 is required
     real(dp) :: step(3) ! determines the size and shape of the initial simplex. The relative magnitudes of its elements should reflect the units of the variables. size(step)=size(start)
@@ -307,9 +292,8 @@ contains
 
   end subroutine OPTI
 
-  !******************************************************************************
-  ! Function to be minimised for the nelder mead algorithm
-  !******************************************************************************
+  !> \brief   Function to be minimised for the nelder mead algorithm
+  !> \return  Target function value for given parameter set.
   function obj_func(p)
     use varfit, only      : nbins, gamma, nh
     implicit none
@@ -331,11 +315,7 @@ contains
     end do
   end function obj_func
 
-  !      **************************************************************************
-  !
-  ! SUBROUTINE      statistics
-  !
-  !      **************************************************************************
+  !> \brief   statistics
   subroutine stats
     use varFit, only                     : E, beta, gamma
     implicit none

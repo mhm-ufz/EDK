@@ -1,3 +1,7 @@
+!> \file    mo_edk_write.f90
+!> \copydoc mo_edk_write
+
+!> \brief   Module to write out edk results.
 module mo_edk_write
 
   implicit none
@@ -8,6 +12,7 @@ module mo_edk_write
 
 CONTAINS
 
+  !> \brief   Open the output netcdf file.
   subroutine open_netcdf(nc, var_data, var_time)
 
     use mo_kind, only: i4, sp, dp
@@ -20,8 +25,9 @@ CONTAINS
 
     implicit none
 
-    type(NcDataset),  intent(out) :: nc
-    type(NcVariable), intent(out) :: var_time, var_data
+    type(NcDataset),  intent(out) :: nc       !< opened netcdf file
+    type(NcVariable), intent(out) :: var_data !< netcdf data variable
+    type(NcVariable), intent(out) :: var_time !< netcdf time variable
 
     type(NcDimension)     :: dim_x, dim_y, dim_time
     type(NcVariable)      :: var_east, var_north, var_lat, var_lon

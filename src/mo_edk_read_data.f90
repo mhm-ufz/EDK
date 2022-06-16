@@ -1,3 +1,10 @@
+!> \file    mo_edk_read_data.f90
+!> \copydoc mo_edk_read_data
+
+!> \brief   Module containing routines to read data.
+!> \author  Luis Samaniego
+!> \date    21.03.2006
+!> \date    11.06.2010
 module mo_edk_read_data
 
   use mo_kind, only: dp
@@ -16,15 +23,14 @@ module mo_edk_read_data
   end type extend
 
 contains
-  !*************************************************************************
-  !    SUBROUTINE Read Database Precipitation
-  !               Read grid DEM
-  !               Reads parameters variogram
-  !    AUTHOR:    Luis E. Samaniego-Eguiguren, UFZ
-  !    UPDATES
-  !               Created        Sa   21.03.2006
-  !               Last Update    Sa   11.06.2010
-  !**************************************************************************
+
+  !> \brief   Routine to read data for EDK.
+  !> \details Read Database Precipitation
+  !!          Read grid DEM
+  !!          Reads parameters variogram
+  !> \author  Luis Samaniego
+  !> \date    21.03.2006
+  !> \date    11.06.2010
   subroutine ReadData()
     use mainVar,    only: noDataValue, cellFactor, DataConvertFactor, OffSet, &
         yStart, mStart, dStart, yEnd, mEnd, dEnd, tBuffer,DEMNcFlag

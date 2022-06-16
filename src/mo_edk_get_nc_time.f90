@@ -1,3 +1,21 @@
+!> \file    mo_edk_get_nc_time.f90
+!> \copydoc mo_edk_get_nc_time
+
+!> \brief   Module to get time vector from NetCDF file.
+!> \author  Matthias Zink
+!> \date    Oct 2012
+!> \authors Matthias Cuntz, Juliane Mai
+!> \date    Nov 2014
+!!          - time int or double
+!> \author  Stephan Thober
+!> \date    Sep 2015
+!!          - added read for hourly data
+!> \author  Robert Schweppe
+!> \date    Nov 2017
+!!          - restructured routine, reads vector now
+!> \author  Maren Kaluza
+!> \date    May 2018
+!!          - fixed bug in time reading
 module mo_edk_get_nc_time
 
   implicit none
@@ -8,43 +26,8 @@ module mo_edk_get_nc_time
 
 contains
 
-  ! ------------------------------------------------------------------
-
-  !    NAME
-  !        get_time_vector_and_select
-
-  !    PURPOSE
-  !>       \brief TODO: add description
-
-  !>       \details TODO: add description
-
-  !>       ADDITIONAL INFORMATION
-  !>       get_time_vector_and_select
-  !>       Extract time vector in unit julian hours and get supposed time step in hours
-
-  !    INTENT(IN)
-  !>       \param[in] "type(NcVariable) :: var"    variable of interest
-  !>       \param[in] "character(256) :: fname"    fname of ncfile for error message
-  !>       \param[in] "integer(i4) :: inctimestep" flag for requested time step
-
-  !    INTENT(OUT)
-  !>       \param[out] "integer(i4) :: time_start" time_start index of time selection
-  !>       \param[out] "integer(i4) :: time_cnt"   time_count of indexes of time selection
-
-  !    INTENT(IN), OPTIONAL
-  !>       \param[in] "type(period), optional :: target_period" reference period
-
-  !    HISTORY
-  !>       \authors Matthias Zink
-
-  !>       \date Oct 2012
-
-  ! Modifications:
-  ! Matthias Cuntz & Juliane Mai Nov 2014 - time int or double
-  ! Stephan Thober               Sep 2015 - added read for hourly data
-  ! Robert Schweppe              Nov 2017 - restructured routine, reads vector now
-  ! Maren Kaluza                 May 2018 - fixed bug in time reading
-
+  !> \brief   Extract time vector
+  !> \details Extract time vector in unit julian hours and get supposed time step in hours
   subroutine get_time_vector_and_select(var, fname, inctimestep, time_start, time_cnt, target_period)
 
     use mainVar, only : period, dayhours, daysecs, yeardays
@@ -56,22 +39,22 @@ contains
 
     implicit none
 
-    ! variable of interest
+    !> variable of interest
     type(NcVariable), intent(in) :: var
 
-    ! fname of ncfile for error message
+    !> fname of ncfile for error message
     character(256), intent(in) :: fname
 
-    ! flag for requested time step
+    !> flag for requested time step
     integer(i4), intent(in) :: inctimestep
 
-    ! time_start index of time selection
+    !> time_start index of time selection
     integer(i4), intent(out) :: time_start
 
-    ! time_count of indexes of time selection
+    !> time_count of indexes of time selection
     integer(i4), intent(out) :: time_cnt
 
-    ! reference period
+    !> reference period
     type(period), intent(in), optional :: target_period
 
     ! reference time of NetCDF
