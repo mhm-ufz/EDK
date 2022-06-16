@@ -1,3 +1,18 @@
+!> \file    mo_edk.f90
+!> \copydoc mo_edk
+
+!> \brief   Main module for EDK.
+!> \details Executes the EDK setup.
+!> \author  Luis Samaniego
+!> \date    22.03.2006
+!> \date    14.04.2006
+!> \date    14.07.2010
+!!          - DEM ckeck
+!> \author  Matthias Zink
+!> \date    05.05.2011
+!!          - IWD if No stations < 2
+!> \date    07.02.2012
+!!          - correct prec data < 0 --> = 0
 module mo_edk
 
   implicit none
@@ -7,19 +22,10 @@ module mo_edk
   public :: EDK, clean, WriteDataMeteo
 
 contains
-  !****************************************************************************
-  !
-  !  SUBROUTINE: External Drift Kriging
-  !
-  !  PURPOSE:  Perform EDK (daily)
-  !            Output: output gridsize = cellFactor * gridsize DEM
-  !  UPDATES
-  !            Created        L. Samaniego            22.03.2006
-  !            Last Update       Sa                   14.04.2006
-  !            Last Update       Sa                   14.07.2010   DEM ckeck
-  !            Last Update       Zi                   05.05.2011   IWD if No stations < 2
-  !            Last Update       Zi                   07.02.2012   correct prec data < 0 --> = 0
-  !****************************************************************************
+
+  !> \brief   External Drift Kriging
+  !> \details Perform EDK (daily)
+  !!          Output: output gridsize = cellFactor * gridsize DEM
   subroutine EDK(k, jStart, jEnd, edk_dist, MetSta, cell, doOK)
     use mo_kind,    only : i4, dp, sp
     use mainVar,    only : MeteoStation, noDataValue, thresholdDist
@@ -30,12 +36,12 @@ contains
     implicit none
 
     ! input / output variables
-    integer(i4),                intent(in)    :: k         ! cell id
+    integer(i4),                intent(in)    :: k         !< cell id
     integer(i4),                intent(in)    :: jStart, jEnd
-    type(dist_t),               intent(in)    :: edk_dist  ! distances matrix
-    type(MeteoStation),         intent(in)    :: MetSta(:) ! MeteoStation input
-    type(CellCoarser),          intent(inout) :: cell    ! cell specification
-    logical, optional,          intent(in)    :: doOK   ! switch do ordinary kriging
+    type(dist_t),               intent(in)    :: edk_dist  !< distances matrix
+    type(MeteoStation),         intent(in)    :: MetSta(:) !< MeteoStation input
+    type(CellCoarser),          intent(inout) :: cell    !< cell specification
+    logical, optional,          intent(in)    :: doOK   !< switch do ordinary kriging
 
     ! local variables
     logical                         :: doOK_loc, calc_weights
@@ -138,6 +144,7 @@ contains
     !
   end subroutine EDK
 
+  !> \brief   get kriging weights
   subroutine get_kriging_weights(X, nNmax, Nk, doOK_loc, edk_dist, k, cell_h, MetSta)
 
     use mo_kind,     only : dp, i4
@@ -152,10 +159,10 @@ contains
     integer(i4),           intent(in)  :: nNmax
     integer(i4),           intent(in)  :: Nk(:)
     logical,               intent(in)  :: doOK_loc
-    type(dist_t),          intent(in)  :: edk_dist  ! distances
-    integer(i4),           intent(in)  :: k         ! cell index
-    real(dp),              intent(in)  :: cell_h    ! cell elevation
-    type(MeteoStation),    intent(in)  :: MetSta(:) ! MeteoStation input
+    type(dist_t),          intent(in)  :: edk_dist  !< distances
+    integer(i4),           intent(in)  :: k         !< cell index
+    real(dp),              intent(in)  :: cell_h    !< cell elevation
+    type(MeteoStation),    intent(in)  :: MetSta(:) !< MeteoStation input
 
     ! local variables
     integer(i4)              :: i, j, ii, jj, info
@@ -238,15 +245,7 @@ contains
     deallocate (A, B, C, ipvt)
   end subroutine get_kriging_weights
 
-  !****************************************************************************
-  !
-  !  SUBROUTINE: clean
-  !
-  !  PURPOSE:  free allocated space of all arrays
-  !  UPDATES
-  !            Created        L. Samaniego            10.08.2010
-  !            Last Update
-  !****************************************************************************
+  !> \brief   free allocated space of all arrays
   subroutine clean
     use mainVar
     use mo_kind, only: i4
@@ -272,26 +271,8 @@ contains
 
   end subroutine clean
 
-  !*************************************************************************
-  !    PURPOSE    WRITE METEREOLOGIC VARIABLES
-  !    FORMAT     xxx_yyyy.bin
-  !
-  !               xxx   : | pre   flag = 1
-  !                       | tem          2
-  !                       | pet          3
-  !               yyyy  :   year
-  !               rec j :   grid   lenght (ncol x nrow x 4) bytes
-  !                   j :   julian day
-  !
-  !               note      direct access, unformatted file
-  !                         with records sized for the whole grid
-  !
-  !    AUTHOR:    Luis E. Samaniego-Eguiguren, UFZ
-  !    UPDATES
-  !               Created        Sa   21.03.2006
-  !               Last Update    Sa
-  !**************************************************************************
-  subroutine WriteDataMeteo(y,d,wFlag)
+  !> \brief   WRITE METEREOLOGIC VARIABLES
+  subroutine WriteDataMeteo
     use mo_kind, only         : i4, dp
     use mainVar
     use runControl
@@ -300,74 +281,32 @@ contains
     use mo_edk_setvario, only : tvar
     !
     implicit none
-    integer(i4), intent (in)  :: y, d, wFlag
     integer(i4)               :: i, j, k
     integer(i4)               :: leap             ! leap day either 0 or 1
     character(256)            :: dummy
     character(256)            :: fileName
     logical                   :: wasOpened
 
-    !
-    select case (wFlag)
-    case (1)
-      print *, '***ERROR: writeDataMeteo: binary write not available anymore'
-      stop 1
-      ! !---------------------
-      ! ! write Binary files
-      ! !---------------------
-      ! write (dummy, 110) y
-      ! fileName = trim(dataPathOut)//trim(dummy)
-
-      ! ! open file
-      ! inquire (file=trim(fileName), opened = wasOpened)
-      ! if (.not. wasOpened) then
-      !    open (unit=100, file=fileName, form='unformatted', access='direct', status='unknown', recl=4*nCell)                     ! 4 bytes / cell (real 4)
-      ! end if
-
-      ! ! write data
-      ! write (100,rec=d) cell(:)%z
-
-      ! ! is leapyear ?
-      ! if (  ( (mod(y,4) .EQ. 0) .AND. (mod(y,100) .NE. 100) )  .OR. (mod(y,400) .EQ. 0)  ) then
-      !    leap = 1
-      ! else
-      !    leap = 0
-      ! end if
-
-      ! ! close file on last day
-      ! !if ( (d .EQ. 365+leap) .OR. ( (y == yEnd) .AND. (d == ) ) ) close (100)
-      ! if ( d .EQ. 365+leap ) then
-      !    print*, 'saving ', trim(fileName)
-      !    close (100)
-      ! end if
-      ! !
-      !
-    case (2)
-      !---------------------------
-      ! write variogram parameters
-      !---------------------------
-
-      ! print varfit cross-val depending on variogram estimation (true or false)
-      if ( flagVario ) then    !
-        fileName=trim(dataPathOut)//'varFit.txt'
-        inquire(201, OPENED = wasOpened)
-        if (.not.wasOpened) then
-           open (201, file=filename, status='unknown', action='write')
-           write (201, 200) 'nugget', 'sill', 'range', 'Type', 'Easting', 'Northing','BIAS', 'RMSE', 'r'
-        end if
-        write (201, 201) (beta(i),i=1,nParam), vType, (xl+xr)*0.5_dp, (yd+yu)*0.5_dp, E(1), E(2), E(7)
-        close(201)
-
-        fileName = trim(dataPathOut)//trim('variogram.dat')
-        open (21, file=trim(fileName), status='unknown', action='write')
-        write(21,203)
-        do k=1,nbins
-           if (nh(k) >0)   write(21,204) (gamma(k,j), j=1,2),  tVar(gamma(k,1),beta(1),beta(2),beta(3)),  nh(k)
-        end do
-        close(21)
+    ! print varfit cross-val depending on variogram estimation (true or false)
+    if ( flagVario ) then    !
+      fileName=trim(dataPathOut)//'varFit.txt'
+      inquire(201, OPENED = wasOpened)
+      if (.not.wasOpened) then
+          open (201, file=filename, status='unknown', action='write')
+          write (201, 200) 'nugget', 'sill', 'range', 'Type', 'Easting', 'Northing','BIAS', 'RMSE', 'r'
       end if
+      write (201, 201) (beta(i),i=1,nParam), vType, (xl+xr)*0.5_dp, (yd+yu)*0.5_dp, E(1), E(2), E(7)
+      close(201)
 
-    end select
+      fileName = trim(dataPathOut)//trim('variogram.dat')
+      open (21, file=trim(fileName), status='unknown', action='write')
+      write(21,203)
+      do k=1,nbins
+          if (nh(k) >0)   write(21,204) (gamma(k,j), j=1,2),  tVar(gamma(k,1),beta(1),beta(2),beta(3)),  nh(k)
+      end do
+      close(21)
+    end if
+
     !
     ! formats
     110 format (i4,'.bin')

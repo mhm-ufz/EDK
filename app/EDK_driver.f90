@@ -1,22 +1,19 @@
-!****************************************************************************
-!
-!  PROGRAM:  EDK
-!
-!  PURPOSE:  Perform EDK (daily)
-!            Store results suitable for mHM
-!            special version to interpolate values in blocks
-!            *** can be parallelized ***
-!
-!  NOTE:     CVF do not use RECL in bytes by default.
-!            use:
-!                in Project settings | Fortran | Fortran data |
-!                mark use Bytes as RECL = unit for unformated files.
-!  UPDATES
-!            Created        Sa   21.03.2006
-!            Last Update    Sa   11.06.2010    ! blocks, whole Germany
-!            Last Update    Zi   04.02.2012    ! changed to general edk version
-!                                              ! (excluded block seperation)
-!****************************************************************************
+!> \file    EDK_driver.f90
+!> \copydoc ED_Kriging
+
+!> \brief   External drift kriging - EDK
+!> \details Perform EDK (daily)
+!!          Store results suitable for mHM
+!!          special version to interpolate values in blocks
+!!          *** can be parallelized ***
+!> \author  Luis Samaniego
+!> \date    21.03.2006
+!> \date    11.06.2010
+!!          - blocks, whole Germany
+!> \author  Luis Samaniego
+!> \date    21.03.2006
+!> \date    04.02.2012
+!!          - changed to general edk version (excluded block seperation)
 program ED_Kriging
 
   use mo_kind                , only: i4, dp, sp
@@ -118,7 +115,7 @@ program ED_Kriging
   ! estimate variogram
   call setVario(param)
   ! write variogram
-  if (flagVario) call WriteDataMeteo(0,0,2)
+  if (flagVario) call WriteDataMeteo
   call timer_stop(itimer)
   call message('')
   call message('    in ', trim(num2str(timer_get(itimer), '(F9.3)')), ' seconds.')
