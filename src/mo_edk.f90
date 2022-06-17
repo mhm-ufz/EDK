@@ -89,7 +89,7 @@ contains
       end if
 
       if (.not. ( n_zero == n_select .or.  n_select == 1 .or. n_select == 2 ) ) then
-        !>>>>  no value ! avoid indetermination
+        ! no value ! avoid indetermination
         ! avoid 0 value calculations n_zero == n_select
         ! avoid calculations where only 1 station is available
         ! avoid numerical instabilities n_select == 2 (may happen that the solver matrix becomes singular)

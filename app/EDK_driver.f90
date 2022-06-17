@@ -10,8 +10,6 @@
 !> \date    21.03.2006
 !> \date    11.06.2010
 !!          - blocks, whole Germany
-!> \author  Luis Samaniego
-!> \date    21.03.2006
 !> \date    04.02.2012
 !!          - changed to general edk version (excluded block seperation)
 program ED_Kriging
