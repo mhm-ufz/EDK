@@ -105,7 +105,7 @@ To create a (local) conda environment with all dependencies type the following:
 ```bash
 conda create -y --prefix ./fortran_env
 conda activate ./fortran_env
-conda install -y git cmake make fortran-compiler netcdf-fortran
+conda install -y git cmake make fortran-compiler netcdf-fortran liblapack
 ```
 
 Then you can proceed with cloning and compiling.
