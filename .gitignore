@@ -7,6 +7,17 @@ latex/
 doxygen_warn.txt
 Testing/
 src/tests/*.F90
+release/
+debug/
+openmp_release/
+openmp_debug/
+output/**
+!output/.gitkeep
+edk
+edk_debug
+edk_openmp
+edk_openmp_debug
+forces/
 
 # Exclusions
 *.g90
