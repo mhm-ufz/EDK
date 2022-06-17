@@ -1,243 +1,234 @@
-Dependencies:
-=============
-For Windows, some Linux distributions and soon also MacOS
-specific installation instructions for the following list
-can be found below.
+# Compilation
 
-- a fortran compiler
-- make (a tool to compile a program)
-- cmake (version >= 3.5) (a tool to create a system dependent makefile)
-- fitting netcdf-fortran libraries (libraries for the usage of the data format netcdf on which edk depends)
-- (optional, but makes things much easier) git
-
-Git is a version-control system. If you want to contribute to a project, it is highly recommended to
-use Git. You can use Git to download (clone) the project to your local pc and have a look at the history or
-synchronize it without copying the whole repository again. You can also download the project folder without
-Git, but this would not allow you to pull updates from and push changes to our repository.
-
-System dependend installation instructions:
-===========================================
-### Windows:
-[Cygwin](https://cygwin.com/) is an environment with a terminal that allows to compile and
-run programs of Unix-like systems. You can find further instructions to install cygwin on the webpage, as well as
-instructions on how to install further dependencies after the installation.
-
-After the installation of cygwin and its dependencies edk will be installed
-using cygwin. All commands and the execution of edk only run in that environment.
-
-Install cygwin by executing the cygwin setup and choose the following dependencies:
-
-- [ ] gcc-fortran (the fortran compiler)
-- [ ] make
-- [ ] cmake (version >= 3.5)
-- [ ] libnetcdf-fortran-devel
-- [ ] Git *(optional, Git is also available outside of cygwin, [see the Git website](https://git-scm.com/downloads))*
-
-While installing cygwin you will have to choose a mirror. A mirror is a server
-on the internet where the files for the installation come from. Choose any server
-located near your city and when in doubt, choose the first one in the list.
-In the next step you can find all available packages provided by cygwin, set
-the view to "full". In the search panel you can filter the packages 
-by the dependencies listed above (e.g. make). When you choose a
-version, the newest one is usually a good choice if not marked as experimental.
-
-*Note for UFZ members:* Install cygwin locally, do not choose a location on the
-network for the installation.
-
-Some cygwin versions create a new home directory for you. You may check e.g. here:
-
-    C:\cygwin64\home\$username
+The section 'Dependencies' lists the general requirements
+for the compilation. The section 'System-dependent dependency installation'
+gives some instructions on how to install these dependencies on Windows,
+some Linux-distributions and MacOS.
+Conda based dependency installation is described in the section 'Conda dependent installation'.
 
 
-### Ubuntu, Mint and other apt-get based systems with matching repositories:
+## Dependencies
 
-    sudo apt-get install git # (optional)
-    sudo apt-get install gfortran netcdf-bin libnetcdf-dev libnetcdff-dev cmake libblas-dev liblapack-dev
+To clone and compile EDK you need at least the following:
 
-### Archlinux:
+* Fortran compiler: We support [gfortran](https://gcc.gnu.org/fortran/), [nagfor](https://www.nag.com/content/nag-fortran-compiler) and [ifort](https://www.intel.com/content/www/us/en/developer/tools/oneapi/overview.html)
+* Build system: We support [make](https://www.gnu.org/software/make/) and [ninja](https://ninja-build.org/)
+* [cmake](https://cmake.org/): Software for build automation
+* [NetCDF-Fortran](https://github.com/Unidata/netcdf-fortran): NetCDF I/O for Fortran
+* [Lapack](https://www.netlib.org/lapack/): the linear algebra package
+* [git](https://git-scm.com/): version control system
+* (optional) [fypp](https://github.com/aradi/fypp): Fortran pre-processor written in Python
 
-    sudo pacman -S git # (optional)
-    sudo pacman -S gcc-libs netcdf-fortran cmake
 
-### Module systems:
+## System-dependent dependency installation
+
+After you installed all dependencies on your system you can proceed with cloning and compiling.
+
+
+### Unix (Linux / MacOS)
+
+1. MacOS with [homebrew](https://brew.sh) available:
+    ```bash
+    brew install git gcc netcdf lapack cmake
+    ```
+
+2. Ubuntu, Mint and other apt-get based systems with matching repositories:
+    ```bash
+    sudo apt-get install git gfortran netcdf-bin libnetcdf-dev libnetcdff-dev liblapack-dev cmake
+    ```
+
+3. Archlinux:
+    ```bash
+    sudo pacman -S git gcc-libs netcdf-fortran lapack cmake
+    ```
+
+4. yum based systems (CentOS, OpenSuse):
+    ```bash
+    sudo yum -y install git gcc-gfortran netcdf-fortran lapack cmake
+    ```
+
+
+### Windows
+
+On Windows 10 and later we recommend to use [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/install-win10) (WSL) to be able to use Linux by e.g. [installing Ubuntu](https://ubuntu.com/tutorials/install-ubuntu-on-wsl2-on-windows-10) there.
+
+Easiest way to do so is:
+
+1. install the [Windows Terminal](https://apps.microsoft.com/store/detail/windows-terminal/9N0DX20HK701)
+2. open the Windows Terminal and type:
+    ```bash
+    wsl --install -d ubuntu
+    ```
+
+3. Open Ubuntu from the new entry in the start menu
+
+Then you can follow the install instructions for Ubuntu from above.
+
+
+### Module systems
 
 If you are on a module system, load the modules gcc or intel depending on your
-favorite compiler. Then, load the modules netcdf-fortran and cmake. 
+favorite compiler. Then, load the modules netcdf-fortran and cmake.
 
 These modules will have system specific names, environments, etc.
 You may use `module spider` to find the right packages and the
 right dependencies, potentially use corresponding wiki pages.
 
-#### On eve (the cluster at the UFZ):
 
-From 2020 onward the software is installed in toolchains, where all included software specific compilers
-From the source directory use a script provided in `moduleLoadScripts`,
-for example for the GNU 7.3 compiler:
+#### On EVE (the cluster at the UFZ)
 
-    source moduleLoadScripts/eve.gfortran73
-    
-for intel use
-    source moduleLoadScripts/eve.intel[version]
-    
-    ATTENTION!: in intel cmake cannot find LAPACK and BLAS Libraries, the paths need to be set manually by
-    cmake -DLAPACK_LIBRARIES=$MKLROOT/lib/intel64/libmkl.so -DBLAS_LIBRARIES=$MKLROOT/lib/intel64/libmkl.so ..
+A set of load-scripts is provided in `hpc-module-loads` (see the [repository](https://git.ufz.de/chs/HPC-Fortran-module-loads) for more details), to load all needed modules for specific compilers:
 
-### MacOS:
+- Example: GNU 7.3 compiler (`foss/2018b` Toolchain):
+  ```bash
+  source hpc-module-loads/eve.gcc73
+  ```
+  or (MPI support)
+  ```bash
+  source hpc-module-loads/eve.gcc73MPI
+  ```
 
-*(to be added)*
 
-Specific setups:
-================
+## Conda dependent installation
 
-The following hints can replace the step `cmake ..` in the installation instruction.
+The simplest way to compile this project on your local computer is to use a [conda](https://docs.conda.io/en/latest/) environment (on Linux (including WSL) or MacOS) provided by [Miniforge](https://github.com/conda-forge/miniforge) to install NetCDF, a Fortran compiler, make, cmake.
 
-You can skip this part and continue with "Installation", if you do not have a module system
-setup (like on clusters) or if you have not installed all packages with a package manager,
-such as cygwin or apt-get.
+On Windows we recommend to use [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/install-win10) (WSL) to be able to use Linux (see above) and set up conda there.
 
-### Module systems:
+You can get the latest version of **Miniforge** with (for Linux/MacOS/WSL):
+```bash
+wget https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh
+bash Miniforge3-$(uname)-$(uname -m).sh
+```
 
-The executable can be build in a way that it runs independend of loaded modules in the end. The
-module system, though, adds system paths in the backround the user should not care about too much, so
-the setup is a workaround. (This would be the case with any other building tool aswell.)
-It should be stable, anyway.
+To create a (local) conda environment with all dependencies type the following:
+```bash
+conda create -y --prefix ./fortran_env
+conda activate ./fortran_env
+conda install -y git cmake make fortran-compiler netcdf-fortran
+```
 
-In case you want to have a module-independend build, instead of just executing `cmake ..`, either run
+Then you can proceed with cloning and compiling.
 
-    cmake -DCMAKE_BUILD_MODULE_SYSTEM_INDEPENDEND:STRING=ON ..
 
-or
+## Cloning the repository
 
-    cmake -C ../CMakeCacheFiles/eve ..
+First you need to clone the repository (if you already have `git`, otherwise see below):
+```bash
+git clone https://git.ufz.de/chs/progs/edk_nc.git
+```
 
-or change the variable `CMAKE_BUILD_MODULE_SYSTEM_INDEPENDEND` with `ccmake` to `ON` after running `cmake ..`.
+This will give you a new folder `edk_nc/` containing the whole repository. You can go into it by:
+```bash
+cd edk_nc/
+```
 
-### None standard locations for the netcdf-library (e.g. standard setup Macs in CHS):
+If you then want to compile a specific version (different from the latest development version), you can check that out with e.g.:
+```bash
+git checkout v3.0.0
+```
 
-Find the location of the `nf-config` file, for example by using:
+Afterwards you can continue with the compilation.
 
-    find / -iname "*nf-config*" 2>/dev/null
 
-This searches the root directory `/` for a file with a name containing the string "nf-config", not
-taking into account upper and lower case. It writes error messages like "permission denied" into
-the void.
-
-Then, instead of running `cmake ..` if not using the standard compiler,
-set the fortran compiler variable to the wished compiler, e.g.
-
-    export FC=gfortran
-
-then either run
-
-    cmake -DCMAKE_NETCDF_DIR:STRING=/path/to/nf-config/of/used/compiler
-
-or copy the file `specificSetup` to some other place:
-
-    cp ../CMakeCacheFiles/specificSetup .
-
-However, in case you want to keep it, you should choose a place
-outside the build repository. Edit the file as follows:
-add the path to your `nf-config` file, and after editing, run:
-
-    cmake -C specificSetup ..
-
-or change the variable `CMAKE_NETCDF_DIR` to the path to the `nf-config` file with `ccmake` after running `cmake ..`.
-
-Installation
-============
-
-1. Change to a directory where you want to store the source code.
-2. Clone the corresponding edk repository into a folder, either using Git (if installed):
-
-        git clone -b cmake git@git.ufz.de:chs/progs/EDK.git edk/
-
-3. Create and change to a build directory where you want to store the build, e.g. inside the Git source directory
-
-        cd edk
-        mkdir build
-
-    Change into the build directory:
-
-        cd build
-
-4. Generate a system dependent makefile
-
-    Execute `cmake` with the path to the Git source directory as parameter.
-
-       cmake ..
-
-    If everything worked well a Makefile was created with the corresponding paths.
-
-    *Note: have a look at "Specific setups" above in case you are using module systems,
-    or when the netcdf libraries are not located where the package manager usually installs libraries, 
-    or when they are not saved in environment variables (i.e., classical MacOS setups at CHS).*
-
-5. Make the build:
-
-   Execute make:
-
-        make
-
-    If this also worked fine, an executable was created, which has to be moved or copied to the Git source directory.
-
-6. Execute the file:
-
-        cd ..
-        cp build/edk .
-
-    On Windows the executable is called `edk.exe` instead of `edk`. In that case
-    instead of `cp build/edk .` execute 
-
-        cp build/edk.exe .
-
-    Now you might execute edk:
-
-        ./edk
-
-*Note concerning the development of the cmake setup: one could automatically
- link the executable with the `cmake` code inside the Git source directory
-  which is not done for two reasons:*
-
-- *The executable depends on your local system, so it should never be commited and pushed to other users.
-    Nothing should be build inside the source directory which we did not do by hand.*
-- *The directory where edk is executed usually is not the source directory but the directory where you want to run
-   your tests. In case of the test setup it is the same, usually it is not.*
-
-Building Realease or Debug versions:
-====================================
-If you want to set up specific versions of the build, you can
-create different folders for that. Assume a release and a debug
-version. Then a good idea would be to create one folder named
- `debug` and one folder named `release`
-
-    mkdir release
-
-    mkdir debug
-
-inside the `release` folder one would execute
-
-    cmake -DCMAKE_BUILD_TYPE=Release ..
-
-and inside the `debug` folder
-
-    cmake -DCMAKE_BUILD_TYPE=Debug ..
-
-Executing
-
-    make
-
-in the corresponding folder would then always result in a release build or respectively in a debug build.
-
-Trouble shooting:
-=================
-
-On brew/homebrew setup MacOS systems there is no working `nf-config` by now. Execute:
-
-    nf-config --all
-
-and if it says something like "is not implemented yet" the issue is not solved yet. But it is on my tracklist.
-
-In any other case feel free to write an email to <mailto:maren.kaluza@ufz.de>.
-
-**cmake** is far from being my main task, so it will probably take a while until I can track a problem.
-I would be happy having bug reports, anyhow.
+## Compilation commands
+
+It could be necessary to set your desired fortran compiler with an environment variable, e.g.:
+```bash
+export FC=gfortran
+```
+
+We prepared a set of scripts to automatize the build and compilation process to generate an executable in the root directory with the following naming scheme:
+
+- Release version `edk`:
+  ```bash
+  source scripts/compile
+  ```
+- Debug version `edk_debug`:
+  ```bash
+  source scripts/compile_debug
+  ```
+- Release version with OpenMP support `edk_openmp`:
+  ```bash
+  source scripts/compile_OpenMP
+  ```
+- Debug version with OpenMP support `edk_openmp_debug`:
+  ```bash
+  source scripts/compile_OpenMP_debug
+  ```
+
+Then you can find an executable `edk` (or `edk[_openmp][_debug]`) in the current folder.
+You can execute it with:
+```bash
+./edk
+```
+
+
+## Installation
+
+To install edk after compilation, i.e. make it available as a command `edk`, you can do the following (assuming you used the release compile script, otherwise replace `release` with the respective build folder):
+```bash
+cmake --install release
+```
+
+If you need to provide a prefix, where to install it, you can just pass one. For example, if you used a conda environment for compilation, you can also install edk there with:
+```bash
+cmake --install release --prefix $CONDA_PREFIX
+```
+
+
+## Compilation without Internet
+
+Starting with version 3.0, EDK is depending on [FORCES](https://git.ufz.de/chs/forces/), our Fortran library for Computational Environmental Systems.
+This library is downloaded on the fly by [CPM](https://github.com/cpm-cmake/CPM.cmake), the cmake package manager.
+
+If you don't want to download it indirectly, know you wont have internet during your development or you want to work on routines provided by FORCES, you can place a copy of the FORCES repository in the root of your cloned EDK repository by e.g.:
+```bash
+git clone https://git.ufz.de/chs/forces.git
+```
+The new folder `forces/` will be automatically recognized during compilation as described above and nothing will be downloaded.
+
+If you just want a specific version (see `src/CMakeLists.txt` for the currently used one), do this:
+```bash
+git clone --branch v0.3.2 --depth 1 https://git.ufz.de/chs/forces.git
+```
+
+If you have already cloned FORCES somewhere else, you can also provide a path to this repository. You can do this with all mentioned compile scripts, e.g.:
+```bash
+source scripts/compile -DCPM_forces_SOURCE=<path/to/your/forces/repo>
+```
+
+For example, if you have cloned FORCES next to `edk_nc`, this could look like this:
+```bash
+source scripts/compile -DCPM_forces_SOURCE=../forces
+```
+
+
+## Additional CMake infos
+
+The presented compile scripts all just execute two cmake commands with a specific set of configuration flags.
+The basic cmake workflow, to configure and compile in a `build/` folder, is:
+```bash
+cmake -B build
+cmake --build build
+```
+
+You can control all `cmake` options by passing them as directives staring with `-D` to the cmake configuration.
+For example for debug configuration, you can do the following:
+```bash
+cmake -B build -DCMAKE_BUILD_TYPE=Debug
+```
+
+To configure the build interactively, you can also use [ccmake](https://cmake.org/cmake/help/latest/manual/ccmake.1.html) (command line tool) or the [CMake GUI](https://cmake.org/cmake/help/latest/manual/cmake-gui.1.html) (graphical user interface).
+Check their respective documentation for further information.
+To use `ccmake` you can do the following:
+```bash
+cmake -B build
+ccmake build
+```
+
+Then set your desired options and re-configure your build (by pressing `c`).
+Afterwards build you project as always by executing:
+```bash
+cmake --build build --parallel
+```

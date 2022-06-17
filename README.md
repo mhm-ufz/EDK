@@ -1,15 +1,31 @@
 # The External Drift Kriging -- EDK program
 
+<div align="center">
+<img src="https://git.ufz.de/chs/logos/-/raw/master/EDK.png" alt="EDK-LOGO" width="251px" style="width:251px;"/>
+</div>
+
 This repository contains the external drift kriging (EDK) Fortran program developed at the Dept. Computational Hydrosystems at the Helmholtz Centre for Environmental Research - UFZ.
 
 The EDK comes with a [LICENSE][1] agreement, this includes also the GNU Lesser General Public License.
 
 **Please note**: The GitLab repository grants read access to the code.
-If you like to contribute to the code, please contact stephan.thober@ufz.de.
+If you like to contribute to the code, please contact stephan.thober@ufz.de or sebastian.mueller@ufz.de.
+
 
 ## Installation
 
 Installation instructions can be found in [INSTALL][2] for Windows, MacOS, and GNU/Linux distributions.
+
+The simplest way to compile EDK is to use a [conda](https://docs.conda.io/en/latest/) environment (on Linux (including Windows/WSL) or MacOS)
+provided by [Miniforge](https://github.com/conda-forge/miniforge):
+```bash
+conda create -y --prefix ./fortran_env
+conda activate ./fortran_env
+conda install -y git cmake make fortran-compiler netcdf-fortran liblapack
+source scripts/compile
+```
+This will give an executable `edk`.
+
 
 ## Cite as
 
@@ -22,4 +38,4 @@ Rainfall network design and EDK cross-validation in Zacharias, S. et al. (2011).
 - Zacharias, S., H. Bogena, L. Samaniego et al. (2011), "A Network of Terrestrial Environmental Observatories in Germany", Vadose Zone Journal, 10(3), 955, doi:10.2136/vzj2010.0139.
 
 [1]: LICENSE
-[2]: INSTALL.md
+[2]: doc/INSTALL.md
