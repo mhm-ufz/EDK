@@ -15,11 +15,13 @@ module mo_edk_read_data
 
   public :: ReadData
 
+  !> \class extend
+  !> \brief domain extend description
   type extend
-    real(dp) :: left
-    real(dp) :: top
-    real(dp) :: right
-    real(dp) :: bottom
+    real(dp) :: left !< left border
+    real(dp) :: top !< top border
+    real(dp) :: right !< right border
+    real(dp) :: bottom !< bottom border
   end type extend
 
 contains

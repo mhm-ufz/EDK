@@ -1,6 +1,12 @@
 !> \file    mo_edk_modules.f90
-!> \brief   MODULES for EDK
+!> \brief   Modules with global variables for EDK
 !> \details This file contains the MAIN SHARED variables
+!!          - `mainvar`: main setup variables
+!!          - `runcontrol`: run configuration
+!!          - `kriging`: kriging setup variables
+!!          - `varfit`: variogram fitting variables
+!!          - `netcdfvar`: NetCDF I/O definition variables
+!!
 !> \author  Luis Samaniego
 !> \date    22.03.2006
 !> \date    24.03.2006
@@ -29,21 +35,21 @@ module mainVar
   integer(i4)                                  :: DEMNcFlag            !< flag for DEM format 0 = text file, 1 = netCDF
   real(dp)                                     :: DataConvertFactor    !< precipitation & temperature(in 1/10 mm) **** only in NECKAR BASIN *****
   real(dp)                                     :: OffSet               !< constant to be added (Ex: add  273 to convert tavg from C to K )
-  real(dp)                                     :: noDataValue
+  real(dp)                                     :: noDataValue          !< no data value
   real(dp)                                     :: thresholdDist        !< treshold cellsize  distance
   ! constants
   real(dp),  parameter                         :: DayHours = 24.0_dp   !< hours per day
   real(dp),  parameter                         :: YearDays = 365.0_dp  !< days in a year
   real(dp),  parameter                         :: DaySecs = 86400.0_dp !< sec in a day
 
-  !> \class CellFiner
+  !> \class cellfiner
   !> \brief cell elevation
   type CellFiner
      real(dp)                                  :: h                    !< elevation (sinks removed) [m]
   end type CellFiner
   type(CellFiner), dimension(:,:), allocatable :: G                    !< Cell characteristics
 
-  !> \class MeteoStation
+  !> \class meteostation
   !> \brief Meteo Stations type
   type MeteoStation
     integer(i4)                                :: Id                   !< Id number
@@ -54,7 +60,7 @@ module mainVar
   end type MeteoStation
   type(MeteoStation),   dimension(:), allocatable :: MetSta            !< Meteo Stations
 
-  !> \class gridGeoRef
+  !> \class gridgeoref
   !> \brief GRID description
   type gridGeoRef
     integer(i4)                                :: ncols                !< number of columns
@@ -84,11 +90,12 @@ module mainVar
     integer(i4) :: julEnd      !< last  julian day
     integer(i4) :: nObs        !< total number of observations
   CONTAINS
-    !> \copydoc mainVar::init
-    procedure :: init !< \see mainVar::init
+    !> \copydoc mainvar::init
+    procedure :: init !< \see mainvar::init
   end type period
 
 contains
+
   !> \brief   initialize a period
   subroutine init(self, dStart, mStart, yStart, dEnd, mEnd, yEnd)
 
@@ -138,7 +145,8 @@ module kriging
   use mo_kind, only: i4, sp, dp
   use mo_edk_types, only: dist_t
   real(dp)                                     :: maxDist             !< max distance [m] search stations
-  !> \class CellCoarser
+
+  !> \class cellcoarser
   !> \brief cell coarser type
   type CellCoarser
     integer(i4)                                :: nNS                 !< No. Nearest Stations (NS) d <= maxDist

@@ -1,5 +1,5 @@
 !> \file    EDK_driver.f90
-!> \copydoc ED_Kriging
+!> \copydoc ed_kriging
 
 !> \brief   External drift kriging - EDK
 !> \details Perform EDK (daily)
