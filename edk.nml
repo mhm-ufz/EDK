@@ -1,4 +1,5 @@
-!EDK-Grid***Main configuration file for Precipitation for GER***
+!> \file  edk.nml
+!> \brief EDK-Grid **Main configuration file for Precipitation for GER**
 &mainVars ! namelist mainpaths
 ! -------------------------------------------------------------------
 ! ----------------- INPUT SPECIFICATIONS ----------------------------
@@ -88,7 +89,7 @@ dh                       = 1.0e3 ! binsize for variogram [m]
 hMax                     = 1.5e5 ! max distance h for variogram estimation [m]
 ! -------------------------------------------------------------------
 ! --------------- NC OUTPUT SPECIFICATION ----------------------------
-author_name              = 'Akash Koppa'
+author_name              = 'mHM Developers'
 projection_name          = 'EPSG:4326 '
 invert_y                 = .True. ! (set True if working with mHM input data!)
 variable_name            = 'pr'

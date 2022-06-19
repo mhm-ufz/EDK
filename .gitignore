@@ -18,6 +18,7 @@ edk_debug
 edk_openmp
 edk_openmp_debug
 forces/
+check/case_**/output/
 
 # Exclusions
 *.g90

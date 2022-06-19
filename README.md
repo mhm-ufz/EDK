@@ -26,6 +26,22 @@ source scripts/compile
 ```
 This will give an executable `edk`.
 
+## Usage
+
+To run the EDK program, you need a set of station data files, a look-up-table for these stations and a DEM file for the external drift.
+All configuration is done with a namelist file, which is called `edk.nml` by default. See the example file for all input specifications.
+
+Then you can just execute `./edk` next to this file.
+
+You can also explicitly specify the namelist file and/or change the working directory by passing options the the `edk` command like:
+```bash
+./edk -n edk.nml check/case_01
+```
+
+To see the help text, execute:
+```bash
+./edk --help
+```
 
 ## Cite as
 
