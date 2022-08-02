@@ -83,10 +83,15 @@ contains
       selectNS_ids = pack(cell%listNS, mask=selectNS)
 
       if (all(selectNS .eqv. selectNS_old) .and. allocated(weights)) then
-        calc_weights = .True. ! same Neighborhood
+        calc_weights = .False. ! same Neighborhood
       else
         calc_weights = .True.  ! new Neighborhood (new stations or old station with missing data)
       end if
+      if (k .eq. 34081) then
+        print *, 'time:', jd, calc_weights
+        print *, all(selectNS .eqv. selectNS_old), allocated(weights)
+      end if
+
 
       if (.not. ( n_zero == n_select .or.  n_select == 1 .or. n_select == 2 ) ) then
         ! no value ! avoid indetermination
@@ -97,6 +102,7 @@ contains
           if ( allocated(weights) ) deallocate(weights)
           call get_kriging_weights(weights, n_select, selectNS_ids, doOK_loc, edk_dist, k, cell%h, MetSta)
         end if
+        ! print *, 'sum weights: ', sum(weights), maxval(weights), maxloc(weights), calc_weights
         ! The BLUE of z is then:
         cell%z(jd) = 0.
         do i=1, n_select
