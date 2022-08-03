@@ -51,9 +51,11 @@ contains
     integer(i4)                     :: ii, jj
     logical                         :: selectNS(cell%nNS) ! selected neighborhood (no no-data-values) current time-step
     logical                         :: selectNS_old(cell%nNS) ! selected neighborhood (no no-data-values) previous time-step
+    logical                         :: edk_true ! is set to true if edk is executed in the
     integer(i4), allocatable        :: selectNS_ids(:)
     real(dp), allocatable           :: lamda(:)
     real(dp), allocatable           :: weights(:)
+    real(dp), allocatable           :: weights_old(:)
     real(dp)                        :: sumLamda
 
     selectNS_old = .false.
@@ -62,7 +64,7 @@ contains
     if (present(doOK)) doOK_loc = doOK
     ! IF NK changed -> re-estimate weights
     timeloop: do jd = jStart, jEnd
-      if (jd > jStart) selectNS_old = selectNS
+      if (jd > jStart) selectNS_old = selectNS ! copy previous neighborhood to variable
       selectNS = .false. ! reset selected neighborhood
       n_select = 0 ! counter for no-data-values in current Neighborhood
       n_zero = 0 ! counter for zero data values in current Neighborhood
@@ -82,26 +84,39 @@ contains
       allocate(selectNS_ids(n_select))
       selectNS_ids = pack(cell%listNS, mask=selectNS)
 
-      if (all(selectNS .eqv. selectNS_old) .and. allocated(weights)) then
+      ! check of selected stations are same, weights are allocated and edk was executed in the previous time step (edk_true = .True.)
+      if (all(selectNS .eqv. selectNS_old) .and. allocated(weights) .and. (edk_true .eqv. .true.)) then
         calc_weights = .False. ! same Neighborhood
       else
         calc_weights = .True.  ! new Neighborhood (new stations or old station with missing data)
       end if
-      if (k .eq. 34081) then
-        print *, 'time:', jd, calc_weights
-        print *, all(selectNS .eqv. selectNS_old), allocated(weights)
-      end if
+      !if (k .eq. 34081) then
 
 
+      !end if
+
+      edk_true=.false. ! is set to false as default. Only if edk is executed it is set to true.
       if (.not. ( n_zero == n_select .or.  n_select == 1 .or. n_select == 2 ) ) then
+        edk_true=.true.
         ! no value ! avoid indetermination
         ! avoid 0 value calculations n_zero == n_select
         ! avoid calculations where only 1 station is available
         ! avoid numerical instabilities n_select == 2 (may happen that the solver matrix becomes singular)
+        if (jd > jStart) weights_old = weights
         if (calc_weights) then
           if ( allocated(weights) ) deallocate(weights)
           call get_kriging_weights(weights, n_select, selectNS_ids, doOK_loc, edk_dist, k, cell%h, MetSta)
         end if
+
+        !if ((jd > jStart) .and. (sum(weights) /= sum(weights_old)) .and. all(selectNS .eqv. selectNS_old) .and. (calc_weights .eqv. .False.)) then
+        !print *, sum(weights), ' - ', sum(weights_old)
+        !print *, (sum(weights) /= sum(weights_old)) 
+        !print *, "weights not equal but neighborhood is same at"
+        !print *, 'time:', jd, 'cell: ', k
+        !print *, all(selectNS .eqv. selectNS_old), allocated(weights)
+        !print *, selectNS 
+        !print *, selectNS_old
+        !end if
         ! print *, 'sum weights: ', sum(weights), maxval(weights), maxloc(weights), calc_weights
         ! The BLUE of z is then:
         cell%z(jd) = 0.
