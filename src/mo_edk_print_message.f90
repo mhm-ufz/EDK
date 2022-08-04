@@ -25,7 +25,7 @@ contains
     call message('==============================================')
     call message('!!                                          !!')
     call message('!!          THE KRIGING PROGRAM             !!')
-    call message('!!              VERSION '// trim(version) //'                 !!')
+    call message('!!              VERSION '// trim(version) //'          !!')
     call message('!!                                          !!')
     call message('==============================================')
     call message('')
