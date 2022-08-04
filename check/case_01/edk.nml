@@ -1,0 +1,101 @@
+!EDK-Grid***Main configuration file for Precipitation for GER***
+&mainVars ! namelist mainpaths
+! -------------------------------------------------------------------
+! ----------------- INPUT SPECIFICATIONS ----------------------------
+!
+! DataPathIn contains the path to the meteorological input files
+! it can be a netcdf file, then a 3-dim field is expected and
+! further coordinate and variable names are expected
+DataPathIn               = "../pre_data/"
+!
+! value in the meteorological input files that is used as missing value
+noDataValue              = -9
+! Specifications of variable and coordinate names in case DataPathIn
+! is a netcdf file
+ncIn_variable_name       = "pre"
+ncIn_dem_variable_name   = "dem"
+! name of coordinates, these must be in [m]
+ncIn_yCoord_name         = "northing"
+ncIn_xCoord_name         = "easting"
+!
+! Correct interpolated negative values to zero
+! (set for precipitation to true !)
+correctNeg               = .True.
+!
+! Set values further away than the distance threshold to zero
+distZero                 = .True.
+!
+fNameDEM                 = "../dem.asc"
+cellFactor               = 40
+! name of coordinates (northing and easting) in [m]
+ncOut_dem_yCoord_name    = "northing"
+ncOut_dem_xCoord_name	 = "easting"
+! name of coordinates (latitude and longitude) in deg
+ncOut_dem_Latitude	 = "latitude"
+ncOut_dem_Longitude	 = "longitude"
+! name of the DEM variable in the netcdf file
+ncOut_dem_variable_name  = "dem"
+
+!
+DataPathOut              = "output/"
+FileOut                  = "pre.nc"
+!
+! Name of Look Up Table of Station data
+fNameSTA                 = "../pre_data/Stations_in_study_domain.txt"
+
+! The value that should be multiplied to the data in the netcdf file
+DataConvertFactor        = 1.0e-1
+! The value that should be added to the data in the netcdf file
+OffSet			 = 0
+![FINAL VALUE = NETCDF VALUE * DataConvertFactor + OffSet]
+
+!
+! -------------------------------------------------------------------
+! ------------ PROCESSING PERIOD ------------------------------------
+yStart                   = 1990
+mStart                   = 1
+dStart                   = 1
+yEnd                     = 1990
+mEnd                     = 12
+dEnd                     = 31
+! Number of Time Buffering Days (Divides the EDK processing into chunks accross the time dimension)
+tBuffer                  = 10
+!
+! -------------------------------------------------------------------
+! ------------ INTERPOLATION METHOD ---------------------------------
+!
+! InterMth = 2 -> EDK
+! InterMth = 1 -> OK
+! InterMth = 0 -> No interpolation
+InterMth                 = 2
+! maximum search distance for interpolation [m]
+maxDist                  = 1.5e5
+!
+! -------------------------------------------------------------------
+! ----------------- VARIOGRAM ESTIMATION ----------------------------
+flagVario                = .False.
+!
+! number of variogram parameters
+nParam                   = 3
+! type of theoretical variogramm (1=spherical, 2 = exponential)
+vType                    = 2
+!
+! file name where to store the variogram parameters
+! (if flagVario is false, variogram parameters )
+! (for interpolation are read in here:         )
+fNameVario               = "../var_param_de_pre.txt"
+dh                       = 1.0e3 ! binsize for variogram [m]
+hMax                     = 1.5e5 ! max distance h for variogram estimation [m]
+! -------------------------------------------------------------------
+! --------------- NC OUTPUT SPECIFICATION ----------------------------
+author_name              = 'Akash Koppa'
+projection_name          = 'EPSG:4326 '
+invert_y                 = .True. ! (set True if working with mHM input data!)
+variable_name            = 'pre'
+variable_unit            = 'mm/d'
+variable_long_name       = 'Precipitation'
+variable_standard_name	 = 'precipitation_flux'
+variable_calendar_type	 = 'proleptic_gregorian'
+! -------------------------------------------------------------------
+! -------------------------------------------------------------------
+/ !END*******Main Config***********
