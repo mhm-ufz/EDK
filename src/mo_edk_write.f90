@@ -54,7 +54,7 @@ CONTAINS
     ! add some variable attributes
     call var_time%setAttribute("units", "days since " // trim(num2str(yStart, form='(I4)')) // "-"// &
         trim(num2str(mStart, form='(I0.2)')) // "-" // &
-        trim(num2str(dStart, form='(I0.2)')) // "-" // "00:00:00")
+        trim(num2str(dStart, form='(I0.2)')) // " " // "00:00:00")
     call var_time%setAttribute("calendar", variable_calendar_type)
 
   if (DEMNcFlag == 1) then
@@ -68,15 +68,21 @@ CONTAINS
          f = f + 1
        end do
        var_north = nc%setVariable('northing', 'f32', (/dim_x, dim_y/))
+       call var_north%setAttribute("standard_name", "northing")
+       call var_north%setAttribute("units", "m")
        call var_north%setData(dummy)
 
     else
        var_north = nc%setVariable('northing', 'f32', (/dim_x, dim_y/))
        call var_north%setData(gridMeteo%northing)
+       call var_north%setAttribute("standard_name", "northing")
+       call var_north%setAttribute("units", "m")
     end if
 
     var_east = nc%setVariable('easting', 'f32', (/dim_x, dim_y/))
     call var_east%setData(gridMeteo%easting)
+    call var_east%setAttribute("standard_name", "easting")
+    call var_east%setAttribute("units", "m")
 
     if (invert_y) then
       allocate(dummy_lat(gridMeteo%ncols))
@@ -86,12 +92,18 @@ CONTAINS
          f = f + 1
       end do
       var_lat = nc%setVariable(ncOut_dem_Latitude, 'f32', (/dim_y/))
+      call var_lat%setAttribute("standard_name", "latitude")
+      call var_lat%setAttribute("units", "degrees_north")
       call var_lat%setData(dummy_lat)
     else
       var_lat = nc%setVariable(ncOut_dem_Latitude, 'f32', (/dim_y/))
+      call var_lat%setAttribute("standard_name", "latitude")
+      call var_lat%setAttribute("units", "degrees_north")
       call var_lat%setData(gridMeteo%latitude)
     end if
     var_lon = nc%setVariable(ncOut_dem_Longitude, 'f32', (/dim_x/))
+    call var_lon%setAttribute("standard_name", "longitude")
+    call var_lon%setAttribute("units", "degrees_east")
     call var_lon%setData(gridMeteo%longitude)
 
   else
@@ -123,19 +135,19 @@ CONTAINS
     if( allocated(dummy_lat) ) deallocate(dummy_lat)
 
   end if
-    !var_data = nc%setVariable(variable_name, "f32", (/dim_x, dim_y, dim_time/))
-    var_data = nc%setVariable(variable_name, "f32",  (/dim_x, dim_y, dim_time/))
-    ! add some more variable attributes
-    call var_data%setAttribute("units",   trim(variable_unit))
-    call var_data%setAttribute("long_name", trim(variable_long_name))
-    call var_data%setAttribute("standard_name",trim(variable_standard_name))
-    call var_data%setAttribute("scaling", 1.0_dp)
-    call var_data%setAttribute("missing_value", -9999._dp)
 
+  !var_data = nc%setVariable(variable_name, "f32", (/dim_x, dim_y, dim_time/))
+  var_data = nc%setVariable(variable_name, "f32",  (/dim_x, dim_y, dim_time/))
+  ! add some more variable attributes
+  call var_data%setAttribute("units",   trim(variable_unit))
+  call var_data%setAttribute("long_name", trim(variable_long_name))
+  call var_data%setAttribute("standard_name",trim(variable_standard_name))
+  call var_data%setAttribute("scaling", 1.0_dp)
+  call var_data%setAttribute("missing_value", -9999._dp)
 
-    ! add global attributes
-    call nc%setAttribute("Author", trim(author_name))
-    call nc%setAttribute("Projection", trim(projection_name))
+  ! add global attributes
+  call nc%setAttribute("Author", trim(author_name))
+  call nc%setAttribute("Projection", trim(projection_name))
 
   end subroutine open_netcdf
 
