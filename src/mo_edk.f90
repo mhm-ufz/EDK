@@ -84,7 +84,7 @@ contains
       selectNS_ids = pack(cell%listNS, mask=selectNS)
 
       ! check of selected stations are same, weights are allocated and edk was executed in the previous time step (edk_true = .True.)
-      if (all(selectNS .eqv. selectNS_old) .and. allocated(weights) .and. (edk_true .eqv. .true.)) then
+      if (all(selectNS .eqv. selectNS_old) .and. allocated(weights)) then
         calc_weights = .False. ! same Neighborhood
       else
         calc_weights = .True.  ! new Neighborhood (new stations or old station with missing data)
