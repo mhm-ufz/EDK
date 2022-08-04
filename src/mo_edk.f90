@@ -59,6 +59,8 @@ contains
     real(dp)                        :: sumLamda
 
     selectNS_old = .false.
+    edk_true     = .false.  ! initiate edk_true as false
+
     ! switch ordinary kriging off if not explicitly given
     doOK_loc = .False.
     if (present(doOK)) doOK_loc = doOK
@@ -95,9 +97,9 @@ contains
 
       !end if
 
-      edk_true=.false. ! is set to false as default. Only if edk is executed it is set to true.
+      edk_true = .false. ! is set to false as default. Only if edk is executed it is set to true.
       if (.not. ( n_zero == n_select .or.  n_select == 1 .or. n_select == 2 ) ) then
-        edk_true=.true.
+        edk_true = .true.
         ! no value ! avoid indetermination
         ! avoid 0 value calculations n_zero == n_select
         ! avoid calculations where only 1 station is available
