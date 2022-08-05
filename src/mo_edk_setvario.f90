@@ -124,6 +124,30 @@ contains
     allocate ( cell(nCell)     )
     allocate ( list(nSta)      )
 
+    do i=1,nSta-1
+      ! distance matrix between stations:            checked OK
+      do j=i+1, nSta
+        if (edk_dist%getSS(i,j) == 0.0_dp) then
+          ! check if stations are closer than 5 meter
+          print* , '--------------------------------------------------------------------------'
+          print* , '!!! Warning: '
+          print* , '!!! Stations: ', MetSta(i)%Id, ' and ', MetSta(j)%Id 
+          print* , '!!! have the same coordinates or are repeated. Check LUT. '
+          print* , '!!! Rounded artefacts can be generated when stations have same coordinates'
+          print* , '!!! and data at the time.'
+          print* , '--------------------------------------------------------------------------'
+          !stop
+        end if
+        if (edk_dist%getSS(i,j) > 0.0_dp .and. edk_dist%getSS(i,j) < 5.0_dp) then
+          print* , '--------------------------------------------------------------------------'
+          print* , '!!! Warning: '
+          print* , '!!! Stations: ', MetSta(i)%Id, ' and ', MetSta(j)%Id 
+          print* , '!!!  are closer than 5 meter distance. '
+          print* , '--------------------------------------------------------------------------' 
+        end if
+      end do
+    end do
+  
     ! cell coordinates and elevation : checked OK
     ! ***************************************
     ! cell numbering convention (1DIM first)
