@@ -19,6 +19,7 @@ program ED_Kriging
   use mo_julian              , only: NDAYS, NDYIN, dec2date, julday
   use runControl             , only: flagEDK, interMth,        & ! flag for activate kriging, flag for 'OK' or 'EDK'
     correctNeg,                 & ! pre or temp
+    distZero,                    &
     flagVario                     ! flag for activate variogram estimation
   use mainVar                , only: yStart, yEnd, jStart, jEnd, tBuffer, nSta, DEMNcFlag, & ! interpolation time periods
     grid, gridMeteo,            & ! grid properties of input and output grid
@@ -31,7 +32,7 @@ program ED_Kriging
   use mo_message             , only: message
   use mo_edk                 , only: EDK, clean, WriteDataMeteo
   use mo_edk_read_data            , only: readData
-  use NetCDFVar              , only: invert_y
+  use NetCDFVar              , only: invert_y, variable_name
   USE mo_timer, ONLY : &
     timers_init, timer_start, timer_stop, timer_get              ! Timing of processes
   use mo_string_utils, ONLY : num2str
@@ -59,8 +60,6 @@ program ED_Kriging
   real(dp)              :: param(3)           ! variogram parameters
   type(NcDataset)       :: nc_out
   type(NcVariable)      :: nc_data, nc_time
-  ! integer(i4), allocatable           :: Nk_old(:)
-  ! real(dp), allocatable              :: X(:)
 
   call parse_command_line()
   call print_start_message()
@@ -90,10 +89,16 @@ program ED_Kriging
   call message('')
   ! number of cells per thread
   ncell_thread = ceiling(real(nCell, sp) / real(loop_factor * n_threads, sp))
-  !print *, 'nCell: ', nCell
-  !print *, "ncell_thread: ", ncell_thread
-  !print *, 'n_threads: ', n_threads
-  ! print *, 'DEMNcFlag', DEMNcFlag
+
+  ! sanity check
+  if (variable_name == "pre") then
+    if ( .not. correctNeg ) call message( &
+      '***WARNING: you are probably interpolating precipitation data, but correctNeg is set .False.', &
+      'It should be set to .True. Check namelist!')
+    if ( .not. distZero ) call message( &
+      '***WARNING: you are probably interpolating precipitation data, but distZero is set .False. ', &
+      'It should be set to .True.  Check namelist!')
+  end if
 
   itimer = 2
   call timer_start(itimer)
