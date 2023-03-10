@@ -43,7 +43,8 @@ contains
     use VarFit,     only: vType, nParam, dh, hMax, beta
     use runControl, only: interMth, fnameDEM, DataPathOut, DataPathIn, fNameSta, correctNeg, &
                           distZero, flagVario, fNameVario, flagEDK
-    use NetCDFVar,  only: FileOut, author_name, projection_name, variable_name, variable_unit, &
+    use NetCDFVar,  only: FileOut, originator, crs, source, institution, title, contact,&
+                          variable_name, variable_unit, &
                           variable_standard_name, variable_calendar_type, &
                           variable_long_name, ncIn_variable_name, ncIn_dem_variable_name, &
                           ncIn_yCoord_name, ncIn_xCoord_name, invert_y,  &
@@ -68,7 +69,8 @@ contains
     !
     namelist/mainVars/noDataValue, DataPathIn, fNameDEM,                    &
          DataPathOut, FileOut, fNameSTA, cellFactor, DataConvertFactor, OffSet, InterMth, correctNeg,  &
-         distZero, author_name, projection_name, variable_name, variable_unit, variable_long_name, &
+         distZero, originator, crs, source, institution, title, contact,&
+         variable_name, variable_unit, variable_long_name, &
          variable_standard_name, variable_calendar_type,  &
          yStart, mStart, dStart, yEnd, mEnd, dEnd,tBuffer, maxDist, flagVario, vType, nParam,  &
          fNameVario, dh, hMax, ncIn_variable_name, ncIn_dem_variable_name, ncIn_yCoord_name, &

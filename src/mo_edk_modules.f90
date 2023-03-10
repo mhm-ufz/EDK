@@ -16,7 +16,7 @@
 
 !> \brief   main variables
 module mainVar
-  use mo_kind, only: i4, dp
+  use mo_kind, only: i4, sp, dp
   implicit none
   ! parameters
   integer(i4)                                  :: yStart               !< starting year
@@ -35,12 +35,13 @@ module mainVar
   integer(i4)                                  :: DEMNcFlag            !< flag for DEM format 0 = text file, 1 = netCDF
   real(dp)                                     :: DataConvertFactor    !< precipitation & temperature(in 1/10 mm) **** only in NECKAR BASIN *****
   real(dp)                                     :: OffSet               !< constant to be added (Ex: add  273 to convert tavg from C to K )
-  real(dp)                                     :: noDataValue          !< no data value
+  real(dp)                                     :: noDataValue          !< no data value of station input data
   real(dp)                                     :: thresholdDist        !< treshold cellsize  distance
   ! constants
   real(dp),  parameter                         :: DayHours = 24.0_dp   !< hours per day
   real(dp),  parameter                         :: YearDays = 365.0_dp  !< days in a year
   real(dp),  parameter                         :: DaySecs = 86400.0_dp !< sec in a day
+  real(sp), public, parameter                  :: nodata_sp = -9999._sp !< [-]     global no data value (single precision)
 
   !> \class cellfiner
   !> \brief cell elevation
@@ -199,8 +200,12 @@ module NetCDFVar
   character(256)                                   :: variable_name !< name of netcdf variable
   character(256)                                   :: variable_unit !< unit of netcdf variable
   character(256)                                   :: variable_long_name !< long name  of netcdf variable
-  character(256)                                   :: author_name !< author name of netcdf file
-  character(256)                                   :: projection_name !< name of EPSG (EPSG:XXXX)
+  character(256)                                   :: originator !< originator of netcdf file
+  character(256)                                   :: crs !< coordinate reference system (EPSG:XXXX)
+  character(256)                                   :: title !< title of netcdf file
+  character(256)                                   :: source !< source and methods of original data
+  character(256)                                   :: contact !< contact (email address)
+  character(256)                                   :: institution !< institution
   character(256)                                   :: variable_standard_name !< standard name of netcdf variable
   character(256)                                   :: variable_calendar_type !< calendar type (time variable attribute)
   logical                                          :: invert_y
