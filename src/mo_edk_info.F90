@@ -19,6 +19,8 @@
 !!          if it is a release version, otherwise it will be the current date.
 !> \authors Sebastian Mueller
 !> \date    May 2022
+!> \copyright Copyright 2005-\today, the CHS Developers, Sabine Attinger: All rights reserved.
+!! EDK is released under the LGPLv3+ license \license_note
 module mo_edk_info
 
   implicit none

@@ -14,6 +14,8 @@
 !!          edk -h
 !!          edk -v
 !!          \endcode
+!> \copyright Copyright 2005-\today, the CHS Developers, Sabine Attinger: All rights reserved.
+!! EDK is released under the LGPLv3+ license \license_note
 module mo_edk_cli
 
 #ifdef NAG

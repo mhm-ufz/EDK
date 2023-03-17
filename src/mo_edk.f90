@@ -13,6 +13,8 @@
 !!          - IWD if No stations < 2
 !> \date    07.02.2012
 !!          - correct prec data < 0 --> = 0
+!> \copyright Copyright 2005-\today, the CHS Developers, Sabine Attinger: All rights reserved.
+!! EDK is released under the LGPLv3+ license \license_note
 module mo_edk
 
   implicit none
@@ -104,11 +106,11 @@ contains
 
         !if ((jd > jStart) .and. (sum(weights) /= sum(weights_old)) .and. all(selectNS .eqv. selectNS_old) .and. (calc_weights .eqv. .False.)) then
         !print *, sum(weights), ' - ', sum(weights_old)
-        !print *, (sum(weights) /= sum(weights_old)) 
+        !print *, (sum(weights) /= sum(weights_old))
         !print *, "weights not equal but neighborhood is same at"
         !print *, 'time:', jd, 'cell: ', k
         !print *, all(selectNS .eqv. selectNS_old), allocated(weights)
-        !print *, selectNS 
+        !print *, selectNS
         !print *, selectNS_old
         !end if
         ! print *, 'sum weights: ', sum(weights), maxval(weights), maxloc(weights), calc_weights

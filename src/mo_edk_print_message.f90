@@ -2,6 +2,8 @@
 !> \copydoc mo_edk_print_message
 
 !> \brief   Module containing messages for the EDK program.
+!> \copyright Copyright 2005-\today, the CHS Developers, Sabine Attinger: All rights reserved.
+!! EDK is released under the LGPLv3+ license \license_note
 module mo_edk_print_message
 
   implicit none

@@ -8,6 +8,8 @@
 !> \author  Luis Samaniego
 !> \date    22.11.2001
 !> \date    19.02.2004
+!> \copyright Copyright 2005-\today, the CHS Developers, Sabine Attinger: All rights reserved.
+!! EDK is released under the LGPLv3+ license \license_note
 module mo_edk_empvar
 
   implicit none

@@ -15,6 +15,8 @@
 !!          - refactored
 
 !> \brief   main variables
+!> \copyright Copyright 2005-\today, the CHS Developers, Sabine Attinger: All rights reserved.
+!! EDK is released under the LGPLv3+ license \license_note
 module mainVar
   use mo_kind, only: i4, sp, dp
   implicit none
@@ -123,6 +125,8 @@ contains
 end module mainVar
 
 !> \brief   RUN Control
+!> \copyright Copyright 2005-\today, the CHS Developers, Sabine Attinger: All rights reserved.
+!! EDK is released under the LGPLv3+ license \license_note
 module runControl
   use mo_kind, only: i4, sp
   ! timer
@@ -142,6 +146,8 @@ module runControl
 end module runControl
 
 !> \brief   kriging variables
+!> \copyright Copyright 2005-\today, the CHS Developers, Sabine Attinger: All rights reserved.
+!! EDK is released under the LGPLv3+ license \license_note
 module kriging
   use mo_kind, only: i4, sp, dp
   use mo_edk_types, only: dist_t
@@ -164,6 +170,8 @@ module kriging
 end module kriging
 
 !> \brief   variogram fitting variables
+!> \copyright Copyright 2005-\today, the CHS Developers, Sabine Attinger: All rights reserved.
+!! EDK is released under the LGPLv3+ license \license_note
 module VarFit
   use mo_kind, only: i4, dp
   implicit none
@@ -187,6 +195,8 @@ module VarFit
 end module VarFit
 
 !> \brief   NetCDF IO specifications variables
+!> \copyright Copyright 2005-\today, the CHS Developers, Sabine Attinger: All rights reserved.
+!! EDK is released under the LGPLv3+ license \license_note
 module NetCDFVar
   use mo_kind, only : dp
   implicit none
