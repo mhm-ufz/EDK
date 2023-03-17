@@ -17,11 +17,6 @@
 !> \copyright Copyright 2005-\today, the CHS Developers, Sabine Attinger: All rights reserved.
 !! EDK is released under the LGPLv3+ license \license_note
 module mo_edk_cli
-
-#ifdef NAG
-  USE f90_unix_dir, ONLY : CHDIR
-#endif
-
   implicit none
 
   private
@@ -34,6 +29,7 @@ contains
   subroutine parse_command_line()
     use mo_cli, only: cli_parser
     use mo_edk_info, only: version, file_namelist
+    use mo_os, only: change_dir
 
     implicit none
 
@@ -61,7 +57,7 @@ contains
     call parser%parse()
 
     ! change working directory first
-    if (parser%option_was_read("cwd")) call chdir(parser%option_value("cwd"))
+    if (parser%option_was_read("cwd")) call change_dir(parser%option_value("cwd"))
 
     ! set nml file path
     file_namelist = parser%option_value("nml")
