@@ -321,8 +321,14 @@ coverage:
     # copy the output to a top-level folder
     - mkdir coverage
     - cp build/coverage/* coverage -R
+    - lcov_cobertura build/coverage.info
+  coverage: '/lines[\.]+\: (\d+\.\d+)\%/'
   artifacts:
     when: always
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
     paths:
     - coverage
 
