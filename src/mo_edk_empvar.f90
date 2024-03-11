@@ -1,5 +1,6 @@
 !> \file    mo_edk_empvar.f90
-!> \copydoc mo_edk_empvar
+!> \brief   \copybrief mo_edk_empvar
+!> \details \copydetails mo_edk_empvar
 
 !> \brief   This program calculates the empirical variogram
 !> \details gamma(:,1) : distance

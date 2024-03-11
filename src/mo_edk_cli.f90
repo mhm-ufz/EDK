@@ -1,5 +1,6 @@
 !> \file    mo_edk_cli.f90
-!> \copydoc mo_edk_cli
+!> \brief   \copybrief mo_edk_cli
+!> \details \copydetails mo_edk_cli
 
 !> \brief   Module to parse command line arguments of edk.
 !> \version 0.1

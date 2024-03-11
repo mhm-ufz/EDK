@@ -1,5 +1,6 @@
 !> \file    mo_edk_get_nc_time.f90
-!> \copydoc mo_edk_get_nc_time
+!> \brief   \copybrief mo_edk_get_nc_time
+!> \details \copydetails mo_edk_get_nc_time
 
 !> \brief   Module to get time vector from NetCDF file.
 !> \author  Matthias Zink

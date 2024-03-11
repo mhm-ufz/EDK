@@ -1,5 +1,6 @@
 !> \file    mo_edk_info.f90
-!> \copydoc mo_edk_info
+!> \brief   \copybrief mo_edk_info
+!> \details \copydetails mo_edk_info
 
 #ifndef EDKVERSION
 #define EDKVERSION "0.0.0-dev0"

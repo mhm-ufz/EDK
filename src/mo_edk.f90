@@ -1,5 +1,6 @@
 !> \file    mo_edk.f90
-!> \copydoc mo_edk
+!> \brief   \copybrief mo_edk
+!> \details \copydetails mo_edk
 
 !> \brief   Main module for EDK.
 !> \details Executes the EDK setup.

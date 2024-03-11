@@ -1,5 +1,6 @@
 !> \file    mo_edk_print_message.f90
-!> \copydoc mo_edk_print_message
+!> \brief   \copybrief mo_edk_print_message
+!> \details \copydetails mo_edk_print_message
 
 !> \brief   Module containing messages for the EDK program.
 !> \copyright Copyright 2005-\today, the CHS Developers, Sabine Attinger: All rights reserved.

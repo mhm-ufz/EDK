@@ -1,5 +1,6 @@
 !> \file    mo_edk_write.f90
-!> \copydoc mo_edk_write
+!> \brief   \copybrief mo_edk_write
+!> \details \copydetails mo_edk_write
 
 !> \brief   Module to write out edk results.
 !> \copyright Copyright 2005-\today, the CHS Developers, Sabine Attinger: All rights reserved.

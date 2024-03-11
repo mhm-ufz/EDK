@@ -1,5 +1,6 @@
 !> \file    mo_edk_types.f90
-!> \copydoc mo_edk_types
+!> \brief   \copybrief mo_edk_types
+!> \details \copydetails mo_edk_types
 
 !> \brief   Module for EDK distance Type.
 !> \version 0.1

@@ -1,5 +1,6 @@
 !> \file    mo_edk_read_data.f90
-!> \copydoc mo_edk_read_data
+!> \brief   \copybrief mo_edk_read_data
+!> \details \copydetails mo_edk_read_data
 
 !> \brief   Module containing routines to read data.
 !> \author  Luis Samaniego

@@ -1,5 +1,6 @@
 !> \file    mo_edk_setvario.f90
-!> \copydoc mo_edk_setvario
+!> \brief   \copybrief mo_edk_setvario
+!> \details \copydetails mo_edk_setvario
 
 !> \brief   VARIOGRAM: Seting or estimating and fitting
 !> \details PURPOSE:
