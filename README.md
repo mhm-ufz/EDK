@@ -56,4 +56,4 @@ Rainfall network design and EDK cross-validation in Zacharias, S. et al. (2011).
 
 ## License
 
-LGPLv3 (c) 2005-2023 CHS-Developers
+LGPLv3 (c) 2005-2024 CHS-Developers
