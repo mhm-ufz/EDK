@@ -1,7 +1,10 @@
 !> \file    mo_edk_write.f90
-!> \copydoc mo_edk_write
+!> \brief   \copybrief mo_edk_write
+!> \details \copydetails mo_edk_write
 
 !> \brief   Module to write out edk results.
+!> \copyright Copyright 2005-\today, the CHS Developers, Sabine Attinger: All rights reserved.
+!! EDK is released under the LGPLv3+ license \license_note
 module mo_edk_write
 
   implicit none

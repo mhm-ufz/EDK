@@ -1,11 +1,14 @@
 !> \file    mo_edk_types.f90
-!> \copydoc mo_edk_types
+!> \brief   \copybrief mo_edk_types
+!> \details \copydetails mo_edk_types
 
 !> \brief   Module for EDK distance Type.
 !> \version 0.1
 !> \authors Sebastian Mueller
 !> \date    21.10.2020
 !> \details This file contains memory efficient types for EDK.
+!> \copyright Copyright 2005-\today, the CHS Developers, Sabine Attinger: All rights reserved.
+!! EDK is released under the LGPLv3+ license \license_note
 module mo_edk_types
   use mo_kind, only: i4, dp
   implicit none

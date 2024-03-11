@@ -1,5 +1,6 @@
 !> \file    mo_edk_get_nc_time.f90
-!> \copydoc mo_edk_get_nc_time
+!> \brief   \copybrief mo_edk_get_nc_time
+!> \details \copydetails mo_edk_get_nc_time
 
 !> \brief   Module to get time vector from NetCDF file.
 !> \author  Matthias Zink
@@ -16,6 +17,8 @@
 !> \author  Maren Kaluza
 !> \date    May 2018
 !!          - fixed bug in time reading
+!> \copyright Copyright 2005-\today, the CHS Developers, Sabine Attinger: All rights reserved.
+!! EDK is released under the LGPLv3+ license \license_note
 module mo_edk_get_nc_time
 
   implicit none

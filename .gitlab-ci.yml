@@ -13,6 +13,7 @@ stages:
   - build
   - check-cases
   - code-analysis
+  - doc
   - deploy
 
 show-env-vars:
@@ -30,102 +31,6 @@ show-env-vars:
   script:
     - echo -e "${SEP}\n${S00}$(date)\n${SEP}\n${S01}\n${S02}\n${S03}\n${S04}\n${SEP}\n${S05}${GIT_CLONE_PATH}\n${S06}\n${SEP}"
 
-documentation:
-  stage: build
-  script:
-    - source hpc-module-loads/eve.chs-conda01
-    - module load GCCcore/9.3.0 texlive/2020
-    # use doxygen from the chs conda environment
-    - if [ -f "version.txt" ]; then export PROJECT_NUMBER="$(cat version.txt)"; fi
-    - doxygen doc/doxygen.config > doxygen_log_dev.txt
-    # create pdf documentation
-    - cd latex/ && make > ../doxygen_latex_dev.txt
-    - cp refman.pdf ../html/edk_doc.pdf
-    - cp refman.pdf ../edk_doc_dev.pdf
-    - cd .. && mv html html_dev
-    - mv doxygen_warn.txt doxygen_warn_dev.txt
-  artifacts:
-    name: "$CI_COMMIT_REF_NAME"
-    paths:
-      - html_dev
-      - edk_doc_dev.pdf
-      - doxygen_log_dev.txt
-      - doxygen_latex_dev.txt
-      - doxygen_warn_dev.txt
-  when: always
-
-documentation_stable:
-  only:
-    - main
-  stage: build
-  variables:
-    GIT_DEPTH: 0
-  script:
-    # doc for latest version tag
-    - ml git-lfs
-    - git checkout $(git describe --match "v*" --abbrev=0 --tags $(git rev-list --tags --max-count=1))
-    - if [ ! -d "doc" ]; then git checkout $CI_COMMIT_REF_NAME; fi
-    - source hpc-module-loads/eve.chs-conda01
-    - module load GCCcore/9.3.0 texlive/2020
-    # use doxygen from the chs conda environment
-    - if [ -f "version.txt" ]; then export PROJECT_NUMBER="$(cat version.txt)"; fi
-    - doxygen doc/doxygen.config > doxygen_log_tag.txt
-    - cd latex/ && make > ../doxygen_latex_tag.txt
-    - cp refman.pdf ../html/edk_doc.pdf
-    - cp refman.pdf ../edk_doc_tag.pdf
-    - cd .. && mv html html_tag
-    - mv doxygen_warn.txt doxygen_warn_tag.txt
-  artifacts:
-    name: "$CI_COMMIT_REF_NAME"
-    paths:
-      - html_tag
-      - edk_doc_tag.pdf
-      - doxygen_log_tag.txt
-      - doxygen_latex_tag.txt
-      - doxygen_warn_tag.txt
-  when: always
-
-cmake-nagfor62:
-  stage: build
-  script:
-    - source hpc-module-loads/eve.nagfor62
-    - source scripts/compile
-    - source scripts/compile_debug
-  artifacts:
-    paths:
-    - edk
-    - edk_debug
-
-cmake-gfortran73:
-  stage: build
-  script:
-    - source hpc-module-loads/eve.gfortran73
-    - source scripts/compile
-    - source scripts/compile_debug
-    - source scripts/compile_OpenMP
-    - source scripts/compile_OpenMP_debug
-  artifacts:
-    paths:
-    - edk
-    - edk_debug
-    - edk_openmp
-    - edk_openmp_debug
-
-cmake-gfortran83:
-  stage: build
-  script:
-    - source hpc-module-loads/eve.gfortran83
-    - source scripts/compile
-    - source scripts/compile_debug
-    - source scripts/compile_OpenMP
-    - source scripts/compile_OpenMP_debug
-  artifacts:
-    paths:
-    - edk
-    - edk_debug
-    - edk_openmp
-    - edk_openmp_debug
-
 cmake-gfortran102:
   stage: build
   script:
@@ -141,25 +46,10 @@ cmake-gfortran102:
     - edk_openmp
     - edk_openmp_debug
 
-cmake-intel18:
+cmake-gfortran122:
   stage: build
   script:
-    - source hpc-module-loads/eve.intel18
-    - source scripts/compile
-    - source scripts/compile_debug
-    - source scripts/compile_OpenMP
-    - source scripts/compile_OpenMP_debug
-  artifacts:
-    paths:
-    - edk
-    - edk_debug
-    - edk_openmp
-    - edk_openmp_debug
-
-cmake-intel19:
-  stage: build
-  script:
-    - source hpc-module-loads/eve.intel19
+    - source hpc-module-loads/eve.gfortran122
     - source scripts/compile
     - source scripts/compile_debug
     - source scripts/compile_OpenMP
@@ -186,65 +76,21 @@ cmake-intel2020b:
     - edk_openmp
     - edk_openmp_debug
 
-check-nagfor62:
-  when: always
-  stage: check-cases
-  needs:
-    - job: cmake-nagfor62
-      artifacts: true
-  script:
-    - source hpc-module-loads/eve.nagfor62
-    - source scripts/pre_check
-    - python -u edk_checks_run.py -l logs -e ../edk
-  artifacts:
-    when: always
-    paths:
-    - check/logs/
 
-check-nagfor62DEBUG:
-  when: always
-  stage: check-cases
-  needs:
-    - job: cmake-nagfor62
-      artifacts: true
+cmake-intel2023b-classic:
+  stage: build
   script:
-    - source hpc-module-loads/eve.nagfor62
-    - source scripts/pre_check
-    - python -u edk_checks_run.py -l logs -e ../edk_debug
+    - source hpc-module-loads/eve.intel2023b-classic
+    - source scripts/compile
+    - source scripts/compile_debug
+    - source scripts/compile_OpenMP
+    - source scripts/compile_OpenMP_debug
   artifacts:
-    when: always
     paths:
-    - check/logs/
-
-check-gfortran73:
-  when: always
-  stage: check-cases
-  needs:
-    - job: cmake-gfortran73
-      artifacts: true
-  script:
-    - source hpc-module-loads/eve.gfortran73
-    - source scripts/pre_check
-    - python -u edk_checks_run.py -l logs -e ../edk_debug ../edk ../edk_openmp_debug ../edk_openmp -t 4
-  artifacts:
-    when: always
-    paths:
-    - check/logs/
-
-check-gfortran83:
-  when: always
-  stage: check-cases
-  needs:
-    - job: cmake-gfortran83
-      artifacts: true
-  script:
-    - source hpc-module-loads/eve.gfortran83
-    - source scripts/pre_check
-    - python -u edk_checks_run.py -l logs -e ../edk_debug ../edk ../edk_openmp_debug ../edk_openmp -t 4
-  artifacts:
-    when: always
-    paths:
-    - check/logs/
+    - edk
+    - edk_debug
+    - edk_openmp
+    - edk_openmp_debug
 
 check-gfortran102:
   when: always
@@ -261,29 +107,14 @@ check-gfortran102:
     paths:
     - check/logs/
 
-check-intel18:
+check-gfortran122:
   when: always
   stage: check-cases
   needs:
-    - job: cmake-intel18
+    - job: cmake-gfortran122
       artifacts: true
   script:
-    - source hpc-module-loads/eve.intel18
-    - source scripts/pre_check
-    - python -u edk_checks_run.py -l logs -e ../edk_debug ../edk ../edk_openmp_debug ../edk_openmp -t 4
-  artifacts:
-    when: always
-    paths:
-    - check/logs/
-
-check-intel19:
-  when: always
-  stage: check-cases
-  needs:
-    - job: cmake-intel19
-      artifacts: true
-  script:
-    - source hpc-module-loads/eve.intel19
+    - source hpc-module-loads/eve.gfortran122
     - source scripts/pre_check
     - python -u edk_checks_run.py -l logs -e ../edk_debug ../edk ../edk_openmp_debug ../edk_openmp -t 4
   artifacts:
@@ -306,13 +137,28 @@ check-intel2020b:
     paths:
     - check/logs/
 
+check-intel2023b-classic:
+  when: always
+  stage: check-cases
+  needs:
+    - job: cmake-intel2023b-classic
+      artifacts: true
+  script:
+    - source hpc-module-loads/eve.intel2023b-classic
+    - source scripts/pre_check
+    - python -u edk_checks_run.py -l logs -e ../edk_debug ../edk ../edk_openmp_debug ../edk_openmp -t 4
+  artifacts:
+    when: always
+    paths:
+    - check/logs/
+
 coverage:
   when: always
   stage: code-analysis
   needs: []
   script:
     # gcov is part of GCC
-    - source hpc-module-loads/eve.chs-conda01
+    - source hpc-module-loads/eve.chs-conda02
     # run cmake with coverage support
     - cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_WITH_COVERAGE=ON -B build
     - cmake --build build --parallel
@@ -321,10 +167,73 @@ coverage:
     # copy the output to a top-level folder
     - mkdir coverage
     - cp build/coverage/* coverage -R
+    - lcov_cobertura build/coverage.info
+  coverage: '/lines[\.]+\: (\d+\.\d+)\%/'
   artifacts:
     when: always
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
     paths:
     - coverage
+
+documentation:
+  when: always
+  stage: doc
+  needs: []
+  script:
+    - source hpc-module-loads/eve.chs-conda02
+    - module load GCC/12.2.0 texlive/20230904
+    # use doxygen from the chs conda environment
+    - if [ -f "version.txt" ]; then export PROJECT_NUMBER="$(cat version.txt)"; fi
+    - doxygen doc/doxygen.config > doxygen_log_dev.txt 2>&1
+    # create pdf documentation
+    - cd latex/ && make > ../doxygen_latex_dev.txt 2>&1
+    - cp refman.pdf ../html/edk_doc.pdf
+    - cp refman.pdf ../edk_doc_dev.pdf
+    - cd .. && mv html html_dev
+    - mv doxygen_warn.txt doxygen_warn_dev.txt
+  artifacts:
+    name: "$CI_COMMIT_REF_NAME"
+    paths:
+      - html_dev
+      - edk_doc_dev.pdf
+      - doxygen_log_dev.txt
+      - doxygen_latex_dev.txt
+      - doxygen_warn_dev.txt
+
+documentation_stable:
+  when: always
+  only:
+    - main
+  stage: doc
+  needs: []
+  variables:
+    GIT_DEPTH: 0
+  script:
+    # doc for latest version tag
+    - ml git-lfs
+    - git checkout $(git describe --match "v*" --abbrev=0 --tags $(git rev-list --tags --max-count=1))
+    - if [ ! -d "doc" ]; then git checkout $CI_COMMIT_REF_NAME; fi
+    - source hpc-module-loads/eve.chs-conda02
+    - module load GCC/12.2.0 texlive/20230904
+    # use doxygen from the chs conda environment
+    - if [ -f "version.txt" ]; then export PROJECT_NUMBER="$(cat version.txt)"; fi
+    - doxygen doc/doxygen.config > doxygen_log_tag.txt 2>&1
+    - cd latex/ && make > ../doxygen_latex_tag.txt 2>&1
+    - cp refman.pdf ../html/edk_doc.pdf
+    - cp refman.pdf ../edk_doc_tag.pdf
+    - cd .. && mv html html_tag
+    - mv doxygen_warn.txt doxygen_warn_tag.txt
+  artifacts:
+    name: "$CI_COMMIT_REF_NAME"
+    paths:
+      - html_tag
+      - edk_doc_tag.pdf
+      - doxygen_log_tag.txt
+      - doxygen_latex_tag.txt
+      - doxygen_warn_tag.txt
 
 pages:
   only:

@@ -1,5 +1,6 @@
 !> \file    EDK_driver.f90
-!> \copydoc ed_kriging
+!> \brief   \copybrief ed_kriging
+!> \details \copydetails ed_kriging
 
 !> \brief   External drift kriging - EDK
 !> \details Perform EDK (daily)
@@ -12,6 +13,8 @@
 !!          - blocks, whole Germany
 !> \date    04.02.2012
 !!          - changed to general edk version (excluded block seperation)
+!> \copyright Copyright 2005-\today, the CHS Developers, Sabine Attinger: All rights reserved.
+!! EDK is released under the LGPLv3+ license \license_note
 program ED_Kriging
 
   use mo_kind                , only: i4, dp, sp

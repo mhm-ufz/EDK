@@ -1,5 +1,6 @@
 !> \file    mo_edk_setvario.f90
-!> \copydoc mo_edk_setvario
+!> \brief   \copybrief mo_edk_setvario
+!> \details \copydetails mo_edk_setvario
 
 !> \brief   VARIOGRAM: Seting or estimating and fitting
 !> \details PURPOSE:
@@ -11,6 +12,8 @@
 !> \date    19.02.2004
 !!          - main structure
 !> \date    12.04.2006
+!> \copyright Copyright 2005-\today, the CHS Developers, Sabine Attinger: All rights reserved.
+!! EDK is released under the LGPLv3+ license \license_note
 module mo_edk_setvario
   use mo_kind, only: i4, dp
   implicit none
@@ -131,7 +134,7 @@ contains
           ! check if stations are closer than 5 meter
           print* , '--------------------------------------------------------------------------'
           print* , '!!! Warning: '
-          print* , '!!! Stations: ', MetSta(i)%Id, ' and ', MetSta(j)%Id 
+          print* , '!!! Stations: ', MetSta(i)%Id, ' and ', MetSta(j)%Id
           print* , '!!! have the same coordinates or are repeated. Check LUT. '
           print* , '!!! Rounded artefacts can be generated when stations have same coordinates'
           print* , '!!! and data at the time.'
@@ -141,13 +144,13 @@ contains
         if (edk_dist%getSS(i,j) > 0.0_dp .and. edk_dist%getSS(i,j) < 5.0_dp) then
           print* , '--------------------------------------------------------------------------'
           print* , '!!! Warning: '
-          print* , '!!! Stations: ', MetSta(i)%Id, ' and ', MetSta(j)%Id 
+          print* , '!!! Stations: ', MetSta(i)%Id, ' and ', MetSta(j)%Id
           print* , '!!!  are closer than 5 meter distance. '
-          print* , '--------------------------------------------------------------------------' 
+          print* , '--------------------------------------------------------------------------'
         end if
       end do
     end do
-  
+
     ! cell coordinates and elevation : checked OK
     ! ***************************************
     ! cell numbering convention (1DIM first)
