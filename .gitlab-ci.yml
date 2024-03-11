@@ -13,6 +13,7 @@ stages:
   - build
   - check-cases
   - code-analysis
+  - doc
   - deploy
 
 show-env-vars:
@@ -29,61 +30,6 @@ show-env-vars:
     S06: "runner token: ${CI_RUNNER_SHORT_TOKEN}"
   script:
     - echo -e "${SEP}\n${S00}$(date)\n${SEP}\n${S01}\n${S02}\n${S03}\n${S04}\n${SEP}\n${S05}${GIT_CLONE_PATH}\n${S06}\n${SEP}"
-
-documentation:
-  stage: build
-  script:
-    - source hpc-module-loads/eve.chs-conda02
-    - module load GCC/12.2.0 texlive/20230904
-    # use doxygen from the chs conda environment
-    - if [ -f "version.txt" ]; then export PROJECT_NUMBER="$(cat version.txt)"; fi
-    - doxygen doc/doxygen.config > doxygen_log_dev.txt
-    # create pdf documentation
-    - cd latex/ && make > ../doxygen_latex_dev.txt
-    - cp refman.pdf ../html/edk_doc.pdf
-    - cp refman.pdf ../edk_doc_dev.pdf
-    - cd .. && mv html html_dev
-    - mv doxygen_warn.txt doxygen_warn_dev.txt
-  artifacts:
-    name: "$CI_COMMIT_REF_NAME"
-    paths:
-      - html_dev
-      - edk_doc_dev.pdf
-      - doxygen_log_dev.txt
-      - doxygen_latex_dev.txt
-      - doxygen_warn_dev.txt
-  when: always
-
-documentation_stable:
-  only:
-    - main
-  stage: build
-  variables:
-    GIT_DEPTH: 0
-  script:
-    # doc for latest version tag
-    - ml git-lfs
-    - git checkout $(git describe --match "v*" --abbrev=0 --tags $(git rev-list --tags --max-count=1))
-    - if [ ! -d "doc" ]; then git checkout $CI_COMMIT_REF_NAME; fi
-    - source hpc-module-loads/eve.chs-conda02
-    - module load GCC/12.2.0 texlive/20230904
-    # use doxygen from the chs conda environment
-    - if [ -f "version.txt" ]; then export PROJECT_NUMBER="$(cat version.txt)"; fi
-    - doxygen doc/doxygen.config > doxygen_log_tag.txt
-    - cd latex/ && make > ../doxygen_latex_tag.txt
-    - cp refman.pdf ../html/edk_doc.pdf
-    - cp refman.pdf ../edk_doc_tag.pdf
-    - cd .. && mv html html_tag
-    - mv doxygen_warn.txt doxygen_warn_tag.txt
-  artifacts:
-    name: "$CI_COMMIT_REF_NAME"
-    paths:
-      - html_tag
-      - edk_doc_tag.pdf
-      - doxygen_log_tag.txt
-      - doxygen_latex_tag.txt
-      - doxygen_warn_tag.txt
-  when: always
 
 cmake-gfortran102:
   stage: build
@@ -231,6 +177,63 @@ coverage:
         path: coverage.xml
     paths:
     - coverage
+
+documentation:
+  when: always
+  stage: doc
+  needs: []
+  script:
+    - source hpc-module-loads/eve.chs-conda02
+    - module load GCC/12.2.0 texlive/20230904
+    # use doxygen from the chs conda environment
+    - if [ -f "version.txt" ]; then export PROJECT_NUMBER="$(cat version.txt)"; fi
+    - doxygen doc/doxygen.config > doxygen_log_dev.txt
+    # create pdf documentation
+    - cd latex/ && make > ../doxygen_latex_dev.txt
+    - cp refman.pdf ../html/edk_doc.pdf
+    - cp refman.pdf ../edk_doc_dev.pdf
+    - cd .. && mv html html_dev
+    - mv doxygen_warn.txt doxygen_warn_dev.txt
+  artifacts:
+    name: "$CI_COMMIT_REF_NAME"
+    paths:
+      - html_dev
+      - edk_doc_dev.pdf
+      - doxygen_log_dev.txt
+      - doxygen_latex_dev.txt
+      - doxygen_warn_dev.txt
+
+documentation_stable:
+  when: always
+  only:
+    - main
+  stage: doc
+  needs: []
+  variables:
+    GIT_DEPTH: 0
+  script:
+    # doc for latest version tag
+    - ml git-lfs
+    - git checkout $(git describe --match "v*" --abbrev=0 --tags $(git rev-list --tags --max-count=1))
+    - if [ ! -d "doc" ]; then git checkout $CI_COMMIT_REF_NAME; fi
+    - source hpc-module-loads/eve.chs-conda02
+    - module load GCC/12.2.0 texlive/20230904
+    # use doxygen from the chs conda environment
+    - if [ -f "version.txt" ]; then export PROJECT_NUMBER="$(cat version.txt)"; fi
+    - doxygen doc/doxygen.config > doxygen_log_tag.txt
+    - cd latex/ && make > ../doxygen_latex_tag.txt
+    - cp refman.pdf ../html/edk_doc.pdf
+    - cp refman.pdf ../edk_doc_tag.pdf
+    - cd .. && mv html html_tag
+    - mv doxygen_warn.txt doxygen_warn_tag.txt
+  artifacts:
+    name: "$CI_COMMIT_REF_NAME"
+    paths:
+      - html_tag
+      - edk_doc_tag.pdf
+      - doxygen_log_tag.txt
+      - doxygen_latex_tag.txt
+      - doxygen_warn_tag.txt
 
 pages:
   only:
