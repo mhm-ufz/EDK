@@ -187,9 +187,9 @@ documentation:
     - module load GCC/12.2.0 texlive/20230904
     # use doxygen from the chs conda environment
     - if [ -f "version.txt" ]; then export PROJECT_NUMBER="$(cat version.txt)"; fi
-    - doxygen doc/doxygen.config > doxygen_log_dev.txt
+    - doxygen doc/doxygen.config > doxygen_log_dev.txt 2>&1
     # create pdf documentation
-    - cd latex/ && make > ../doxygen_latex_dev.txt
+    - cd latex/ && make > ../doxygen_latex_dev.txt 2>&1
     - cp refman.pdf ../html/edk_doc.pdf
     - cp refman.pdf ../edk_doc_dev.pdf
     - cd .. && mv html html_dev
@@ -220,8 +220,8 @@ documentation_stable:
     - module load GCC/12.2.0 texlive/20230904
     # use doxygen from the chs conda environment
     - if [ -f "version.txt" ]; then export PROJECT_NUMBER="$(cat version.txt)"; fi
-    - doxygen doc/doxygen.config > doxygen_log_tag.txt
-    - cd latex/ && make > ../doxygen_latex_tag.txt
+    - doxygen doc/doxygen.config > doxygen_log_tag.txt 2>&1
+    - cd latex/ && make > ../doxygen_latex_tag.txt 2>&1
     - cp refman.pdf ../html/edk_doc.pdf
     - cp refman.pdf ../edk_doc_tag.pdf
     - cd .. && mv html html_tag
