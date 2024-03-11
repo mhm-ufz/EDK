@@ -33,8 +33,8 @@ show-env-vars:
 documentation:
   stage: build
   script:
-    - source hpc-module-loads/eve.chs-conda01
-    - module load GCCcore/9.3.0 texlive/2020
+    - source hpc-module-loads/eve.chs-conda02
+    - module load GCC/12.2.0 texlive/20230904
     # use doxygen from the chs conda environment
     - if [ -f "version.txt" ]; then export PROJECT_NUMBER="$(cat version.txt)"; fi
     - doxygen doc/doxygen.config > doxygen_log_dev.txt
@@ -65,8 +65,8 @@ documentation_stable:
     - ml git-lfs
     - git checkout $(git describe --match "v*" --abbrev=0 --tags $(git rev-list --tags --max-count=1))
     - if [ ! -d "doc" ]; then git checkout $CI_COMMIT_REF_NAME; fi
-    - source hpc-module-loads/eve.chs-conda01
-    - module load GCCcore/9.3.0 texlive/2020
+    - source hpc-module-loads/eve.chs-conda02
+    - module load GCC/12.2.0 texlive/20230904
     # use doxygen from the chs conda environment
     - if [ -f "version.txt" ]; then export PROJECT_NUMBER="$(cat version.txt)"; fi
     - doxygen doc/doxygen.config > doxygen_log_tag.txt
@@ -85,81 +85,10 @@ documentation_stable:
       - doxygen_warn_tag.txt
   when: always
 
-cmake-nagfor62:
-  stage: build
-  script:
-    - source hpc-module-loads/eve.nagfor62
-    - source scripts/compile
-    - source scripts/compile_debug
-  artifacts:
-    paths:
-    - edk
-    - edk_debug
-
-cmake-gfortran73:
-  stage: build
-  script:
-    - source hpc-module-loads/eve.gfortran73
-    - source scripts/compile
-    - source scripts/compile_debug
-    - source scripts/compile_OpenMP
-    - source scripts/compile_OpenMP_debug
-  artifacts:
-    paths:
-    - edk
-    - edk_debug
-    - edk_openmp
-    - edk_openmp_debug
-
-cmake-gfortran83:
-  stage: build
-  script:
-    - source hpc-module-loads/eve.gfortran83
-    - source scripts/compile
-    - source scripts/compile_debug
-    - source scripts/compile_OpenMP
-    - source scripts/compile_OpenMP_debug
-  artifacts:
-    paths:
-    - edk
-    - edk_debug
-    - edk_openmp
-    - edk_openmp_debug
-
 cmake-gfortran102:
   stage: build
   script:
     - source hpc-module-loads/eve.gfortran102
-    - source scripts/compile
-    - source scripts/compile_debug
-    - source scripts/compile_OpenMP
-    - source scripts/compile_OpenMP_debug
-  artifacts:
-    paths:
-    - edk
-    - edk_debug
-    - edk_openmp
-    - edk_openmp_debug
-
-cmake-intel18:
-  stage: build
-  script:
-    - source hpc-module-loads/eve.intel18
-    - source scripts/compile
-    - source scripts/compile_debug
-    - source scripts/compile_OpenMP
-    - source scripts/compile_OpenMP_debug
-  artifacts:
-    paths:
-    - edk
-    - edk_debug
-    - edk_openmp
-    - edk_openmp_debug
-
-cmake-intel19:
-  stage: build
-  script:
-    - source hpc-module-loads/eve.intel19
     - source scripts/compile
     - source scripts/compile_debug
     - source scripts/compile_OpenMP
@@ -186,66 +115,6 @@ cmake-intel2020b:
     - edk_openmp
     - edk_openmp_debug
 
-check-nagfor62:
-  when: always
-  stage: check-cases
-  needs:
-    - job: cmake-nagfor62
-      artifacts: true
-  script:
-    - source hpc-module-loads/eve.nagfor62
-    - source scripts/pre_check
-    - python -u edk_checks_run.py -l logs -e ../edk
-  artifacts:
-    when: always
-    paths:
-    - check/logs/
-
-check-nagfor62DEBUG:
-  when: always
-  stage: check-cases
-  needs:
-    - job: cmake-nagfor62
-      artifacts: true
-  script:
-    - source hpc-module-loads/eve.nagfor62
-    - source scripts/pre_check
-    - python -u edk_checks_run.py -l logs -e ../edk_debug
-  artifacts:
-    when: always
-    paths:
-    - check/logs/
-
-check-gfortran73:
-  when: always
-  stage: check-cases
-  needs:
-    - job: cmake-gfortran73
-      artifacts: true
-  script:
-    - source hpc-module-loads/eve.gfortran73
-    - source scripts/pre_check
-    - python -u edk_checks_run.py -l logs -e ../edk_debug ../edk ../edk_openmp_debug ../edk_openmp -t 4
-  artifacts:
-    when: always
-    paths:
-    - check/logs/
-
-check-gfortran83:
-  when: always
-  stage: check-cases
-  needs:
-    - job: cmake-gfortran83
-      artifacts: true
-  script:
-    - source hpc-module-loads/eve.gfortran83
-    - source scripts/pre_check
-    - python -u edk_checks_run.py -l logs -e ../edk_debug ../edk ../edk_openmp_debug ../edk_openmp -t 4
-  artifacts:
-    when: always
-    paths:
-    - check/logs/
-
 check-gfortran102:
   when: always
   stage: check-cases
@@ -254,36 +123,6 @@ check-gfortran102:
       artifacts: true
   script:
     - source hpc-module-loads/eve.gfortran102
-    - source scripts/pre_check
-    - python -u edk_checks_run.py -l logs -e ../edk_debug ../edk ../edk_openmp_debug ../edk_openmp -t 4
-  artifacts:
-    when: always
-    paths:
-    - check/logs/
-
-check-intel18:
-  when: always
-  stage: check-cases
-  needs:
-    - job: cmake-intel18
-      artifacts: true
-  script:
-    - source hpc-module-loads/eve.intel18
-    - source scripts/pre_check
-    - python -u edk_checks_run.py -l logs -e ../edk_debug ../edk ../edk_openmp_debug ../edk_openmp -t 4
-  artifacts:
-    when: always
-    paths:
-    - check/logs/
-
-check-intel19:
-  when: always
-  stage: check-cases
-  needs:
-    - job: cmake-intel19
-      artifacts: true
-  script:
-    - source hpc-module-loads/eve.intel19
     - source scripts/pre_check
     - python -u edk_checks_run.py -l logs -e ../edk_debug ../edk ../edk_openmp_debug ../edk_openmp -t 4
   artifacts:
@@ -312,7 +151,7 @@ coverage:
   needs: []
   script:
     # gcov is part of GCC
-    - source hpc-module-loads/eve.chs-conda01
+    - source hpc-module-loads/eve.chs-conda02
     # run cmake with coverage support
     - cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_WITH_COVERAGE=ON -B build
     - cmake --build build --parallel
