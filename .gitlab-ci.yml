@@ -137,14 +137,14 @@ check-intel2020b:
     paths:
     - check/logs/
 
-check-intel2023bMPI-classic:
+check-intel2023b-classic:
   when: always
   stage: check-cases
   needs:
-    - job: cmake-intel2023bMPI-classic
+    - job: cmake-intel2023b-classic
       artifacts: true
   script:
-    - source hpc-module-loads/eve.intel2023bMPI-classic
+    - source hpc-module-loads/eve.intel2023b-classic
     - source scripts/pre_check
     - python -u edk_checks_run.py -l logs -e ../edk_debug ../edk ../edk_openmp_debug ../edk_openmp -t 4
   artifacts:
