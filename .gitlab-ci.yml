@@ -100,10 +100,41 @@ cmake-gfortran102:
     - edk_openmp
     - edk_openmp_debug
 
+cmake-gfortran122:
+  stage: build
+  script:
+    - source hpc-module-loads/eve.gfortran122
+    - source scripts/compile
+    - source scripts/compile_debug
+    - source scripts/compile_OpenMP
+    - source scripts/compile_OpenMP_debug
+  artifacts:
+    paths:
+    - edk
+    - edk_debug
+    - edk_openmp
+    - edk_openmp_debug
+
 cmake-intel2020b:
   stage: build
   script:
     - source hpc-module-loads/eve.intel2020b
+    - source scripts/compile
+    - source scripts/compile_debug
+    - source scripts/compile_OpenMP
+    - source scripts/compile_OpenMP_debug
+  artifacts:
+    paths:
+    - edk
+    - edk_debug
+    - edk_openmp
+    - edk_openmp_debug
+
+
+cmake-intel2023b-classic:
+  stage: build
+  script:
+    - source hpc-module-loads/eve.intel2023b-classic
     - source scripts/compile
     - source scripts/compile_debug
     - source scripts/compile_OpenMP
@@ -130,6 +161,21 @@ check-gfortran102:
     paths:
     - check/logs/
 
+check-gfortran122:
+  when: always
+  stage: check-cases
+  needs:
+    - job: cmake-gfortran122
+      artifacts: true
+  script:
+    - source hpc-module-loads/eve.gfortran122
+    - source scripts/pre_check
+    - python -u edk_checks_run.py -l logs -e ../edk_debug ../edk ../edk_openmp_debug ../edk_openmp -t 4
+  artifacts:
+    when: always
+    paths:
+    - check/logs/
+
 check-intel2020b:
   when: always
   stage: check-cases
@@ -138,6 +184,21 @@ check-intel2020b:
       artifacts: true
   script:
     - source hpc-module-loads/eve.intel2020b
+    - source scripts/pre_check
+    - python -u edk_checks_run.py -l logs -e ../edk_debug ../edk ../edk_openmp_debug ../edk_openmp -t 4
+  artifacts:
+    when: always
+    paths:
+    - check/logs/
+
+check-intel2023bMPI-classic:
+  when: always
+  stage: check-cases
+  needs:
+    - job: cmake-intel2023bMPI-classic
+      artifacts: true
+  script:
+    - source hpc-module-loads/eve.intel2023bMPI-classic
     - source scripts/pre_check
     - python -u edk_checks_run.py -l logs -e ../edk_debug ../edk ../edk_openmp_debug ../edk_openmp -t 4
   artifacts:
