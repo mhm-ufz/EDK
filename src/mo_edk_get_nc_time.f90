@@ -17,7 +17,7 @@
 !> \author  Maren Kaluza
 !> \date    May 2018
 !!          - fixed bug in time reading
-!> \copyright Copyright 2005-\today, the CHS Developers, Sabine Attinger: All rights reserved.
+!> \copyright Copyright 2005-\today, the CHS Developers, Luis Samaniego, Sabine Attinger: All rights reserved.
 !! EDK is released under the LGPLv3+ license \license_note
 module mo_edk_get_nc_time
 

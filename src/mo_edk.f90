@@ -14,7 +14,7 @@
 !!          - IWD if No stations < 2
 !> \date    07.02.2012
 !!          - correct prec data < 0 --> = 0
-!> \copyright Copyright 2005-\today, the CHS Developers, Sabine Attinger: All rights reserved.
+!> \copyright Copyright 2005-\today, the CHS Developers, Luis Samaniego, Sabine Attinger: All rights reserved.
 !! EDK is released under the LGPLv3+ license \license_note
 module mo_edk
 

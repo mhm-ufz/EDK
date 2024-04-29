@@ -6,7 +6,7 @@
 !> \author  Luis Samaniego
 !> \date    21.03.2006
 !> \date    11.06.2010
-!> \copyright Copyright 2005-\today, the CHS Developers, Sabine Attinger: All rights reserved.
+!> \copyright Copyright 2005-\today, the CHS Developers, Luis Samaniego, Sabine Attinger: All rights reserved.
 !! EDK is released under the LGPLv3+ license \license_note
 module mo_edk_read_data
 
