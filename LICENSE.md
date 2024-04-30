@@ -9,7 +9,7 @@ This file is part of the UFZ CHS External Drift Kriging (EDK) program.
 
 ## COPYRIGHT HOLDERS
 
- Copyright(c) 2005-2024, the CHS Developers, Sabine Attinger: All rights reserved.
+ Copyright(c) 2005-2024, the CHS Developers, Luis Samaniego, Sabine Attinger: All rights reserved.
 
 The code is a property of:
 

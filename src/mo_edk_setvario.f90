@@ -12,7 +12,7 @@
 !> \date    19.02.2004
 !!          - main structure
 !> \date    12.04.2006
-!> \copyright Copyright 2005-\today, the CHS Developers, Sabine Attinger: All rights reserved.
+!> \copyright Copyright 2005-\today, the CHS Developers, Luis Samaniego, Sabine Attinger: All rights reserved.
 !! EDK is released under the LGPLv3+ license \license_note
 module mo_edk_setvario
   use mo_kind, only: i4, dp
